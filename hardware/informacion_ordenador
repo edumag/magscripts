@@ -1,0 +1,113 @@
+#!/bin/bash 
+
+## @file informacion_ordenador
+## 
+## @brief Presentar por pantalla la información relevante del ordenador
+## 
+## Nos permite con un solo comando tener un informe de las características del hardware del ordenador
+## 
+## dependencias: dmidecode lspci fdisk
+## 
+## @author   Eduardo Magrané
+## 
+## @internal
+##
+##       web  http://www.mamedu.com
+##
+##      mail  eduardo.mamedu.com
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+## 
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+## Mostrar ayuda
+
+function help() {
+
+   local -i count=0
+   while read linea ; do 
+      let count++
+      if [ $count -gt 2 ] ; then
+         [ "$linea" = "" ] && return
+         echo "$linea" | sed 's/^##//' | sed 's/@brief //' | sed 's/@file //' 
+      fi
+   done < "$0"
+   echo
+
+   }
+
+# Si no estamos en una consola lanzamos terminal
+
+tty > /dev/null
+salida="$?"
+
+if [ "$salida" != "0" ] ; then
+   terminales="xterm gnome-terminal konsole"
+   term=""
+   for terminal in $terminales ; do
+      term="`whereis $terminal`"
+      term="${term/#*:}"
+      if [ "$term" != "" ] ; then break ; fi
+   done
+   cmd="$terminal -e '$0 $* ; read'"
+   eval `echo "$cmd"` &
+   [[ "$?" != 0 ]] && error "Al lanzar terminal, comando: \n$cmd"
+   exit
+fi
+
+if [ "$1" == "--help" ] || [ "$1" == "-h" ] ; then
+   help
+   exit
+fi
+
+if [ "$USER" != "root" ] ; then
+   echo
+   echo Es necesario ser root para lanzar el script
+   echo
+   sudo $0 $*
+   exit
+fi
+
+function _informacion_hardware() {
+
+   echo
+   echo '====================='
+   echo 'Información Ordenador'
+   echo '====================='
+   echo
+
+   echo
+   echo 'Información de la bios'
+   echo '----------------------'
+   echo
+
+   dmidecode -t bios
+
+   echo
+   echo 'Información de la placa madre'
+   echo '-----------------------------'
+   echo
+
+   dmidecode -t baseboard
+
+   echo
+   echo 'PCI'
+   echo '---'
+   echo
+
+   lspci
+
+   echo
+   echo 'Información particiones'
+   echo '-----------------------'
+   echo
+
+   fdisk -l /dev/sda
+
+   }
+
+_informacion_hardware
+

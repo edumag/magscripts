@@ -1,0 +1,198 @@
+#!/bin/bash 
+
+## @file logoAimagen
+## 
+## @brief Insertar logo en una imagen
+##
+## logoAimagen -l <logo> <imágenes a transformar>"
+## 
+## Opciones:
+## <pre>
+## -l                       Logo a añadir
+## -g                       Lugar donde ubicar el logo, por defecto SouthEast
+## --help | -h              Pantalla de ayuda
+## </pre>
+##
+## dependencias: composite zenity
+##
+## @author   Eduardo Magrané
+##
+## @internal
+##
+##       web  http://www.mamedu.com
+##
+##      mail  eduardo.mamedu.com
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+## 
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+## Mostrar ayuda
+
+function help() {
+
+   local -i count=0
+   while read linea ; do 
+      let count++
+      if [ $count -gt 2 ] ; then
+         [ "$linea" = "" ] && return
+         echo "$linea" | sed 's/^##//' | sed 's/@brief //' | sed 's/@file //' 
+      fi
+   done < "$0"
+   echo
+
+   }
+
+prog=`basename $0`
+
+# colores
+
+cNormal="\033[0m"
+cError="\033[1;31m"
+cAviso="\033[1;37m"
+cComentario="\033[47m\033[1;30m"
+cAfirmativo="\033[1;32m"
+cDestacado="\033[1;37m"
+
+## Añadimos color
+# 
+# Uso:
+# color <tipo de color> 
+# 
+# @param color Color a añadir 
+
+color() { if [ "$var_color" = 'si' ] ; then local c=${1:-cNormal} ; echo -e "${!c}" ; fi }
+
+# Variables configurables
+
+var_fich_conf="$HOME/.${prog}rc"
+desc_var_fich_conf="Archivo de configuración"
+var_color=si
+desc_var_color='Presentar colores'
+
+# Si tenemos fichero de configuración recogemos lo insertamos
+[[ -e "$var_fich_conf" ]] && source $var_fich_conf
+
+function help() {
+
+   echo
+   echo "uso"
+   echo "uso" | sed s/./-/g
+   echo
+   echo
+   echo "$prog -info, Para más información"
+   echo
+
+}
+
+function error() {
+
+    if [ `tty` ] ; then
+        echo
+        echo `color cError` $1 `color`
+        echo
+        echo Ayuda
+        echo -----
+        echo
+        help
+    else
+        zenity --error --text="$1\n\nAyuda:\n\n`help`"
+    fi
+
+    exit "$2"
+   }
+
+function comprobar_dependencias() {
+
+   local salir=no
+
+   echo
+   echo Comprobar dependencias
+   for d in $dependencias ; do
+   s="`whereis $d`"
+   s="${s/#*:}"
+   if [ -z "$s" ] ; then
+         echo "   - $d `color cError`[NO]`color`"
+         salir=si
+      else
+         echo "   - $d `color cAfirmativo`[si]`color`"
+      fi
+   done
+
+   if [ "$salir" = "si" ] ; then
+      echo
+      echo `color cError`Necesitas instalar los programas no encontrados`color`
+      exit 1
+   fi
+}
+
+while [ -n "$1" ] ; do
+
+   case "$1" in
+      
+      -h|-help|--help) help ; exit ;;
+      -l) logo="$2" ; shift 2;;
+      -g) gravity="$2" ; shift 2 ;;
+      *) break;; 
+
+   esac
+
+done
+
+if [ -z "$gravity" ];then
+
+    gravity=$(zenity --list --title="Elija lugar donde se ubicara el logo" --column='' --column="Orientacion" --radiolist FALSE NorthWest FALSE North FALSE NorthEast FALSE West FALSE Center FALSE East FALSE SouthWest FALSE South TRUE SouthEast)
+
+
+
+    if [ -z "$gravity" ];then
+        gravity="SouthEast"
+    fi
+fi
+
+if [ -z "$logo" ];then
+
+    FILE=`zenity --file-selection --title="Seleccione el logo"`
+
+    case $? in
+
+        0)
+        logo="$FILE"
+        echo "\"$FILE\" seleccionado.";;
+        1)
+        echo "No ha seleccionado ningún archivo.";;
+        -1)
+        echo "No ha seleccionado ningún archivo.";;
+    esac
+
+    if [ -z "$logo" ];then
+        error "Imagen sin especificar, -l <imagen_estampa>" 1
+    fi
+fi
+
+if [ -z "$1" ];then
+    error "Imagen sin espicificar" 1
+fi
+
+for imgfile in $* ;do
+    if [ ! -r "$imgfile" ]; then
+        echo "ERROR: No puedo leer imagen $imgfile"
+    else
+        bn=`basename "$imgfile"`
+        dn=`dirname "$imgfile"`
+        if echo "$bn" | grep "^logo_" > /dev/null ; then
+            echo "File $imgfile has already logo_ in its name, ignored..."
+            continue
+        fi
+        outfilename="$dn/logo_$bn"
+        echo "writing $outfilename ..."
+        composite -gravity ${gravity:-SouthEast} -dissolve 100 "$logo" "$imgfile" "$outfilename"
+        [[ $? != 0 ]] && error "Error al procesar imagen $imgfile" 1
+    fi
+done
+
+if [ `tty` ] ; then exit 0 ; else zenity --info --text="$prog terminado" ; fi
+

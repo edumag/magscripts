@@ -1,0 +1,206 @@
+#!/bin/bash 
+
+## @file archivarFotos
+## @brief Automatizar el proceso de archivar las fotos
+##
+## Características del programa
+## 
+##  - Con este programa y con ayuda de jhead extremos la información de las fotos que queremos guardar.
+##  - Añadimos fecha de la imagen al nombre de la carpeta donde se guardaran.
+##  - Giramos las fotos automáticamente.
+## 
+## dependencias: jhead
+##
+## @author   Eduardo Magrané
+##
+## @internal
+##
+##       web  http://www.mamedu.com
+##
+##      mail  eduardo.mamedu.com
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+## 
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+# Variables globales
+
+prog=`basename $0`
+fc="\033[0m"      # Normal
+
+# Variables configurables
+
+var_fich_conf="$HOME/.${prog}rc"
+desc_var_fich_conf="Archivo de configuración"
+var_dir_galerias="$HOME/fotos"
+desc_var_dir_galerias="Directorio predeterminado para guardar las fotos"
+var_color_1="\033[0;33m"
+desc_var_color_1='Color para el texto que se ha de destacar'
+var_prog_ver_archivos='xdg-open'
+desc_var_prog_ver_archivos='Navegador de archivos'
+
+# Si tenemos fichero de configuración recogemos lo insertamos
+[[ -e "$var_fich_conf" ]] && source $var_fich_conf
+
+## Mostrar ayuda
+
+function help() {
+
+   head -n 18 "$0" | grep '## ' | sed 's/^## //' | sed 's/@brief /\n/' | sed 's/@file //'
+
+   echo 'Variables configurables'
+   echo '-----------------------'
+   for var in ${!var_*} ; do d="desc_$var" ; echo ; echo "# ${!d}" ; echo "$var='${!var}'" ; done
+   echo
+
+   }
+
+declare -a imagenes
+
+if [ "$1" = "-h" ] || [ "$1" = "-info" ] ; then help ; exit ; fi
+
+if [ "$1" = "" ] ; then
+   # No hay argumentos pedimos directorio de imágenes
+   DIR=$(zenity  --title="Seleciona directorio de las imagenes a archivar" --file-selection --directory)
+   set $1 $DIR
+fi
+
+if [ -d "$1" ] ; then
+   # Si el primer parámetro es un directorio buscamos las imágenes
+   # dentro de él
+   DIR=$1
+   shift 
+   # Posibles extensiones
+   EXTS="[jpg|jpeg|gif|mov|mpeg|mpg|raw|avi|png|JPG|JPEG|AVI]"
+   conta=0
+   DIFS="$IFS" # separador fin de linea para que salga linea por linea
+   IFS=$'\n'
+   for x in `find "$DIR" -type f` ; do
+      if [ `echo $x | grep -i $EXTS` ] ; then
+         imagenes[$conta]="${x}\n"
+         elementos="${elementos}${x}\n"
+         conta=$(($conta+1))
+      fi
+   done
+   IFS="$DIFS"
+   
+else
+   conta=0
+   while [ "$1" != "" ] ; do
+      if [ "`echo $1 | grep gphoto2`" != "" ] ; then
+         echo "GPHOTO"
+         echo "Sin soporte para gphoto2"
+         exit
+      fi
+      elementos="${elementos}${1}\n"
+      conta=$(($conta+1))
+      shift
+   done
+fi
+
+set "$@" `echo $elementos`
+
+echo -e "\n${conta} elementos:\n$*"
+
+# Las imágenes que entran se guardan en el disco duro
+
+if [ -z $var_dir_galerias ] ; then
+   var_dir_galerias=$(zenity --title  "Directorio destino" --entry --entry-text="$var_dir_galerias" --text "Introduce el directorio de las galerias de imagenes")
+else
+   # Preguntar directorio
+   var_dir_galerias=$(zenity --title  "Directorio destino" --entry --entry-text="$var_dir_galerias" --text "Introduce el directorio de las galerias de imagenes")
+fi
+
+echo "Directorio para las galerias: $var_dir_galerias"
+
+if [ "$var_dir_galerias" = "" ] ; then 
+   echo "Cancelado" 
+   exit 
+else
+   echo "var_dir_galerias=\"$var_dir_galerias\"" > $var_fich_conf
+fi
+
+# Nombre de la galería
+GALERIA=$(zenity --title  "Nombre de Galeria" --entry --text "Introduce el nombre de la galeria de las imagenes")
+
+if [ "$GALERIA" = "" ] ; then echo "Cancelado" ; exit ; fi
+
+
+
+zenity --question --text "Borrar originales"
+BORRAR=$?
+
+echo -e "\nBuscamos fecha de la primera imagen jpg que nos la pueda dar\n"
+DIFS="$IFS" # separador fin de linea para que salga linea por linea
+IFS=$'\n'
+for x in `echo -e $*` ; do
+   jhead "$x"
+   echo $x
+   if [ "$?" = "0" ] ; then
+      FECHA_EXIF="`jhead "$x" | grep Date/Time | sed \"s/Date\/Time    : //\" | sed \"s/:/-/g\" | cut -d' ' -f1`"
+      HORA_EXIF="`jhead "$x" | grep Date/Time | sed \"s/Date\/Time    : //\" | sed \"s/:/-/g\" | cut -d' ' -f2`"
+      break
+   fi
+done
+IFS="$DIFS"
+
+echo "FECHA_EXIF: $FECHA_EXIF"
+echo "HORA_EXIF: $HORA_EXIF"
+
+if [ "$FECHA_EXIF" != "" ] ; then
+   DESTINO="${var_dir_galerias}/${FECHA_EXIF}_$GALERIA"
+else
+   DESTINO="${var_dir_galerias}/`date +%Y-%m-%d`_$GALERIA"
+fi
+
+mkdir "$DESTINO"
+
+if [ -d "$DESTINO" ] ; then 
+   DIFS="$IFS" # separador fin de linea para que salga linea por linea
+   IFS=$'\n'
+   for x in `echo -e $*` ; do
+      j=$(echo $x | sed -e 's/\.jpg/\.jpeg/gi' )
+      
+      # Buscamos fecha por imagen individualmente para cambiar el nombre por la fecha
+      FECHA_EXIF="`jhead "$x" | grep Date/Time | sed \"s/Date\/Time    : //\" | sed \"s/:/-/g\" | cut -d' ' -f1`"
+      HORA_EXIF="`jhead "$x" | grep Date/Time | sed \"s/Date\/Time    : //\" | sed \"s/:/-/g\" | cut -d' ' -f2`"
+
+      if [ "$HORA_EXIF" != "" ] ; then
+         EXT_FICHERO="`echo $j | awk -v FS='.' '{print $NF}'`"
+         IMG_DESTINO="${DESTINO}/${GALERIA}_${FECHA_EXIF}_${HORA_EXIF}.$EXT_FICHERO"
+      else 
+         IMG_DESTINO="${DESTINO}/${GALERIA}_`basename \"$j\"`"
+      fi
+      
+      echo -e "\nOriginal: ${x}\nDestino: $IMG_DESTINO\n" 
+      
+      # Comprobar que no se duplique la imagen
+      if [ ! -e "$IMG_DESTINO" ] ; then 
+         if [ $BORRAR = 0 ] ; then
+            mv "$x" "$IMG_DESTINO"
+         else
+            cp "$x" "$IMG_DESTINO"
+         fi
+      else
+         zenity --title "ERROR" --error --text "Imagen duplicada"
+         exit
+      fi
+   done
+   IFS="$DIFS"
+else
+   echo "ERROR::No se pudo crear directorio"
+   zenity --title "ERROR" --error --text "No se pudo crear directorio"
+   exit
+fi
+
+# Rotamos las fotos automagicamente
+jhead -autorot "${DESTINO}/"*.jpeg
+
+# Cambiamos la fecha de la imagen por la fecha de creación de exif
+jhead -ft "${DESTINO}/"*.jpeg
+
+$var_prog_ver_archivos "$DESTINO" &
+exit

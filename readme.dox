@@ -1,0 +1,23 @@
+@page Readme
+
+@section instalacion Instalación
+
+Bajar scripts con subversion
+
+svn checkout http://magscripts.googlecode.com/svn/trunk/ magscripts-read-only
+
+Renombrar carpeta, por ejemplo: scripts
+
+mv magscripts-read-only scripts
+
+Añadir a PATH los scripts desde $HOME/.bashrc
+
+for x in $HOME/scripts/* ; do if [ -d $x ] ; then PATH="$PATH:$x" ; fi ; done
+export PATH
+
+@mainpage 
+
+Scripts para linux
+
+.
+- @subpage instalacion "Instalación"

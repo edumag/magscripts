@@ -1,0 +1,165 @@
+#!/bin/bash 
+
+## @file transformar_imagenes
+## 
+## @brief Transformar una imagen a formato jpg con la anchura o altura especificada
+##
+## Transformar una imagen a formato jpg con la anchura o altura especificada por el usuario.
+## 
+## Practico para una conversión rápida de imágenes para por ejemplo enviar por email.
+## 
+## Ejemplo de utilización de zenity.
+## 
+## @todo Las imágenes transformadas se guardan en el mismo directorio que las originales, estaría bien poder elegir un directorio diferente"
+## 
+## dependencias: convert zenity
+##
+## Opciones:
+## <pre>
+## --help | -h              Pantalla de ayuda
+## </pre>
+##
+## @author   Eduardo Magrané
+##
+## @internal
+##
+##       web  http://www.mamedu.com
+##
+##      mail  eduardo.mamedu.com
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+## 
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+## Mostrar ayuda
+
+function help() {
+
+   local -i count=0
+   while read linea ; do 
+      let count++
+      if [ $count -gt 2 ] ; then
+         [ "$linea" = "" ] && return
+         echo "$linea" | sed 's/^##//' | sed 's/@brief //' | sed 's/@file //' 
+      fi
+   done < "$0"
+   echo
+
+   }
+
+# Si se lanza el programa para saber si debe publicarse en la web
+# contestamos y salimos
+[[ "$1" = "--publico" ]] &&  echo 'SI' && exit 0 
+
+autor='Eduardo Magrané'
+mail='eduardo@mamedu.com'
+licencia='GNU/GPL 3.0'
+web='http://www.mamedu.com'
+prog=`basename $0`
+version='0.1'
+
+# colores
+
+cnormal="\033[0m"
+cerror="\033[1;31m"
+caviso="\033[1;37m"
+ccomentario="\033[47m\033[1;30m"
+cafirmativo="\033[1;32m"
+
+color() { if [ "$var_color" = 'si' ] ; then local c=${1:-$cnormal} ; echo -e "${!c}" ; fi }
+
+# Variables configurables
+
+var_fich_conf="$HOME/.${prog}rc"
+desc_var_fich_conf="Archivo de configuración"
+var_color=si
+desc_var_color='Presentar colores'
+
+var_anchura=450
+desc_var_anchura='Anchura por defecto'
+var_altura=600
+desc_var_altura='Altura por defecto'
+var_sufijo='_m'
+desc_var_sufijo='Sufijo para imagen transformada'
+
+# Si tenemos fichero de configuración recogemos lo insertamos
+[[ -e "$var_fich_conf" ]] && source $var_fich_conf
+
+while [ -n "$1" ] ; do
+
+   case "$1" in
+      
+      -h|-help|--help) help ; exit ;;
+      *) break ;;
+
+   esac
+
+done
+
+modificar_anchura=0
+modificar_altura=0
+
+if [ "$1" = "" ] ; then
+   # Escoger imágenes
+   imagenes="$(zenity  --title="Selecciona una imagen" --file-selection --multiple )"
+   s=''
+   DIFS="$IFS" ; IFS=$'\|'
+   for f in $imagenes ; do
+      s="$s \"$f\""
+   done
+   IFS="$DIFS"
+   eval "set - $s"
+fi
+
+if [ -z "$1" ] ; then
+   echo "Sin imágenes"
+   exit
+else
+   echo Imágenes: $*
+fi
+
+if [ "$DISPLAY" != "" ] ; then
+   SALIDA=$(zenity --list --title "Convirtiendo imágenes" --text "Encoje una opción" --column "Opciones" 'No modificar tamaño' 'Modificar por altura' 'Modificar por Anchura')
+   echo $SALIDA
+   if [ "$SALIDA" = "Modificar por Anchura" ] ; then
+      anchura=$(zenity  --title "Anchura" --entry --text "Anchura en pixeles")
+      [[ "$anchura" != "" ]] && modificar_anchura=1
+   elif [ "$SALIDA" = "Modificar por altura" ] ; then
+      altura=$(zenity  --title "Altura" --entry --text "Altura en pixeles")
+      [[ "$altura" != "" ]] && modificar_altura=1
+   fi
+fi
+
+# convertir imágenes a formato jpg
+
+DIFS="$IFS"
+IFS=$'\n'
+while [ "$1" != "" ] ; do
+	echo -e "\nConvirtiendo: " $1
+   # Eliminamos extensión
+	extension=$(echo $1 | awk -v FS='.' '{print $(NF)}')
+	echo $extension
+	cmd="awk -v FS='.${extension}' '{print \$1}'"
+	f2="$(echo $1 | eval $cmd)"
+
+	echo -e "a $f2-peque.jpg"
+   if [ $modificar_anchura = 1 ] ; then
+      cmd='convert -geometry x$anchura "$1" "${f2}${sufijo}_an${anchura}.jpg"'
+   elif [ $modificar_altura = 1 ] ; then
+      cmd='convert -geometry $altura "$1" "${f2}${sufijo}_al${altura}.jpg"'
+   else
+      cmd='convert "$1" "${f2}${sufijo}.jpg"'
+   fi
+
+   if [ "$DISPLAY" = "" ] ; then
+      eval $cmd
+   else
+      eval $cmd | zenity --progress --auto-close
+   fi
+	shift 1
+done
+IFS="$DIFS"
+

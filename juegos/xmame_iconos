@@ -1,0 +1,170 @@
+#!/bin/bash 
+
+## @file xmame_iconos
+## 
+## @brief Generación de iconos con las imágenes de las roms
+##
+## Creando un directorio que lance directamente los juegos.
+##
+## Si se necesitam imágenes de los juegos en internet se pueden encontrar en por 
+## ejemplo: http://www.progettosnaps.net/snaps_en.html.
+##
+##
+## Opciones:
+## <pre>
+## --help | -h              Pantalla de ayuda
+## </pre>
+##
+## @author   Eduardo Magrané
+##
+## @internal
+##
+##       web  http://www.mamedu.com
+##
+##      mail  eduardo.mamedu.com
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+## 
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+## Mostrar ayuda
+
+function help() {
+
+   local -i count=0
+   while read linea ; do 
+      let count++
+      if [ $count -gt 2 ] ; then
+         [ "$linea" = "" ] && return
+         echo "$linea" | sed 's/^##//' | sed 's/@brief //' | sed 's/@file //' 
+      fi
+   done < "$0"
+   echo
+
+   }
+
+
+# Modificar estas variables con los valores adecuados
+ROM_DIR='/home/todos/juegos/xmame/roms/'
+SNAP_DIR='/home/todos/juegos/xmame/snaps/'
+
+# XMAME='xmame.SDL'
+XMAME='xmame'
+# XMAME_OPCONES="-fullscreen -lang spanish -jt 1 -jdev /dev/input/js0 -jdev /dev/input/js -rp $ROM_DIR -snapshot_directory $SNAP_DIR "
+XMAME_OPCONES=" -rp $ROM_DIR -snapshot_directory $SNAP_DIR "
+
+colores=1
+
+autor='Eduardo Magrané'
+mail='eduardo.mamedu.com'
+licencia='GNU/GPL 3.0'
+web='http://www.mamedu.com'
+prog=`basename $0`
+version='0.1'
+
+verde() {
+
+   if [ $colores != 0 ] ; then
+     echo -e "\033[32m${@}\033[0m"
+  fi
+}
+
+rojo() {
+
+   if [ $colores != 0 ] ; then
+      echo -e "\033[31m${@}\033[0m"
+   fi
+}
+
+verificar_rom() {
+
+   [[ "$2" = "" ]] && ext=.png || ext=$2
+
+   ROM_NAME=`basename "$1" "$ext"`.zip
+   printf "%-20s" ${ROM_NAME}
+
+   # Nos saltamos la verificación
+   verde [OK]
+   return 0
+
+   # La verificación con xmame no funciona
+   $XMAME -rp $ROM_DIR -ik "$ROM_NAME" 1>/dev/null 2>/dev/null
+   if [ $? == 0 ] ; then
+      verde [OK]
+      return 0
+   else
+      rojo [KO]
+      return 1
+   fi
+
+   # ## Verificamos si existe
+   # if [ -f "${ROM_DIR}${ROM_NAME}" ] ; then
+   #    verde [OK]
+   #    return 0
+   # else
+   #    rojo [KO]
+   #    return 1
+   # fi
+}
+
+generar_icono() {
+
+   # echo generar icono: "$1"
+
+   ICONOS_DIR='iconos_xmame'
+
+   if [ ! -d "$ICONOS_DIR" ] ; then
+      mkdir "$ICONOS_DIR"
+   fi
+
+   cd "$ICONOS_DIR"
+
+   NOMBRE_ROM="`basename $1 '.png'`"
+   ICONO_NAME="`basename $1 '.png'`.desktop"
+
+   echo -e "[Desktop Entry]" > $ICONO_NAME
+   echo -e "Version=1.0" >> $ICONO_NAME
+   echo -e "Encoding=UTF-8" >> $ICONO_NAME
+   echo -e "Name=$NOMBRE_ROM" >> $ICONO_NAME
+   echo -e "Type=Application" >> $ICONO_NAME
+   echo -e "Terminal=false" >> $ICONO_NAME
+   echo -e "Icon[es_ES]=gnome-panel-launcher" >> $ICONO_NAME
+   echo -e "Name[es_ES]=$NOMBRE_ROM" >> $ICONO_NAME
+   echo -e "Exec=$XMAME $XMAME_OPCONES '${NOMBRE_ROM}'" >> $ICONO_NAME
+   echo -e "Icon=${1}" >> $ICONO_NAME
+   echo -e "GenericName[es_ES]=$NOMBRE_ROM" >> $ICONO_NAME
+
+   chmod +x "$ICONO_NAME"
+   cd ../
+
+   }
+
+while [ -n "$1" ] ; do
+
+   case "$1" in
+      
+      -h|-help|--help) help ; exit ;;
+      *) break ;;
+
+   esac
+
+done
+
+DIFS="$IFS" # separador fin de linea para que salga linea por linea
+IFS=$'\n'
+for file in ${ROM_DIR}* ; do
+
+   basename=`basename "$file" ".zip"`
+   dirnmae=`dirname "$file"`
+
+   verificar_rom "$file" ".zip"
+
+   if [ $? = 0 ] ; then
+      generar_icono "${SNAP_DIR}${basename}.png"
+   fi
+
+done
+IFS="$DIFS"

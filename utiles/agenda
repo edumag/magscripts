@@ -1,0 +1,211 @@
+#!/bin/bash
+
+## @file agenda
+##
+## @brief Pequeña agenda que nos permite tener un sistema de avisos de eventos
+## 
+## Uso de agenda:
+## <pre>
+## [Sin opciones]  -- Extrae eventos para hoy
+##             -a  -- Para añadir eventos
+##             -t  -- Ver todos los eventos.
+##             -o  -- Ordenar lista
+##             -b  -- Borrar eventos anteriores a la fecha de hoy
+##             -e  -- Editar con editor predeterminado en la variable de entorno EDIT
+##             -m  -- Ver los actos para mañana
+##             -nc -- Sin color para la salida
+##             -d numero de días -- Ver los actos de hoy a x días
+##             -h  --help -- Visualiza esta ayuda y sale
+## </pre>
+## @todo Preguntar hora de acto y calcular el tiempo que falta según esa hora
+## @todo Si falta menos de X tiempo avisar con ventana y texto y preguntar si queremos 
+##       volver a ser avisados dentro de X minutos, pudiendo modificar los minutos
+## .
+## @author   Eduardo Magrané
+## @internal
+##       web  http://www.mamedu.com
+##
+##      mail  eduardo.mamedu.com
+##
+##   Created  13/03/11
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+## 
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+DATOS="${HOME}/DATOS/agenda.dat"
+TMP="/tmp/agenda.tmp"
+EDIT="vim"
+
+hoy="`date +%Y-%m-%d`"
+manyana="`date -d tomorrow +%Y-%m-%d`"
+colorear=1                               ##< Salida con colores 0/1
+
+## Añadimos los valores de los colores
+
+function valores_colores() {
+
+   if [ $colorear = 1 ] ; then 
+      CC="\033[0;33m" # comienza color
+      FC="\033[0m" # termina color
+      ROJO="\033[0;31m"
+      AZUL="\033[0;34m"
+      VERDE="\033[0;32m"
+   else 
+      CC=; FC=; ROJO=; AZUL=; VERDE=;
+   fi
+
+   }
+
+valores_colores
+
+## Calcular días que faltan hasta la fecha pasada
+
+function calculaDias() {
+	FALTA="$(($((`date -d $1 +%s` - `date +%s`)) / 86400 ))"
+   #FALTA=$(($FALTA+1))
+	echo $FALTA
+	return 
+   }
+
+## Añadimos registros a la agenda
+
+function anyadir() {
+	cal -3m
+   echo Hoy: `date +"%Y-%m-%d"`
+	#read -p "Fecha de evento(yyyy-mm-dd): " FECHA
+   FECHA=$(zenity --calendar --date-format="%Y-%m-%d")
+	FALTA=$(calculaDias $FECHA)
+	echo -e "Faltan $CC $FALTA $FC días para $FECHA"
+	read -p "Evento: " EVENTO
+	echo -e "${FECHA}\t${EVENTO}" >> $DATOS
+	ordenar	
+   }
+
+## Borrar los eventos pasados	
+
+function borrar() {
+
+   DIFS="$IFS" # separador fin de linea para que salga linea por linea
+	IFS=$'\n'
+	for x in $(cat $DATOS)
+	do
+		FECHA=$(echo $x | awk -v FS="\t" '{print $1}')
+		EVENTO=$(echo $x | awk -v FS="\t" '{print $2}')
+		FALTA="$(calculaDias $FECHA)"
+		FECHA2=`date -d $FECHA +"%A %d de %B del %Y"`
+		#echo -e "$FECHA\t$EVENTO${CC}\t${FALTA}\t$FC días"
+      if [ $FALTA -gt -1 ] ; then 
+         SALIDA="$SALIDA\n$FECHA\t$EVENTO"
+      fi
+	done
+	IFS="$DIFS"
+   echo -e $SALIDA
+   echo -e $SALIDA > $DATOS
+  
+   }
+
+## Ver los actos venideros
+
+function dias() {
+
+   ## Ver los actos desde hoy hasta el numero de día que se pasan
+   #echo "Dias: $1"
+   DIFS="$IFS" # separador fin de linea para que salga linea por linea
+	IFS=$'\n'
+	for x in $(cat $DATOS)
+	do
+		FECHA=$(echo $x | awk -v FS="\t" '{print $1}')
+		EVENTO=$(echo $x | awk -v FS="\t" '{print $2}')
+		FALTA="$(calculaDias $FECHA)"
+		FECHA2=`date -d $FECHA +"%A %d de %B del %Y"`
+		#echo -e "$FECHA\t$EVENTO${CC}\t${FALTA}\t$FC días"
+      if [ $FALTA -gt -1 ] && [ $FALTA -lt $1 ] ; then 
+         if [ $FALTA -eq 0 ] ; then
+            # Puede ser hoy o mañana
+            if [ "$FECHA2" = "`date +'%A %d de %B del %Y'`" ] ; then
+               echo -e "${ROJO}Hoy\t${EVENTO}$FC"
+            else
+               echo -e "${AZUL}Mañana\t${EVENTO}$FC"
+            fi
+         elif [ $FALTA -eq 1 ] ; then
+            echo -e "${AZUL}Mañana\t${EVENTO}$FC"
+         else
+            echo -e "${VERDE}${FECHA2}\t${EVENTO}\t${FALTA} días$FC"
+         fi
+      fi
+	done
+	IFS="$DIFS"
+   }
+
+## Ver registro de una fecha concreta. Se pasa la fecha como argumento
+## Y un titulo como segundo argumento
+
+function ver() {
+
+   # echo -e "\n$2"
+	lineas=$(cat $DATOS | grep $1 )
+	if [ "$lineas" == "" ] ; then
+		return
+	else 
+		echo -e "$CC$2 -> $FC\t$lineas" | awk -v FS="\t" '{print $1, $3}'  
+	fi
+   }
+
+## Ordenamos la lista
+
+function ordenar() {
+	sort $DATOS > $TMP
+	mv $TMP $DATOS
+   }
+
+## Ver todos los registros
+
+function todos() {
+
+	DIFS="$IFS" # separador fin de linea para que salga linea por linea
+	IFS=$'\n'
+	for x in $(cat $DATOS)
+	do
+		FECHA=$(echo $x | awk -v FS="\t" '{print $1}')
+		EVENTO=$(echo $x | awk -v FS="\t" '{print $2}')
+		FALTA="$(calculaDias $FECHA)"
+		FECHA=`date -d $FECHA +"%A %d de %B del %Y"`
+		echo -e "$FECHA\t$EVENTO${CC}\t${FALTA}$FC días"
+	done
+	IFS="$DIFS"
+   }
+
+## Editar archivo con eventos
+
+function editar() {
+	eval "$EDIT $DATOS"
+	}
+
+## Mostrar información de ayuda
+
+function help() 	{
+
+   head -n 18 "$0" | grep '## ' | sed 's/^## //' | sed 's/@brief /\n/' | sed 's/@file //'
+
+	}
+
+while true ; do
+	case "$1" in
+		-h|--help) help ; exit ;;
+		-info) info ; exit ;;
+		-A|-a) anyadir ; exit ;;
+		-0|-o) ordenar ; exit ;;
+		-t|-T) todos ; exit ;;
+		-b|-B) borrar $hoy ; exit ;;
+		-e|-E) editar ; exit ;;
+		-d|-D) shift ; dias $1 ; shift ; exit ;;
+		-nc) shift ; colorear=0 ; valores_colores ;;
+		-m|-M) ver $manyana 'Mañana' ; exit ;;
+		    *) ver $hoy 'Hoy' ; ver $manyana 'Mañana' ; exit ;;
+	esac
+done
+
