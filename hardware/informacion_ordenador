@@ -74,12 +74,6 @@ fi
 function _informacion_hardware() {
 
    echo
-   echo '====================='
-   echo 'Información Ordenador'
-   echo '====================='
-   echo
-
-   echo
    echo 'Información de la bios'
    echo '----------------------'
    echo
@@ -109,5 +103,23 @@ function _informacion_hardware() {
 
    }
 
+function _informacion_software() {
+
+   echo
+   echo Sistema operativo
+   echo -----------------
+   echo
+
+   lsb_release -a
+
+   }
+
+echo
+echo '====================='
+echo 'Información Ordenador'
+echo '====================='
+echo
+
+_informacion_software
 _informacion_hardware
 
