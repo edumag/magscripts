@@ -101,6 +101,12 @@ function _informacion_hardware() {
 
    fdisk -l /dev/sda
 
+   echo
+   echo 'Información pprocesador'
+   echo '-----------------------'
+   echo
+
+   cat /proc/cpuinfo
    }
 
 function _informacion_software() {
@@ -112,6 +118,9 @@ function _informacion_software() {
 
    lsb_release -a
 
+   echo
+   echo Kernel: `uname -r`
+   echo
    }
 
 echo
