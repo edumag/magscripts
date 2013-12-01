@@ -15,7 +15,7 @@ mt_comando_diff='diff'
 
 mt_comando_ftp='ftptrabajo'
 
-mt_comando_mysql='mysql  --default-character-set=utf8 -uroot -pkkkk trabajos -N -e '
+mt_comando_mysql='mysql  --default-character-set=utf8 -uroot -p`contrasenya mysql` trabajos -N -e '
 
 mt_editor='vim'
 
