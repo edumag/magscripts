@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo
+echo Antes
+echo -----
+echo
+
+free -m
+
+sudo sync && sudo sysctl -w vm.drop_caches=3
+
+echo
+echo Después
+echo -------
+echo
+
+free -m
