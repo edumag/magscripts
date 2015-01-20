@@ -23,9 +23,9 @@
 ##
 ## @internal
 ##
-##       web  http://www.mamedu.com
+##       web  http://www.lesolivex.com
 ##
-##      mail  eduardo.mamedu.com
+##      mail  edu.lesolivex.com
 ##
 ##  Revision  SVN $Id: $
 ##
@@ -55,9 +55,9 @@ function help() {
 [[ "$1" = "--publico" ]] &&  echo 'SI' && exit 0 
 
 autor='Eduardo Magrané'
-mail='eduardo@mamedu.com'
+mail='edu.lesolivex.com'
 licencia='GNU/GPL 3.0'
-web='http://www.mamedu.com'
+web='http://www.lesolivex.com'
 prog=`basename $0`
 version='0.1'
 

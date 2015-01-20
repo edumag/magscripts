@@ -13,7 +13,7 @@
 ## 
 ## Debe especificarse un perfil como primer argumento para saber con que mp4 debemos tratar
 ##
-## <img src="http://www.mamedu.com/gcm/Proyectos/magscripts/gdoxygen/multimedia_players.png" />
+## <img src="http://www.lesolivex.com/gcm/Proyectos/magscripts/gdoxygen/multimedia_players.png" />
 ## 
 ## dependencias: convert mencoder /opt/amv-ffmpeg/amv-ffmpeg-linux-i386-20071030 mp3info
 ## 
@@ -26,9 +26,9 @@
 ##
 ## @internal
 ##
-##       web  http://www.mamedu.com
+##       web  http://www.lesolivex.com
 ##
-##      mail  eduardo.mamedu.com
+##      mail  edu.lesolivex.com
 ##
 ##  Revision  SVN $Id: $
 ##
