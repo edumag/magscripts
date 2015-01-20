@@ -1,23 +1,21 @@
 @page Readme
 
+Scripts para linux
+
 @section instalacion Instalación
 
-Bajar scripts con subversion
+- Bajar los scripts desde: https://github.com/edumag/magscripts/archive/develop.zip
 
-svn checkout http://magscripts.googlecode.com/svn/trunk/ magscripts-read-only
+- Renombrar la carpeta a "scripts" por ejemplo.
 
-Renombrar carpeta, por ejemplo: scripts
+- Añadir a PATH los scripts desde $HOME/.bashrc
 
-mv magscripts-read-only scripts
-
-Añadir a PATH los scripts desde $HOME/.bashrc
-
-for x in $HOME/scripts/* ; do if [ -d $x ] ; then PATH="$PATH:$x" ; fi ; done
-export PATH
+  @code
+  for x in $HOME/scripts/* ; do if [ -d $x ] ; then PATH="$PATH:$x" ; fi ; done
+  export PATH
+  @endcode
 
 @mainpage 
-
-Scripts para linux
 
 .
 - @subpage instalacion "Instalación"

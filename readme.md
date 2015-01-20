@@ -2,7 +2,7 @@
 
 Scripts útiles para linux.
 
-@code
+~~~~
 .
 |-- hardware
 |   `-- informacion_ordenador
@@ -22,28 +22,42 @@ Scripts útiles para linux.
 |-- sistema
 |   `-- memoria_liberar_ram
 `-- utiles
-    |-- abrir_terminal -> /home/eduardo/desarrollo/Scripts/utiles/abrir_terminal
-    |-- agenda
-    |-- alarma -> /home/eduardo/desarrollo/Scripts/utiles/alarma
-    |-- cambiarNombreAutf8 -> /home/eduardo/desarrollo/Scripts/utiles/cambiarNombreAutf8
-    |-- copiarAlPortapapeles -> /home/eduardo/desarrollo/Scripts/utiles/copiarAlPortapapeles
-    |-- despuesacabe -> /home/eduardo/desarrollo/Scripts/utiles/despuesacabe
-    |-- espacioEnDisco -> /home/eduardo/desarrollo/Scripts/utiles/espacioEnDisco
-    |-- evolution2csv
-    |-- hardware -> /home/eduardo/desarrollo/magscripts/hardware
-    |-- imagenes -> /home/eduardo/desarrollo/magscripts/imagenes
-    |-- jpg2jpeg -> /home/eduardo/desarrollo/Scripts/utiles/jpg2jpeg
-    |-- juegos -> /home/eduardo/desarrollo/magscripts/juegos
-    |-- mp4 -> /home/eduardo/desarrollo/magscripts/mp4
-    |-- mysql2sqlite3.sh -> /home/eduardo/desarrollo/Scripts/utiles/mysql2sqlite3.sh
-    |-- numerosformateados -> /home/eduardo/desarrollo/Scripts/utiles/numerosformateados
-    |-- pasarLatin1
-    |-- pasarUTF8
-    |-- programacion -> /home/eduardo/desarrollo/magscripts/programacion
-    |-- ps2caras -> /home/eduardo/desarrollo/Scripts/utiles/ps2caras
-    |-- readme.dox -> /home/eduardo/desarrollo/magscripts/readme.dox
-    |-- recuerda -> /home/eduardo/desarrollo/Scripts/utiles/recuerda
-    |-- repetircomando -> /home/eduardo/desarrollo/Scripts/utiles/repetircomando
-    `-- texto2voz
-@endcode
+     |-- abrir_terminal -> /home/eduardo/desarrollo/Scripts/utiles/abrir_terminal
+     |-- agenda
+     |-- alarma -> /home/eduardo/desarrollo/Scripts/utiles/alarma
+     |-- cambiarNombreAutf8 -> /home/eduardo/desarrollo/Scripts/utiles/cambiarNombreAutf8
+     |-- copiarAlPortapapeles -> /home/eduardo/desarrollo/Scripts/utiles/copiarAlPortapapeles
+     |-- despuesacabe -> /home/eduardo/desarrollo/Scripts/utiles/despuesacabe
+     |-- espacioEnDisco -> /home/eduardo/desarrollo/Scripts/utiles/espacioEnDisco
+     |-- evolution2csv
+     |-- hardware -> /home/eduardo/desarrollo/magscripts/hardware
+     |-- imagenes -> /home/eduardo/desarrollo/magscripts/imagenes
+     |-- jpg2jpeg -> /home/eduardo/desarrollo/Scripts/utiles/jpg2jpeg
+     |-- juegos -> /home/eduardo/desarrollo/magscripts/juegos
+     |-- mp4 -> /home/eduardo/desarrollo/magscripts/mp4
+     |-- mysql2sqlite3.sh -> /home/eduardo/desarrollo/Scripts/utiles/mysql2sqlite3.sh
+     |-- numerosformateados -> /home/eduardo/desarrollo/Scripts/utiles/numerosformateados
+     |-- pasarLatin1
+     |-- pasarUTF8
+     |-- programacion -> /home/eduardo/desarrollo/magscripts/programacion
+     |-- ps2caras -> /home/eduardo/desarrollo/Scripts/utiles/ps2caras
+     |-- readme.dox -> /home/eduardo/desarrollo/magscripts/readme.dox
+     |-- recuerda -> /home/eduardo/desarrollo/Scripts/utiles/recuerda
+     |-- repetircomando -> /home/eduardo/desarrollo/Scripts/utiles/repetircomando
+     `-- texto2voz
+~~~~
+
+## Instalación ##
+
+- Bajar los scripts desde: https://github.com/edumag/magscripts/archive/develop.zip
+
+- Renombrar la carpeta a "scripts" por ejemplo.
+
+- Añadir a PATH los scripts desde $HOME/.bashrc
+
+  ~~~~
+  for x in $HOME/scripts/* ; do if [ -d $x ] ; then PATH="$PATH:$x" ; fi ; done
+  export PATH
+  ~~~~
+
 
