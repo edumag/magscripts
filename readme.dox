@@ -2,6 +2,50 @@
 
 Scripts para linux
 
+@code
+|-- hardware
+|   `-- informacion_ordenador
+|-- imagenes
+|   |-- archivarFotos
+|   |-- logoAimagen
+|   `-- transformar_imagenes
+|-- juegos
+|   `-- xmame_iconos
+|-- mp4
+|   |-- multimedia_players
+|   `-- multimedia_players.png
+|-- programacion
+|   |-- ctags_php
+|   `-- time2date
+|-- readme.dox
+|-- sistema
+|   `-- memoria_liberar_ram
+`-- utiles
+     |-- abrir_terminal 
+     |-- agenda
+     |-- alarma 
+     |-- cambiarNombreAutf8 
+     |-- copiarAlPortapapeles 
+     |-- despuesacabe 
+     |-- espacioEnDisco 
+     |-- evolution2csv
+     |-- hardware 
+     |-- imagenes 
+     |-- jpg2jpeg 
+     |-- juegos 
+     |-- mp4 
+     |-- mysql2sqlite3.sh 
+     |-- numerosformateados 
+     |-- pasarLatin1
+     |-- pasarUTF8
+     |-- programacion 
+     |-- ps2caras 
+     |-- readme.dox 
+     |-- recuerda 
+     |-- repetircomando 
+     `-- texto2voz
+@endcode
+
 @section instalacion Instalación
 
 - Bajar los scripts desde: https://github.com/edumag/magscripts/archive/develop.zip
