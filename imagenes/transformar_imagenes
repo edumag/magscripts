@@ -124,10 +124,10 @@ fi
 if [ "$DISPLAY" != "" ] ; then
    SALIDA=$(zenity --list --title "Convirtiendo imágenes" --text "Encoje una opción" --column "Opciones" 'No modificar tamaño' 'Modificar por altura' 'Modificar por Anchura')
    echo $SALIDA
-   if [ "$SALIDA" = "Modificar por Anchura" ] ; then
+   if [ "$SALIDA" == "Modificar por Anchura" ] || [ "$SALIDA" == "Modificar por Anchura|Modificar por Anchura" ] ; then
       anchura=$(zenity  --title "Anchura" --entry --text "Anchura en pixeles")
       [[ "$anchura" != "" ]] && modificar_anchura=1
-   elif [ "$SALIDA" = "Modificar por altura" ] ; then
+   elif [ "$SALIDA" = "Modificar por altura" ] || [ "$SALIDA" == "Modificar por altura|Modificar por altura" ] ; then
       altura=$(zenity  --title "Altura" --entry --text "Altura en pixeles")
       [[ "$altura" != "" ]] && modificar_altura=1
    fi
@@ -147,11 +147,14 @@ while [ "$1" != "" ] ; do
 
 	echo -e "a $f2-peque.jpg"
    if [ $modificar_anchura = 1 ] ; then
-      cmd='convert -geometry x$anchura "$1" "${f2}${sufijo}_an${anchura}.jpg"'
+     echo Modificar por anchura: $anchura
+     cmd='convert -geometry x$anchura "$1" "${f2}${sufijo}_an${anchura}.jpg"'
    elif [ $modificar_altura = 1 ] ; then
+     echo Modificar por altura: $altura
       cmd='convert -geometry $altura "$1" "${f2}${sufijo}_al${altura}.jpg"'
    else
-      cmd='convert "$1" "${f2}${sufijo}.jpg"'
+     echo Solo convertimos a jpg
+      cmd='convert "$1" "${f2}${sufijo}-convert.jpg"'
    fi
 
    if [ "$DISPLAY" = "" ] ; then

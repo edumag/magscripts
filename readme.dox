@@ -1,4 +1,6 @@
-@page Readme
+magscripts
+
+@mainpage 
 
 Scripts para linux
 
@@ -59,7 +61,3 @@ Scripts para linux
   export PATH
   @endcode
 
-@mainpage 
-
-.
-- @subpage instalacion "Instalación"
