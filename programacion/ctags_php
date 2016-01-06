@@ -107,7 +107,7 @@ ctags-exuberant \
 --exclude="docs" \
 --exclude="ext" \
 --totals=yes \
---langmap=php:.engine.inc.module.theme.install.php \
+--langmap=php:.engine.inc.module.theme.install.php.test \
 --php-kinds=cdfi \
 --languages=php \
 --tag-relative=yes \

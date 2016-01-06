@@ -117,7 +117,8 @@ function _informacion_software() {
    echo
 
    lsb_release -a
-
+   echo
+   echo Arquitectura: `uname -m`
    echo
    echo Kernel: `uname -r`
    echo
