@@ -11,5 +11,5 @@ translate="$(wget -U "Mozilla/5.0" -qO - "http://translate.googleapis.com/transl
 # echo "Translation:" "$translate" >> /tmp/notitrans
 echo "$translate" > /tmp/notitrans
 echo "$translate" | xclip -selection clipboard
-notify-send --icon=info "$translate"
+# notify-send --icon=info "$translate"
 zenity --text-info --title="Translation" --filename=/tmp/notitrans
