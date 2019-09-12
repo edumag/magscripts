@@ -1,0 +1,100 @@
+#!/bin/bash 
+
+
+####################################################
+# VARIABLES
+
+CONF="${HOME}/.cdtomp3rc"
+# comienza color 
+cc="\033[0;33m"
+# termina color
+fc="\033[0m"
+
+if [ -e $CONF ] ; then
+	echo "Tenemos fichero de configuración: $CONF"
+	. $CONF
+else
+	echo "No hay fichero de configuración: $CONF"
+	read -p "Dispositivo cdrom: " CDROM
+	echo "CDROM=\"$CDROM\"" > $CONF
+	read -p "Directorio donde se guardan las grabaciones: " DIR_MUSICA
+	echo "DIR_MUSICA=\"$DIR_MUSICA\"" >> $CONF
+	
+fi
+
+ID=`cd-discid $CDROM`
+echo "Id del cdrom: $ID"
+
+function buscar_cddb(){
+	## Buscar cddb necesita id de disco 
+	result1=$(cddbcmd cddb query $ID)
+	result=$(echo $result1 | awk '{print $1" "$2}')
+	if test "$result" = "No match";
+	then
+		echo "No encontre cddb pero dejo la informaciñon en el directorio"
+		echo "para poder recuperarla en ptro momento"
+	else 
+		reply=$(cddbcmd cddb read $result)
+	fi
+
+	declare -i j
+	j=0
+	IFS='
+	'
+	for line in $reply ;
+	do
+		if test "$line" = "" ;
+		then
+			continue;
+		fi
+		if test "${line:0:1}" = "#" ;
+		then
+			continue;
+		fi
+
+   tag=`echo $line | awk -F '=' '{print $1}'`
+		case ${tag:0:6} in
+			DTITLE)
+         temp=`echo $line | awk -F '=' '{print  $2}'`
+         artist=`echo $temp | awk -F " / " '{print  $1}'`
+         album=`echo $temp | awk -F " / " '{print  $2}'`
+         echo "Artist: $artist"
+         echo "Album: $album"
+         continue;;
+      TTITLE)
+         ((j = j +1))
+         title[$j]=`echo $line | awk -F '=' '{print $2}'`
+				echo $line | awk -F '=' '{print $2}'
+         continue;;
+   esac
+   number=$j
+   
+done
+				
+}
+
+buscar_cddb 
+
+if test "$artist" = ""; then
+	read -p "Nombre del artista: " artist
+fi
+
+if test "$album" = "" ; then
+	read -p "Album: " album
+fi
+
+# Crear directorio
+
+cd $DIR_MUSICA
+if test ! -d "${artist}-${album}" ; then
+	mkdir "${artist}-${album}"
+fi
+
+cd "${artist}-${album}"
+
+# Pasar canciones al disco duro
+ 
+exit
+
+
+

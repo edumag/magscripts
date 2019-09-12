@@ -1,0 +1,21 @@
+#!/bin/bash
+
+
+
+# Elejir estilo del lp
+
+mp3info -G
+echo -e "
+Elija un estilo para el lp: \c"
+read estilo
+echo -e "
+Año: \c"
+read ano
+echo -e "
+Comentario: \c"
+read comen
+mp3info -g $estilo -y $ano -c $comen *.mp3
+
+
+
+

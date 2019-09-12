@@ -1,0 +1,140 @@
+#!/bin/bash
+
+# Modificar los directorios y ubicación del fichero DAT
+dir_roms=/home/todos/juegos/snes-superNintendo/Roms/     ##< Directorio de las roms
+dir_snaps=/home/todos/juegos/snes-superNintendo/snaps/   ##< Directorio de las imágenes
+fich_dat=/home/todos/juegos/snes-superNintendo/archivo.dat
+
+dir_actual=`pwd`
+dir_destino='./iconos_zsnes/'
+
+log='dat2zsnes.log'
+
+descripcion () {
+
+   Generar carpeta con iconos de las roms de zsnez.
+
+   Las imágenes se pueden bajar de http://no-intro.dlgsoftware.net
+
+   Junto con el archivo dat que tiene la relación de los juegos con ellas.
+
+   Hay que modifcar dir_roms y dir_snaps para que funcione.
+
+
+   El archivo dat hay que pasarlo a utf8, una forma de hacerlo es con:
+
+      vi -c "wq! ++enc=utf8" archvio.dat
+
+   Ya solo queda ejecutar el script.
+
+   Se generara un directorio con los iconos y un informe que indicara las roms 
+   que no tienen imágenes.
+
+
+}
+
+colores=1
+
+verde() {
+
+   if [ $colores != 0 ] ; then
+     echo -e "\033[32m${@}\033[0m"
+  fi
+}
+
+rojo() {
+
+   if [ $colores != 0 ] ; then
+      echo -e "\033[31m${@}\033[0m"
+   fi
+}
+
+buscar_icono() {
+
+   buscar="`echo $1 | sed 's/_/ /g'`"
+
+   echo -n "- $buscar " | tee -a "$log"
+
+   DIFSA="$IFS"
+   IFS=$' '
+   imagenes=($(grep -i "$buscar" "$fich_dat" | awk -v FS='¬' '{printf "%s %s ", toupper($(NF-3)), toupper($(NF-4))}'))
+
+   for imagen in ${imagenes[*]} ; do
+      if [ -e "${dir_snaps}${imagen}.png" ] ; then
+         verde [Ok] | tee -a "$log"
+         generar_icono "$2" "${dir_snaps}${imagen}.png" "${3:-$buscar}"
+         return
+      fi
+   done
+   IFS="$DIFSA"
+
+   # Si estamos haciendo una busqueda flexible y aun así 
+   # no hemos encontrado nada, generamos icono sin imagen
+
+   if [ "$3" != "" ] ; then
+      rojo [ko] | tee -a "$log"
+      generar_icono "$2" "" "$3"
+      return
+   fi
+
+   # Si llegamos aqui es no tenemos imagen, hacemos
+   # otra pasada sin ser tan extrictos con el nombre
+   # a buscar
+
+   buscar_icono "${1:0:10}" "$2" "$1"
+
+   }
+
+
+generar_icono() {
+
+   ## Juego $1
+   ## Generamos icono con imagen $2
+   ## Nombre del juego $3
+
+   NOMBRE_ROM="$3"
+   ICONO_NAME="${NOMBRE_ROM}.desktop"
+
+   echo -e "[Desktop Entry]" > "$ICONO_NAME"
+   echo -e "Version=1.0" >> "$ICONO_NAME"
+   echo -e "Encoding=UTF-8" >> "$ICONO_NAME"
+   echo -e "Name=$NOMBRE_ROM" >> "$ICONO_NAME"
+   echo -e "Type=Application" >> "$ICONO_NAME"
+   echo -e "Terminal=false" >> "$ICONO_NAME"
+   echo -e "Icon[es_ES]=gnome-panel-launcher" >> "$ICONO_NAME"
+   echo -e "Name[es_ES]=$NOMBRE_ROM" >> "$ICONO_NAME"
+   echo -e "Exec=zsnes '${1}'" >> "$ICONO_NAME"
+   echo -e "Icon=${2}" >> "$ICONO_NAME"
+   echo -e "GenericName[es_ES]=$NOMBRE_ROM" >> "$ICONO_NAME"
+
+   chmod +x "$ICONO_NAME"
+
+   }
+
+if [ ! -d "$dir_destino" ] ; then
+   mkdir "$dir_destino"
+fi
+
+cd "$dir_destino"
+
+DIFS="$IFS" # separador fin de linea para que salga linea por linea
+IFS=$'\n'
+for juego in ${dir_roms}/* ; do
+   bn=`basename "$juego"`
+   nj=${bn%.*}
+   #printf "- %-40s" "$bn"
+   buscar_icono "$nj" "$juego"
+done
+IFS="$DIFS"
+
+# Presentamos roms sin imágenes
+
+echo
+grep ko "$log"
+echo
+echo "`grep ko "$log" | wc -l`  roms sin imagen"
+echo
+
+cd "$dir_actual"
+
+exit

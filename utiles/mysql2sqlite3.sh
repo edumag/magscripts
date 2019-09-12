@@ -1,1 +1,0 @@
-/home/eduardo/desarrollo/Scripts/utiles/mysql2sqlite3.sh

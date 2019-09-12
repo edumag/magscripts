@@ -1,0 +1,31 @@
+#!/bin/bash
+
+URL="http://lesolivex.com?s="
+
+NAVEGADOR=xdg-open
+
+# Si no tenemos parámetros abrimos una ventana con lo que tengamos en el porta-papeles
+
+if [ $# -gt 0 ] ; then 
+
+   for x in $* ; do
+      URL="${URL}${x}+"
+   done
+
+else
+
+   CONTENIDO="`xclip -o 2> /dev/null`"
+   pp="`zenity --entry --entry-text=\"$CONTENIDO\"`"
+   [[ "$?" != "0" ]] && echo 'Cancelado' && exit
+   [[ "$pp" = "" ]] && echo 'Nada que buscar' && exit
+   for x in $pp ; do
+      URL="${URL}${x}+"
+   done
+
+fi
+
+if [ "$DISPLAY" = "" ] ; then
+   links $URL 
+else
+   $NAVEGADOR $URL &
+fi

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+for x in *.mp3
+   do
+   ART="`mp3info -p '%a' \"$x\"`"
+   if [ "$ART" = "" ] ; then ART="Artista desconocido" ; fi
+   ALB="`mp3info -p '%l' \"$x\"`"
+   if [ "$ALB" = "" ] ; then ALB="Album desconocido" ; fi
+
+   echo $ART - $ALB
+
+   [[ -d "$ART" ]] || mkdir "$ART"
+   [[ -d "${ART}/$ALB" ]] || mkdir "${ART}/$ALB"
+
+   if [ `cp "$x" "${ART}/$ALB"` ] || [ -e "${ART}/$ALB" ] ; then rm "$x" ; fi
+
+
+done
+
+

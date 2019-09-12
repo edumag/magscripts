@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Si existe el fichero /var/run/ppp0.pid
+# significa que hay conexión
+
+limpia="\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"
+
+# borrar fichero log
+#rm demonioReconexion.log 
+
+echo ""
+echo "******-*-**************-*-**************-*-*"
+
+for x in `seq 1 10000`
+do
+
+	if [ -e /var/run/ppp0.pid ] ; then
+
+		# Hay conexión
+		echo -e "$limpia $(date) - Conectado\c"
+
+	else
+		echo -e "$limpia $(date) - Conectando\c"
+		#echo -e "$(date) - Conectando" >> demonioReconexion.log
+		
+		pon 
+
+		sleep 60 # Esperamos 1 minuto para darle tiempo a conectar
+
+		# si enviamos un argumento lo lanzamos como comando
+		if [ "$1" ] ; then
+			echo -e "\n$(date) - $1" >> demonioReconexion.log
+			echo -e "\n$(date) - $1" 
+			eval $1 &
+		fi
+
+	fi
+
+sleep 60
+
+done
+
+

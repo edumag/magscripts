@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# script para poner nombres a las canciones grabadas en mp3
+# Se tendra que haber guardado el fichero con la informacion
+# con el kscd
+
+idcd=$(grep CDDB_DISCID audio_01.inf |cut -f2 | cut -c 3,4,5,6,7,8,9,10)
+
+# si idcd no lleva nada sale del programa
+
+if ["$idcd" = ""]; then
+ echo No se ha encontrado informacion en el fichero audio_01.inf
+ echo o no existe el archivo
+ exit
+fi
+
+ruta=$(find /var/lib/cddb/$idcd)
+
+audio=0
+
+# un bucle para buscar todos los TTITLE del archivo
+# cuando no encuentra nada sale del bucle
+
+for i in `seq 0 50`;
+do
+if (( i < 10 )) ; then
+titulo=$(grep TTITLE$i= $ruta | cut -c 9- | tr ' ' _ | tr '/' - | tr -d '\r' )
+
+else
+titulo=$(grep TTITLE$i= $ruta | cut -c 10- | tr ' ' _ | tr '/' - | tr -d '\r' )
+fi
+
+if [$titulo = ""] 2> /dev/null ; then
+break
+fi
+
+# Sumistrar Nombre de autor
+autor=$(grep DTITLE= $ruta | cut -c 8- | tr ' ' _ | tr '/' - | tr -d '\r' )
+autor=${autor%_-*}
+# titulo lp
+lp=$(grep DTITLE= $ruta | cut -c 8- | tr ' ' _ | tr '/' - | tr -d '\r' )
+lp=${lp#*-_}
+
+let a=i+1
+
+# si el numero solo tiene un digito se utiliza un 0 antes
+
+if (( a < 10 )) ; then
+fichero1=audio_0$a.mp3
+fichero2=$titulo.mp3
+echo $fichero1 cambia a $fichero2
+echo '----------------------------------------------<>'
+mp3info -a $autor -l $lp -n $a -t $titulo $fichero1
+mv $fichero1 $fichero2
+else
+fichero1=audio_$a.mp3
+fichero2=$titulo.mp3
+echo $fichero1 cambia a $fichero2
+echo '----------------------------------------------<>'
+mp3info -a $autor -l $lp -n $a -t $titulo $fichero1
+mv $fichero1 $fichero2
+fi
+
+done
+
+ls -l
+
+# Opcion de borrar los ficheros de información
+echo -e "
+Borro los ficheros *.inf s/n ? \c"
+read sino
+if [ "$sino" = "s" ] ; then
+rm -f *.inf
+else
+break
+fi
+
+# Elejir estilo del lp, año, comentario
+
+mp3info -G
+echo -e "
+Elija un estilo para el lp: \c"
+read estilo
+echo -e "
+Año: \c"
+read ano
+echo -e "
+Comentario: \c"
+read comen
+mp3info -g $estilo -y $ano -c $comen *.mp3
+
+
+

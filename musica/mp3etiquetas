@@ -1,0 +1,399 @@
+#!/bin/bash 
+
+## Editar etiquetas de las canciones mp3
+
+## @todo Indivuidualizar album, genero, titulo, numero
+
+####################################################
+# VARIABLES
+
+# Editor
+EDITOR=vim
+REPRODUCTOR=mpg123
+TERMINAL=xterm
+
+CONF="${HOME}/.$0rc"
+# comienza color 
+cc="\033[0;33m"
+# termina color
+fc="\033[0m"
+
+####################################################
+
+FILE_TMP="/tmp/listamp3.txt"
+DIR=`pwd`
+
+## Presentar directorio
+##
+## Presentamos la información del directorio
+
+function presentarDirectorio(){
+
+   if [ "$1" != "" ] ; then
+      directorio="$1"
+   else
+      directorio=`pwd`
+   fi
+
+   cd "$directorio"
+
+   autor='' ; album='' ; genero='' ; salida=''
+
+   DIFS="$IFS"
+   IFS=$'\n'
+   for lFichero in *.mp3 ; do 
+
+      autor2=$(mp3info -p "%a" "$lFichero" 2> /dev/null )
+      [[ "autor2" != "" ]] && autor=$autor2
+      album2=$(mp3info -p "%l" "$lFichero" 2> /dev/null )
+      [[ "$album2" != "" ]] && album=$album2
+      genero2=$(mp3info -p "%g" "$lFichero" 2> /dev/null )
+      [[ "$genero2" != "" ]] && genero=$genero2
+      num=$(mp3info -p "%n" "$lFichero" 2> /dev/null )
+      titulo=$(mp3info -p "%t" "$lFichero" 2> /dev/null )
+      salida=${salida}$(printf "\n\nFichero: $cc%s$fc\nAutor: $cc%s$fc  - Album: $cc%s$fc\nGenero: $cc%s$fc - Num: $cc%s$fc - Titulo: $cc%s$fc\n" `basename "$lFichero"` "$autor" "$album" "$genero" "$num" "$titulo")
+
+   done
+
+   echo -e "$salida"
+   echo
+   echo -e "Directoro: ${cc} `pwd` ${fc}"
+
+}
+
+while true ; do
+
+   select Opcion in 'Scanear directorio' 'Modificar etiquetas' 'Info' 'Cancelar'
+   do
+
+      case $Opcion in
+
+         'Info')
+            presentarDirectorio
+            break
+            ;;
+         'Scanear directorio')
+
+            [[ -e $FILE_TMP ]] && rm $FILE_TMP 
+            [[ -e $FILE_TMP_2 ]] && rm $FILE_TMP_2 
+
+            echo
+            echo 'Condiciones de busqueda'
+            echo '-----------------------'
+            echo
+            select campo_buscar in 'Sin autor' 'Sin album' 'Sin genero' 'Todo'; do
+
+            case $campo_buscar in
+
+               'Sin autor')
+                  DIFS="$IFS" ; IFS=$'\n'
+                  for x in `find $DIR -name "*.mp3" -o -name "*.MP3"` ; do 
+
+                     # Modificar la extensión MP3 por mp3
+                     if [ $(echo $x | grep 'MP3') ] ; then 
+                        cambio_ext=$(echo $x | sed -e 's/MP3/mp3/')
+                        echo "Modificamos extensión"
+                        echo $x
+                        echo $cambio_ext
+                        echo '---------------------'
+                        mv "$x" "$cambio_ext"
+                        x=$cambio_ext
+                     fi
+                     autor=$(mp3info -p "%a" "$x" 2> /dev/null )
+                     if [ "$autor" == "" ] ; then
+                        echo "$x"
+                        echo "`dirname \"$x\"`" >> $FILE_TMP
+                     fi
+
+                  done
+                  IFS="$DIFS"
+                  ;;
+               'Sin album')
+                  DIFS="$IFS" ; IFS=$'\n'
+                  for x in `find $DIR -name "*.mp3" -o -name "*.MP3"` ; do 
+
+                     album=$(mp3info -p "%l" "$x" 2> /dev/null )
+                     if [ "$album" == "" ] ; then
+                        echo "$x"
+                        echo "`dirname \"$x\"`" >> $FILE_TMP
+                     fi
+
+                  done
+                  IFS="$DIFS"
+                  ;;
+               'Sin genero')
+                  DIFS="$IFS" ; IFS=$'\n'
+                  for x in `find $DIR -name "*.mp3" -o -name "*.MP3"` ; do 
+
+                     genero=$(mp3info -p "%g" "$x" 2> /dev/null )
+                     if [ "$genero" == "" ] ; then
+                        echo "$x"
+                        echo "`dirname \"$x\"`" >> $FILE_TMP
+                     fi
+
+                  done
+                  IFS="$DIFS"
+                  ;;
+               'Todo')
+                  DIFS="$IFS" ; IFS=$'\n'
+                  for x in `find $DIR -name "*.mp3" -o -name "*.MP3"` ; do 
+                     echo "$x"
+                     echo "`dirname \"$x\"`" >> $FILE_TMP
+                  done
+                  IFS="$DIFS"
+                  ;;
+            esac
+
+            break
+
+         done
+
+
+            if [ -e "$FILE_TMP" ] ; then
+               cat $FILE_TMP | uniq > "${FILE_TMP}_2"
+               mv "${FILE_TMP}_2" $FILE_TMP
+               echo
+               echo 'Albunes encontrados: ' $(wc -l $FILE_TMP | cut -d' ' -f1 )
+               echo '---------------------'
+               echo
+            else
+               echo
+               echo 'No hay canciones que coincidan'
+               echo '------------------------------'
+               echo
+            fi
+            break
+            ;;
+
+         'Modificar etiquetas')
+
+            lineas=$(wc -l $FILE_TMP | cut -d' ' -f1)
+            numActual=0
+            DIFS="$IFS" ; IFS=$'\n'
+            for x in `cat $FILE_TMP` ; do
+
+               numActual=$(($numActual+1))
+               echo -e "(${cc}$numActual${fc}/${cc}$lineas${fc})"
+               cd "$DIR" ; cd "$x"
+               #echo -e "${cc}`pwd` $fc"
+               #ls -1
+
+               Opcion=''
+               modIndividual='NO'
+
+
+               while [ "$Opcion" != "s" ] ; do
+
+                  presentarDirectorio "$x"
+                  echo -e "(${cc}$numActual${fc}/${cc}$lineas${fc})"
+                  echo 'Modificar: [A]utor, A[l]bum, [G]enero, [N]umeracion, [T]itulos, N[o]nbre ficheros'
+                  echo
+                  echo -e "Mo[d]ificar canción por canción: [$cc$modIndividual$fc]"
+                  echo
+                  echo '[R]eproducir, T[e]rminal, L[i]star directorio, [S]iguiente'
+                  echo
+                  read -p 'Opcion: ' Opcion
+
+                  case $Opcion in
+
+                     r|R)
+                        $REPRODUCTOR *.mp3
+                        ;;
+                     d|D)
+                        [[ "$modIndividual" = 'SI' ]] && modIndividual='NO' || modIndividual='SI'
+                        ;;
+                     i|I)
+                        ls -1
+                        read -p 'Presiona una tecla para seguir' -n 1
+                        ;;
+                     e|E)
+                        $TERMINAL &
+                        ;;
+                     o|O)
+                        echo 'Cambiar nombre de ficheros'
+                        echo
+                        conta=0
+                        for k in *.mp3 ; do
+                           conta=$(($conta + 1))
+                           titulo=$(mp3info -p "%t" "$k" 2> /dev/null )
+                           if [ "$titulo" = "" ] ; then
+                              titulo="$(echo $k | tr ' ' _ | sed -e 's/\.mp3//g')"
+                           fi
+                           echo -e "${cc}$k${fc}" "`printf "%02d" $conta`-$titulo.mp3"
+                           if [ "$modIndividual" = 'SI' ] ; then
+                              read -p "Renombrar archivos: (s/n)" renombrar
+                              if [ "$renombrar" = "s" ] ; then
+                              mv "$k" "`printf "%02d" $conta`-$titulo.mp3"
+                              fi
+                           fi
+                        done
+                        if [ "$modIndividual" = 'NO' ] ; then
+                           read -p "Renombrar archivos: (s/n)" renombrar
+                           if [ "$renombrar" = "s" ] ; then
+                              conta=0
+                              for k in *.mp3 ; do
+                                 conta=$(($conta + 1))
+                                 titulo=$(mp3info -p "%t" "$k" 2> /dev/null )
+                                 if [ "$titulo" = "" ] ; then
+                                    titulo="$(echo $k | tr ' ' _ | sed -e 's/\.mp3//g')"
+                                 fi
+                                 mv "$k" "`printf "%02d" $conta`-$titulo.mp3"
+                              done
+                           fi
+                        fi
+
+                        ;;
+                     t|T)
+                        echo 'Podemos editar los titulos en base a los nombres de los archivos con el editor'
+                        echo 'vi o editar una por una manualmente'
+                        echo
+                        echo 'Ediatar titulos'
+                        echo '---------------'
+                        echo
+                        if [ "$modIndividual" = 'NO' ] ; then
+
+                           tmp_vi='/tmp/canciones.tmp'
+                           [[ -e "$tmp_vi" ]] && rm "$tmp_vi"
+                           declare -a originales
+                           conta=0
+                           for k in *.mp3 ; do
+                              conta=$(($conta + 1))
+                              titulo="$(echo $k | tr _ ' ' | sed -e 's/\.mp3//g')"
+                              echo $titulo | tee -a $tmp_vi
+                              originales[$conta]="$k"
+                           done
+                           $EDITOR "$tmp_vi"
+                           conta=0
+                           DIFS="$IFS" ; IFS=$'\n'
+                           for linea in `cat $tmp_vi` ; do
+                              conta=$(($conta + 1))
+                              mp3info -t "$linea" "${originales[$conta]}"
+                           done
+                           IFS="$DIFS"
+
+                        else
+
+                           conta=0
+                           for k in *.mp3 ; do
+                              conta=$(($conta + 1))
+                              titulo="$(echo $k | tr ' ' _ | sed -e 's/\.mp3//g')"
+                              echo "Titulo: $titulo"
+                              read -p "Nuevo titulo: ([S]alir , [ENTER]=$titulo)" titulo2
+                              [[ "$titulo2" != "" ]] && titulo=$titulo2
+                              [[ "$titulo2" = "s" ]] && break
+                              mp3info -t "$titulo" "$k"
+                           done
+
+                        fi
+                        ;;
+
+                     n|N)
+                        if [ "$modIndividual" = 'NO' ] ; then
+                           echo 'Numerar las canciones'
+                           conta=0
+                           for k in *.mp3 ; do
+                              conta=$(($conta + 1))
+                              mp3info -n "$conta" "$k"
+                           done
+                        else
+                           for k in *mp3 ; do
+                              echo "Fichero: $k"
+                              read -p "Numero o [S]alir: " respuesta
+                              if [ "$respuesta" != "s" ] || [ "$respuesta" = "" ] ; then 
+                                 mp3info -n "$respuesta" "$k"
+                              fi
+                           done
+                        fi
+                        ;;
+                     a|A)
+                        if [ "$modIndividual" = 'NO' ] ; then
+                           read -p "Autor o [S]alir: " autor
+                           if [ "$autor" != "s" ] || [ "$autor" = "" ] ; then 
+                              autor="$(echo $autor | tr _ ' ')"
+                              mp3info -a "$autor" *mp3
+                           fi
+                        else
+                           for k in *mp3 ; do
+                              echo "Fichero: $k"
+                              autor2=$(mp3info -p "%a" "$k" 2> /dev/null )
+                              read -p "Autor o [S]alir [ENTER]=$autor2: " autor
+                              if  [ "$autor" = "" ] ; then
+                                 autor=$autor2
+                              fi
+                              if [ "$autor" != "s" ] ; then 
+                                 autor="$(echo $autor | tr _ ' ')"
+                                 mp3info -a "$autor" "$k"
+                              fi
+                           done
+                        fi
+                        ;;
+                     l|L)
+                        if [ "$modIndividual" = 'NO' ] ; then
+                           read -p "Album o [S]alir: " album
+                           if [ "$album" != "s" ] || [ "$album" = "" ] ; then 
+                              album="$(echo $album | tr _ ' ')"
+                              mp3info -l "$album" *mp3
+                           fi
+                        else
+                           for k in *mp3 ; do
+                              echo "Fichero: $k"
+                              read -p "Album o [S]alir: " respuesta
+                              if [ "$respuesta" != "s" ] || [ "$respuesta" = "" ] ; then 
+                                 respuesta="$(echo $respuesta | tr _ ' ')"
+                                 mp3info -l "$respuesta" "$k"
+                              fi
+                           done
+                        fi
+                        ;;
+                     g|G)
+                        if [ "$modIndividual" = 'NO' ] ; then
+                           echo "Listado de generos"
+                           mp3info -G
+                           read -p 'Genero: ' generoNum
+                           if [ "$generoNum" != "" ] ; then
+                              mp3info -g $generoNum *mp3
+                           fi
+                        else
+                           for k in *mp3 ; do
+                              mp3info -G
+                              echo "Fichero: $k"
+                              read -p "Genero o [S]alir: " respuesta
+                              if [ "$respuesta" != "s" ] || [ "$respuesta" = "" ] ; then 
+                                 respuesta="$(echo $respuesta | tr _ ' ')"
+                                 mp3info -g $respuesta "$k"
+                              fi
+                           done
+                        fi
+                        ;;
+
+                     s|S)
+                        break
+                        ;;
+                  esac
+
+               done
+
+            done
+            IFS="$DIFS"
+            exit
+            ;;
+
+         *) exit ;;
+
+      esac
+   done
+
+done
+
+         #               # Repasar fichero por fichero sino es mp3 preguntar si se quiere borrar
+         #               # y sino es una imagen
+         #               #for j in * ; do
+         #               #   if [ ! `echo "$j" | grep mp3 ` ] && [ ! `echo "$j" | grep jpg` ]; then
+         #               #      echo -e "${cc}$j $fc"
+         #               #      read -p "No es un archivo mp3 quieres borrarlo (s(n)" borrar
+         #               #      if [ "$borrar" = "s" ] ; then
+         #               #         echo "Borramos $j"
+         #               #         rm "$j"
+         #               #      fi
+         #               #   fi
+         #               #done

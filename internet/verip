@@ -1,0 +1,13 @@
+#!/bin/bash
+
+#IPDIN1="$(/sbin/ifconfig |awk -F'[: ]+' '/inet addr:/ {print $4}' |
+#egrep -v '(^127\.|^192\.168)')"
+
+#echo $IPDIN1
+
+file="/tmp/ip.txt"
+
+lynx -source http://www.cual-es-mi-ip.net/ > $file
+grep "<span style=\"font-size: 32px\">" $file | cut -d\> -f3 | cut -d\< -f1
+
+

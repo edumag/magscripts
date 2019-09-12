@@ -1,0 +1,52 @@
+#!/bin/bash
+
+##
+## Esto añade la lista del cd de mp3 al dir3ectorio indicado y hace
+## Una impresión para la caratula.
+##
+## @todo Permitir configuración
+
+prog="`basename $0`"
+titulo="$1"
+dir="$HOME/$prog/"
+lista="${dir}$titulo"
+
+[[ -d "$dir" ]] || mkdir "$dir"
+
+while true ; do
+
+   select Opcion in 'Generar listado' 'Crear imagen' 'Cancelar'
+
+   do
+
+      case $Opcion in
+
+         'Generar listado')
+            cd /media/cdrom1
+            ls -R > "$lista"
+            cd
+            echo $titulo
+            echo 
+            echo $lista
+            echo
+            ;;
+
+         'Crear imagen')
+            #enscript --header="$titulo" -1 -j --margins=35:230:35:40 -f Times-Roman@8/6 -p /tmp/caratula.ps "$dir$titulo"
+            cmd="enscript -b \"$1\" -1 -j --margins=35:230:35:40 -f Times-Roman@8/6 -p /tmp/caratula.ps \"$dir$titulo\""
+            echo $cmd
+            eval $cmd
+            evince /tmp/caratula.ps
+            ;;
+
+         *)
+         exit
+         ;;
+
+      esac
+
+   done
+
+done
+
+

@@ -1,0 +1,7 @@
+#!/bin/bash
+DIFS="$IFS" # separador fin de linea para que salga linea por linea
+IFS=$'\n'
+for x in $* ; do
+   xterm -e "lame -m s '$x' "
+done
+IFS="$DIFS"

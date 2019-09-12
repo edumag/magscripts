@@ -1,0 +1,24 @@
+#!/bin/bash
+
+limite=1000                              ##< Limite de intentos
+sonido=~/Música/*                        ##< Sonido a reproducir
+reproductor='mplayer -shuffle '          ##< Reproductor
+
+
+echo -n "Comprobando conexión a internet "
+
+for x in `seq 1 $limite` ; do
+
+   echo -n .
+
+   ping -c 3 www.google.com
+
+   if [ $? = 0 ] ; then
+
+      echo "Con conexión"
+      $reproductor $sonido
+      exit
+
+   fi
+
+done

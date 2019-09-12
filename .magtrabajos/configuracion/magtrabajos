@@ -5,13 +5,13 @@ mt_archivo_html='/home/eduardo/trabajos.html'
 
 mt_archivo_pdf='/home/eduardo/trabajos.pdf'
 
-mt_codificacion_codigo=''
+mt_codificacion_codigo='utf8'
 
-mt_codificacion_emails=''
+mt_codificacion_emails='utf8'
 
 mt_comando_busquedas='grep --exclude-dir tiny_mce --exclude-dir=docs --exclude-dir ext --exclude tags -nR  ./'
 
-mt_comando_diff='diff'
+mt_comando_diff='meld'
 
 mt_comando_ftp='ftptrabajo'
 
@@ -25,7 +25,7 @@ mt_euroshora_defecto='20'
 
 mt_miniterminal='xterm -bg black -fg white'
 
-mt_navegador='firefox -new-window'
+mt_navegador='/etc/alternatives/x-www-browser'
 
 mt_ocultar_ficheros='cscope.files|cscope.out|GPATH|GRTAGS|GSYMS|GTAGS|Session.vim|tags'
 

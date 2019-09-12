@@ -1,0 +1,34 @@
+#!/bin/bash
+ 
+# Si el primer parametro es -r buscamos ficheros recursivamente
+
+if [ "$1" = "-r" ] ; then 
+   DIFS="$IFS" ; IFS=$'\n' # Separador fin de linea
+   for i in `find . -name "*.[Ww][Mm][Aa]"` ; do
+      # Remove uppercase
+      nom_file=${i##*/}
+      dir_file=${i%$nom_file}
+      nom_file=$(echo $nom_file | tr '[A-Z]' '[a-z]')
+      path_file=${dir_file}$nom_file
+      nom_file_mp3=$(echo $nom_file | sed -e 's/wma/mp3/g')
+      path_file_mp3=${dir_file}${nom_file_mp3}
+      echo "${dir_file} - $nom_file - $nom_file_mp3"
+      [ "$i" != "$path_file" ] && echo mv "$i" "${path_file}"
+      [ "$i" != "$path_file" ] && mv "$i" "${path_file}"
+      # Rip with Mplayer / encode with LAME
+      echo mplayer -vo null -vc dummy -af resample=44100 -ao pcm:waveheader $path_file && lame -m s audiodump.wav -o $path_file; 
+      mplayer -vo null -vc dummy -af resample=44100 -ao pcm:waveheader $path_file && lame -m s audiodump.wav -o $path_file; 
+      # Convert file names
+      echo mv "$path_file" "$path_file_mp3"
+      mv "$path_file" "$path_file_mp3"
+      rm audiodump.wav
+   done
+   IFS="$DIFS" # restauramos separador
+else 
+   DIFS="$IFS" ; IFS=$'\n' # Separador fin de linea
+   for i in $* ; do 
+      # mv "$i" "`echo $i | tr '[A-Z]' '[a-z]'`"
+      echo "- $i"
+   done
+   IFS="$DIFS" # restauramos separador
+fi
