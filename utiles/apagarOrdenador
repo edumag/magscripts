@@ -1,19 +1,20 @@
 #!/bin/bash
 
 ## Apagar ordenador comprobando antes las cosas que nos interesa
-
-SALIR=0
-
 ## Mirar que no tengamos ningun proyecto con los tiempos abiertos en magtrabajos
 ##
 ## Podemos personalizar un atajo de teclado con la siguiente orden.
 ##
 ## terminator -e /home/edu/desarrollo/magscripts/utiles/apagarOrdenador
 
+## Configuración:
+MT_PATH=/home/edu/desarrollo/magtrabajos/magtrabajos
+
+SALIR=0
 
 echo -n "Comprobando sesiones de trabajo..."
 
-magtrabajos -sa > /dev/null
+$MT_PATH -sa > /dev/null
 
 if [ $? = 1 ] ; then 
    tput setf 4
