@@ -1,0 +1,8 @@
+echo
+echo "## LogCheck"
+echo
+
+echo "### sudo -u logcheck logcheck -o -t"
+echo
+sudo -u logcheck logcheck -o -t
+

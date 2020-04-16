@@ -1,0 +1,6 @@
+echo
+echo "## freshclam"
+echo
+freshclam
+echo clamscan -r -i /var/lib/dokku/services/mysql/
+clamscan -r -i /var/lib/dokku/services/mysql/ -i /home/dokku/ -i /var/lib/dokku/

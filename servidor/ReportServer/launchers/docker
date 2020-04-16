@@ -1,0 +1,6 @@
+echo
+echo "## docker stats --no-stream"
+echo
+
+docker stats --no-stream
+

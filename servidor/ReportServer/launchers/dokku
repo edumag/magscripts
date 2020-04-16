@@ -1,0 +1,13 @@
+echo
+echo "## dokku logs:failed"
+echo
+
+dokku logs:failed
+
+# echo
+# echo dokku
+# echo
+# 
+# echo "### dokku docker-options:report"
+# dokku docker-options:report
+

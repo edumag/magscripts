@@ -1,0 +1,14 @@
+echo
+echo "## IPs bloqueadas"
+echo
+
+echo "### iptables -L -n --line-numbers | grep REJECT"
+echo
+
+iptables -L -n --line-numbers | grep REJECT
+
+#  echo
+#  echo "### Reglas del cortafuegos"
+#  echo
+#  
+#  sudo iptables -L -n --line-numbers

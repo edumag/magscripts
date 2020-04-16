@@ -1,0 +1,22 @@
+echo
+echo "## Fail2Ban"
+
+echo
+echo "### fail2ban-client status"
+echo
+
+fail2ban-client status
+
+echo
+echo "### Status jails"
+echo
+
+for x in `fail2ban-client status | grep list | cut -d: -f2 | tr -d \,` ; do fail2ban-client status $x  ; done
+
+echo
+echo "### Numero de veces que se han bloqueado las IPs"
+echo
+
+zgrep -h "Ban " /var/log/fail2ban.log* | awk '{print $NF}' | sort | uniq
+
+
