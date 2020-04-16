@@ -8,7 +8,7 @@
 ## terminator -e /home/edu/desarrollo/magscripts/utiles/apagarOrdenador
 
 ## Configuración:
-MT_PATH=/home/edu/desarrollo/magtrabajos/magtrabajos
+MT_PATH=/home/edumag/desarrollo/magtrabajos/magtrabajos
 
 SALIR=0
 
@@ -45,7 +45,8 @@ if [ $SALIR = 0 ] ; then
    echo
    echo
    read -p '[ENTER] apaga ordenador / CTRL-c Cancela' OPCION
-   gksudo 'init 0'
+   sudo poweroff
+   # gksudo 'poweroff'
 
 else
    echo
