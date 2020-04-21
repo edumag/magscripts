@@ -5,7 +5,7 @@
 ##
 ## Ejecutar:
 ##
-## bash <(curl -s https://mega.nz/file/XAhTCQTS )
+## bash <(curl -s http://www.zeleb.es/n/vida-y-milagro-de-marta-flich-la-economista-que-se-hizo-comica-049421 )
 ##
 ## Referencias: https://es.itcooky.com/?p=142
 
