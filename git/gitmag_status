@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# Listado de proyectos
+FILE_CONFIG=$HOME/.config/git_lista_proyectos
+
+if [ -f "$FILE_CONFIG" ] ; then
+    LISTA_PROYECTOS=`cat $FILE_CONFIG`
+else
+    echo
+    echo `basename $0`
+    echo
+    echo "Gestionar repositorios git"
+    echo
+    echo "Esnecesario definir ina lista de proyectos o carpetas de proyectos en el fichero: "
+    echo "$FILE_CONFIG"
+    echo
+    echo "Un proyecto or linea"
+    exit
+fi
+
+gitStatusShow() {
+
+    echo $* | grep 'use "git push' > /dev/null
+    if [ $? == 0 ] ; then
+        # echo -en "$*"
+        return 1
+    fi
+    echo $* | grep 'use "git add' > /dev/null
+    if [ $? == 0 ] ; then
+        # echo -en "$*"
+        return 2
+    fi
+    return 0
+
+}
+
+gitCheckStatus() {
+    gitStatusShow "`git status`"
+    if [ $? != 0 ] ; then
+        echo
+        echo $x
+        echo $x | sed 's/./-/g'
+        echo
+        git status
+    fi
+}
+
+gitstatusall() {
+
+
+  for x in $* ; do
+    if [[ -d "$x" ]] ; then
+      cd "$x"
+      if [ -e .git ] ; then
+        gitCheckStatus
+        cd ../
+      else
+        for s in * ; do
+          if [[ -d "$s" ]] ; then
+            cd "$s"
+            if [ -e .git ] ; then
+                gitCheckStatus
+            fi
+            cd ../
+          fi
+        done
+        cd ../
+      fi
+    fi
+  done
+}
+
+
+gitstatusall $LISTA_PROYECTOS
+
