@@ -12,6 +12,12 @@ MT_PATH=/home/edumag/desarrollo/magtrabajos/magtrabajos
 
 SALIR=0
 
+echo
+echo "Mostramos estado de trabajos"
+echo
+/home/edumag/desarrollo/magscripts/git/gitmag_status
+echo
+
 echo -n "Comprobando sesiones de trabajo..."
 
 $MT_PATH -sa > /dev/null

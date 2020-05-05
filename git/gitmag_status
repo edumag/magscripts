@@ -38,8 +38,8 @@ gitCheckStatus() {
     gitStatusShow "`git status`"
     if [ $? != 0 ] ; then
         echo
-        echo $x
-        echo $x | sed 's/./-/g'
+        pwd
+        pwd | sed 's/./-/g'
         echo
         git status
     fi
@@ -52,14 +52,14 @@ gitstatusall() {
     if [[ -d "$x" ]] ; then
       cd "$x"
       if [ -e .git ] ; then
-        gitCheckStatus
+        gitCheckStatus "$x"
         cd ../
       else
         for s in * ; do
           if [[ -d "$s" ]] ; then
             cd "$s"
             if [ -e .git ] ; then
-                gitCheckStatus
+                gitCheckStatus "$s"
             fi
             cd ../
           fi
