@@ -11,7 +11,7 @@ for x in `seq 1 $limite` ; do
 
    echo -n .
 
-   ping -c 3 www.google.com
+   ping -c 3 www.google.com 2>/dev/null
 
    if [ $? = 0 ] ; then
 
@@ -19,6 +19,8 @@ for x in `seq 1 $limite` ; do
       $reproductor $sonido
       exit
 
+   else
+      sleep 5s
    fi
 
 done
