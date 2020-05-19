@@ -74,7 +74,7 @@ Scripts útiles para linux.
 
 ## Instalación
 
-- Bajar los scripts desde: https://github.com/edumag/magscripts/archive/develop.zip
+- Bajar los scripts desde: https://codeload.github.com/edumag/magscripts/zip/master
 
 - Renombrar la carpeta a "scripts" por ejemplo.
 
