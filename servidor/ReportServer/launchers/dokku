@@ -1,3 +1,15 @@
+#!/bin/bash
+
+## @brief Mostrar estado de dokku.
+
+help() {
+    echo
+    echo Mostrar estado de dokku.
+    echo
+}
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
 echo
 echo "## dokku logs:failed"
 echo

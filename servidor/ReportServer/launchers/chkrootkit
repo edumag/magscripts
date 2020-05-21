@@ -1,3 +1,15 @@
+#!/bin/bash
+
+## @brief Lanzador para chkrootkit.
+
+help() {
+    echo
+    echo Lanzador para chkrootkit
+    echo
+}
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
 echo
 echo "## chkrootkit"
 echo

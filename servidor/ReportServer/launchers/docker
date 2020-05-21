@@ -1,3 +1,15 @@
+#!/bin/bash
+
+## @brief Estado de docker.
+
+help() {
+    echo
+    echo Mostrar estado de docker.
+    echo
+}
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
 echo
 echo "## docker stats --no-stream"
 echo

@@ -1,3 +1,15 @@
+#!/bin/bash
+
+## @brief Mostrar estado del firewall.
+
+help() {
+    echo
+    echo Mostrar estado del firewall.
+    echo
+}
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
 echo
 echo "## IPs bloqueadas"
 echo

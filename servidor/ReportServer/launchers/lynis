@@ -1,3 +1,15 @@
+#!/bin/bash
+
+## @brief Auditoria con lynis.
+
+help() {
+    echo
+    echo Consejos de seguridad para nuestro servidor.
+    echo
+}
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
 echo
 echo "## lynis audit system"
 echo

@@ -1,3 +1,15 @@
+#!/bin/bash
+
+## @brief Mostrar estado de logcheck.
+
+help() {
+    echo
+    echo Mostrar estado de logcheck.
+    echo
+}
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
 echo
 echo "## LogCheck"
 echo

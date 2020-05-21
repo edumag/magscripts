@@ -1,54 +1,39 @@
-# 
+# magscripts
 
 
 ## Listado
 
 - [**administración/comparar_directorios**](#comparar_directorios)	Comparamos estructura de directorios.
-
 - [**backup/backup.sh**](#backup.sh)	Comprobar enlaces rotos
 - [**backup/sincronizar.sh**](#sincronizar.sh)	Sincronizamos directorios de un ordenador a otro
-
 - [**git/gitmag_status**](#gitmag_status)	Verificar estado de proyectos con git.
-
 - [**hardware/informacion_ordenador**](#informacion_ordenador)	Presentar por pantalla la información relevante del ordenador
-
 - [**imagenes/archivarFotos**](#archivarFotos)	Automatizar el proceso de archivar las fotos
 - [**imagenes/logoAimagen**](#logoAimagen)	Insertar logo en una imagen
 - [**imagenes/transformar_imagenes**](#transformar_imagenes)	Transformar una imagen a formato jpg con la anchura o altura especificada
-
 - [**internet/buscarEnBlog**](#buscarEnBlog)	Busqueda en nuestro propio blog.
 - [**internet/comprobar_conexion**](#comprobar_conexion)	Testeamos conexión a internet hasta tener resultado positivo.
 - [**internet/verip**](#verip)	Muestra nuestra ip actual.
-
 - [**juegos/dat2zsnes**](#dat2zsnes)	Comprobar enlaces rotos
 - [**juegos/xmame_iconos**](#xmame_iconos)	Generación de iconos con las imágenes de las roms
-
 - [**musica/ordenarMp3**](#ordenarMp3)	Ordenar mp3 por artistas y albunes.
-
 - [**programacion/ctags_php**](#ctags_php)	ctags para proyectos en php
 - [**programacion/ctags_python**](#ctags_python)	ctags para proyectos en python
 - [**programacion/time2date**](#time2date)	Convierte fecha en formato unix a formato humano.
-
-- [**launchers/chkrootkit**](#chkrootkit)	
-- [**launchers/clamscan**](#clamscan)	
-- [**launchers/docker**](#docker)	
-- [**launchers/dokku**](#dokku)	
-- [**launchers/fail2ban**](#fail2ban)	
-- [**launchers/firewall**](#firewall)	
-- [**launchers/logcheck**](#logcheck)	
-- [**launchers/lynis**](#lynis)	
-- [**launchers/system.sh**](#system.sh)	
-
+- [**launchers/chkrootkit**](#chkrootkit)	Lanzador para chkrootkit.
+- [**launchers/clamscan**](#clamscan)	Lanzador para clamscan.
+- [**launchers/docker**](#docker)	Estado de docker.
+- [**launchers/dokku**](#dokku)	Mostrar estado de dokku.
+- [**launchers/fail2ban**](#fail2ban)	Mostar estado de fail2ban.
+- [**launchers/firewall**](#firewall)	Mostrar estado del firewall.
+- [**launchers/logcheck**](#logcheck)	Mostrar estado de logcheck.
+- [**launchers/lynis**](#lynis)	Auditoria con lynis.
+- [**launchers/system.sh**](#system.sh)	Mostrar estado del sistema.
 - [**ReportServer/reportServer.sh**](#reportServer.sh)	Pequeños scripts para saber el estado del servidor.
-
 - [**servidor/tunel.sh**](#tunel.sh)	Script para hacer tunel ssh inverso
-
-
 - [**utiles/apagarOrdenador**](#apagarOrdenador)	Revisar estado de trabajo antes de cerrar.
 - [**utiles/pasarLatin1**](#pasarLatin1)	Pasar archivos a latin1
 - [**utiles/pasarUTF8**](#pasarUTF8)	Pasar archivos a utf-8
-
-
 
 ## Scripts
 
@@ -377,7 +362,7 @@ logoAimagen -info, Para más información
 
 ```
 
-## chkrootkit
+Lanzador para chkrootkit
 ```
 
 <a name="clamscan"/>
@@ -386,9 +371,7 @@ logoAimagen -info, Para más información
 
 ```
 
-## freshclam
-
-clamscan -r -i /var/lib/dokku/services/mysql/
+Lanzador para clamscan.
 ```
 
 <a name="docker"/>
@@ -397,9 +380,7 @@ clamscan -r -i /var/lib/dokku/services/mysql/
 
 ```
 
-## docker stats --no-stream
-
-CONTAINER ID        NAME                CPU %               MEM USAGE / LIMIT   MEM %               NET I/O             BLOCK I/O           PIDS
+Mostrar estado de docker.
 ```
 
 <a name="dokku"/>
@@ -408,7 +389,7 @@ CONTAINER ID        NAME                CPU %               MEM USAGE / LIMIT   
 
 ```
 
-## dokku logs:failed
+Mostrar estado de dokku.
 ```
 
 <a name="fail2ban"/>
@@ -417,15 +398,7 @@ CONTAINER ID        NAME                CPU %               MEM USAGE / LIMIT   
 
 ```
 
-## Fail2Ban
-
-### fail2ban-client status
-
-
-### Status jails
-
-
-### Numero de veces que se han bloqueado las IPs
+Mostar estado de fail2ban.
 ```
 
 <a name="firewall"/>
@@ -434,9 +407,7 @@ CONTAINER ID        NAME                CPU %               MEM USAGE / LIMIT   
 
 ```
 
-## IPs bloqueadas
-
-### iptables -L -n --line-numbers | grep REJECT
+Mostrar estado del firewall.
 ```
 
 <a name="logcheck"/>
@@ -445,9 +416,7 @@ CONTAINER ID        NAME                CPU %               MEM USAGE / LIMIT   
 
 ```
 
-## LogCheck
-
-### sudo -u logcheck logcheck -o -t
+Mostrar estado de logcheck.
 ```
 
 <a name="lynis"/>
@@ -456,7 +425,7 @@ CONTAINER ID        NAME                CPU %               MEM USAGE / LIMIT   
 
 ```
 
-## lynis audit system
+Consejos de seguridad para nuestro servidor.
 ```
 
 <a name="system.sh"/>
@@ -465,25 +434,7 @@ CONTAINER ID        NAME                CPU %               MEM USAGE / LIMIT   
 
 ```
 
-## Procesos ordenados por %MEM
-
-  PID  PPID CMD                         %MEM %CPU
- 2648     1 /usr/lib/firefox/firefox     5.7  3.4
- 2791  2648 /usr/lib/firefox/firefox -c  5.1  0.9
-28933  2648 /usr/lib/firefox/firefox -c  4.2  6.9
- 2941  2648 /usr/lib/firefox/firefox -c  3.4  1.8
- 2953  2648 /usr/lib/firefox/firefox -c  2.5  2.2
- 6583  2648 /usr/lib/firefox/firefox -c  2.4  0.0
- 2968  2648 /usr/lib/firefox/firefox -c  2.2  0.6
- 3151  2648 /usr/lib/firefox/firefox -c  1.7  2.4
- 2052  2051 /usr/bin/nextcloud           1.4  0.0
-
-## free -mth
-
-              total        used        free      shared  buff/cache   available
-Mem:           7,7G        1,8G        3,9G        163M        2,1G        5,5G
-Swap:          7,9G          0B        7,9G
-Total:          15G        1,8G         11G
+Mostrar estado del sistema.
 ```
 
 <a name="reportServer.sh"/>

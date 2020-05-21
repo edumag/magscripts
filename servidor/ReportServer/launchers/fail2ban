@@ -1,3 +1,15 @@
+#!/bin/bash
+
+## @brief Mostar estado de fail2ban.
+
+help() {
+    echo
+    echo Mostar estado de fail2ban.
+    echo
+}
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
 echo
 echo "## Fail2Ban"
 

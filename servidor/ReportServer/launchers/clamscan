@@ -1,6 +1,18 @@
+#!/bin/bash
+
+## @brief Lanzador para clamscan.
+
+help() {
+    echo
+    echo Lanzador para clamscan.
+    echo
+}
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
 echo
 echo "## freshclam"
 echo
 freshclam
-echo clamscan -r -i /var/lib/dokku/services/mysql/
-clamscan -r -i /var/lib/dokku/services/mysql/ -i /home/dokku/ -i /var/lib/dokku/
+echo clamscan -r -i /var/
+clamscan -r -i /var/
