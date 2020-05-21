@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## Script para hacer tunel ssh inverso
+## @file tunel.sh
+## @brief Script para hacer tunel ssh inverso
+##
 ## Fork de David Martí - http://sukiweb.net
 ##
 ## Ejecutar:
@@ -8,6 +10,11 @@
 ## bash <(curl -s https://raw.githubusercontent.com/edumag/magscripts/master/servidor/tunel.sh )
 ##
 ## Referencias: https://es.itcooky.com/?p=142
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
 
 USUARIO_TUNEL="tuneluser"
 PUERTO_TUNEL="2048"

@@ -1,7 +1,0 @@
-#!/bin/bash
-
-# Arrancar mysql para que funcione mp3kult
-
-sudo mysqld &
-mp3kult 
-sudo killall mysqld

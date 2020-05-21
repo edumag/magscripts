@@ -1,5 +1,12 @@
 #!/bin/bash
 
+## @file gitmag_status
+## @brief Verificar estado de proyectos con git.
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
 # Listado de proyectos
 FILE_CONFIG=$HOME/.config/git_lista_proyectos
 
@@ -11,10 +18,10 @@ else
     echo
     echo "Gestionar repositorios git"
     echo
-    echo "Esnecesario definir ina lista de proyectos o carpetas de proyectos en el fichero: "
+    echo "Esnecesario definir una lista de proyectos o carpetas de proyectos en el fichero: "
     echo "$FILE_CONFIG"
     echo
-    echo "Un proyecto or linea"
+    echo "Un proyecto por linea"
     exit
 fi
 

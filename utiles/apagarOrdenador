@@ -1,11 +1,18 @@
 #!/bin/bash
 
+## @file apagarOrdenador
+## @brief Revisar estado de trabajo antes de cerrar.
+##
 ## Apagar ordenador comprobando antes las cosas que nos interesa
 ## Mirar que no tengamos ningun proyecto con los tiempos abiertos en magtrabajos
 ##
 ## Podemos personalizar un atajo de teclado con la siguiente orden.
 ##
 ## terminator -e /home/edu/desarrollo/magscripts/utiles/apagarOrdenador
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
 ## Configuración:
 MT_PATH=/home/edumag/desarrollo/magtrabajos/magtrabajos

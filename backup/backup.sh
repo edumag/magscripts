@@ -1,5 +1,8 @@
 #!/bin/bash
 
+## @file backup.sh
+## @brief Comprobar enlaces rotos
+##
 ## Recogemos el numero de la semana y año.
 ## Si no tenemos directorio creamos una copia total del directorio WWW.
 ## Si tenemos directorio creamos una copia incremental.
@@ -8,6 +11,10 @@
 ## en ~/.my.cnf
 ##
 ## @todo No borramos copias antiguas hasta tener servidor local con replica.
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
 ## Lista de directorios.
 DIRECTORIOS=

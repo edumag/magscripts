@@ -1,9 +1,15 @@
 #!/bin/bash
 
-limite=1000                              ##< Limite de intentos
-sonido=~/Música/*                        ##< Sonido a reproducir
-reproductor='mplayer -shuffle '          ##< Reproductor
+## @file comprobar_conexion
+## @brief Testeamos conexión a internet hasta tener resultado positivo.
+##
+## Una vez detectada la vuelta de internet se lanzara reproductor.
 
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
+limite=1000                              ##< Limite de intentos
 
 echo -n "Comprobando conexión a internet "
 
@@ -16,7 +22,7 @@ for x in `seq 1 $limite` ; do
    if [ $? = 0 ] ; then
 
       echo "Con conexión"
-      $reproductor $sonido
+      notify-send "Conexión a internet" "restablecida"
       exit
 
    else

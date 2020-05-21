@@ -60,7 +60,7 @@ function help() {
 
 declare -a imagenes
 
-if [ "$1" = "-h" ] || [ "$1" = "-info" ] ; then help ; exit ; fi
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then help ; exit ; fi
 
 if [ "$1" = "" ] ; then
    # No hay argumentos pedimos directorio de imágenes

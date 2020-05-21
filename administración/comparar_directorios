@@ -1,12 +1,11 @@
 #!/bin/bash
 
-#/**
-# * cmpdir - juanayup@gmail.com, 2007, GPLv2
-# *
-# * cmpdir <dir1> <dir2>
-# *
-# * @todo Si los directorios vienen sin '/' al final hay que añadirla
-# */
+## @file comparar_directorios
+## @brief Comparamos estructura de directorios.
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
 FILE="$HOME/`basename "$0"`.lista"
 SRC="$1"

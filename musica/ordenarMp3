@@ -1,5 +1,12 @@
 #!/bin/bash
 
+## @file ordenarMp3
+## @brief Ordenar mp3 por artistas y albunes.
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
 for x in *.mp3
    do
    ART="`mp3info -p '%a' \"$x\"`"

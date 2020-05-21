@@ -1,13 +1,10 @@
 #!/bin/bash
 
-#IPDIN1="$(/sbin/ifconfig |awk -F'[: ]+' '/inet addr:/ {print $4}' |
-#egrep -v '(^127\.|^192\.168)')"
+## @file verip
+## @brief Muestra nuestra ip actual.
 
-#echo $IPDIN1
+help() { doxygen2help "$0" ; }
 
-file="/tmp/ip.txt"
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
-lynx -source http://www.cual-es-mi-ip.net/ > $file
-grep "<span style=\"font-size: 32px\">" $file | cut -d\> -f3 | cut -d\< -f1
-
-
+curl -s ipecho.net/plain;echo

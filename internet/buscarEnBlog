@@ -1,5 +1,12 @@
 #!/bin/bash
 
+## @file buscarEnBlog
+## @brief Busqueda en nuestro propio blog.
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
 URL="http://lesolivex.com?s="
 
 NAVEGADOR=xdg-open

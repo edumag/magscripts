@@ -1,5 +1,12 @@
 #!/bin/bash
 
+## @file buscar_enlaces_rotos
+## @brief Comprobar enlaces rotos
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
 # Modificar los directorios y ubicación del fichero DAT
 dir_roms=/home/todos/juegos/snes-superNintendo/Roms/     ##< Directorio de las roms
 dir_snaps=/home/todos/juegos/snes-superNintendo/snaps/   ##< Directorio de las imágenes
