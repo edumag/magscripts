@@ -1,0 +1,48 @@
+#!/bin/bash
+
+PRUEBA_ACTUAL=""
+DIC=/usr/share/hunspell/ca.dic
+NUMERO_PALABRA=`cat $DIC | wc -l`
+PUNTOS=0
+NUMERO_PRUEBAS=0
+
+verde() { echo -e "\033[32m${@}\033[0m"; }
+rojo() { echo -e "\033[31m${@}\033[0m"; }
+
+muestraPalabea() {
+    declare L=$(( $RANDOM % $NUMERO_PALABRA ))
+    cmd="sed -n '${L},+0p' $DIC | cut -d/ -f1"
+    eval "$cmd"
+}
+
+muestraTeclado() {
+cat <<EOF
+
+  QWERTYUIOP
+  ASD`verde F`GH`verde J`KLÑḈ
+   ZXCVBNM
+
+EOF
+}
+
+prueba() {
+
+    PRUEBA_ACTUAL=`muestraPalabea`
+
+    echo "${PRUEBA_ACTUAL}"
+    read RESPUESTA
+
+    if [ "$PRUEBA_ACTUAL" == "$RESPUESTA" ] ; then
+        let "PUNTOS++"
+        verde "(${PUNTOS}/${1})"
+    else
+        rojo "(${PUNTOS}/${1})"
+    fi
+}
+
+clear
+muestraTeclado
+
+for NUMERO_PRUEBAS in `seq 1 10` ; do
+    prueba $NUMERO_PRUEBAS
+done
