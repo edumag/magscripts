@@ -29,14 +29,14 @@ prueba() {
 
     PRUEBA_ACTUAL=`muestraPalabea`
 
-    echo "${PRUEBA_ACTUAL}"
+    echo -E "${PRUEBA_ACTUAL}"
     read RESPUESTA
 
-    if [ "$PRUEBA_ACTUAL" == "$RESPUESTA" ] ; then
+    if [[ $PRUEBA_ACTUAL != $RESPUESTA ]] ; then
+        rojo "(${PUNTOS}/${1})"
+    else
         let "PUNTOS++"
         verde "(${PUNTOS}/${1})"
-    else
-        rojo "(${PUNTOS}/${1})"
     fi
 }
 
