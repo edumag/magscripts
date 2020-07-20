@@ -52,6 +52,12 @@ else
    SALIR=1
 fi
 
+## Si tenemos proyectos abirtos con ddev los cerramos.
+
+if [[ `whereis ddev` ]] ; then
+    ddev poweroff
+fi
+
 ## Apagamos ordenador si todo fue bien
 if [ $SALIR = 0 ] ; then
 
