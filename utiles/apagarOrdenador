@@ -25,6 +25,13 @@ echo
 /home/edumag/desarrollo/magscripts/git/gitmag_status
 echo
 
+echo -n "Proyectos abirtos con ddev los cerramos..."
+
+if [[ `whereis ddev` ]] ; then
+    ddev poweroff
+   echo "Ok"
+fi
+
 echo -n "Comprobando sesiones de trabajo..."
 
 $MT_PATH -sa > /dev/null
@@ -50,12 +57,6 @@ else
    echo -e "Sessiones de vim abiertas"
    tput sgr0
    SALIR=1
-fi
-
-## Si tenemos proyectos abirtos con ddev los cerramos.
-
-if [[ `whereis ddev` ]] ; then
-    ddev poweroff
 fi
 
 ## Apagamos ordenador si todo fue bien
