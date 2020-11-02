@@ -116,6 +116,9 @@ function _informacion_hardware() {
    echo
    echo '## Estado de la bateria'
    echo
+   # Para conocer el estado de tu batería simplemente tienes que calcular el
+   # cociente entre los valores energy-full y energy-full-design. En mi caso en
+   # cuestión esto es, 19,8182 / 52,9452 * 100 = 37,43echo
    
    echo '```'
    cat /sys/class/power_supply/BAT0/uevent
