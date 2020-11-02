@@ -74,46 +74,59 @@ fi
 function _informacion_hardware() {
 
    echo
-   echo 'Información de la bios'
-   echo '----------------------'
+   echo '## Información de la bios'
    echo
 
+   echo '```'
    dmidecode -t bios
+   echo '```'
 
    echo
-   echo 'Información de la placa madre'
-   echo '-----------------------------'
+   echo '## Información de la placa madre'
    echo
 
+   echo '```'
    dmidecode -t baseboard
+   echo '```'
 
    echo
-   echo 'PCI'
-   echo '---'
+   echo '## PCI'
    echo
 
+   echo '```'
    lspci
+   echo '```'
 
    echo
-   echo 'Información particiones'
-   echo '-----------------------'
+   echo '## Información particiones'
    echo
 
+   echo '```'
    fdisk -l /dev/sda
+   echo '```'
 
    echo
-   echo 'Información pprocesador'
-   echo '-----------------------'
+   echo '## Información procesador'
    echo
 
+   echo '```'
    cat /proc/cpuinfo
+   echo '```'
+
+   echo
+   echo '## Estado de la bateria'
+   echo
+   
+   echo '```'
+   cat /sys/class/power_supply/BAT0/uevent
+   echo '```'
+
    }
 
 function _informacion_software() {
 
    echo
-   echo Sistema operativo
-   echo -----------------
+   echo ## Sistema operativo
    echo
 
    lsb_release -a
@@ -125,9 +138,7 @@ function _informacion_software() {
    }
 
 echo
-echo '====================='
-echo 'Información Ordenador'
-echo '====================='
+echo '# Información Ordenador'
 echo
 
 _informacion_software
