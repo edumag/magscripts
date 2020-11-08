@@ -29,6 +29,6 @@ echo
 echo "### Numero de veces que se han bloqueado las IPs"
 echo
 
-zgrep -h "Ban " /var/log/fail2ban.log* | awk '{print $NF}' | sort | uniq
+zgrep -h "Ban " /var/log/fail2ban.log* | awk '{print $NF}' | sort | uniq -c | sort
 
 
