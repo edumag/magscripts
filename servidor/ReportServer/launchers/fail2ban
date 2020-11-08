@@ -29,6 +29,9 @@ echo
 echo "### Numero de veces que se han bloqueado las IPs"
 echo
 
-zgrep -h "Ban " /var/log/fail2ban.log* | awk '{print $NF}' | sort | uniq -c | sort
+# zgrep -h "Ban " /var/log/fail2ban.log* | awk '{print $NF}' | sort | uniq -c | sort
+
+zgrep -h "Ban " /var/log/fail2ban.log* | awk '{print $NF}' | sort | uniq -c | sort | while read line; do IP=`echo $line | colrm 1 2` ;  INFO=`whois $IP | head -n 12 | egrep "(country|netname)" | cut -f2 -d: | sed 's/ //g'` ; echo $line $INFO   ; done
+
 
 
