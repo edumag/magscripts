@@ -31,5 +31,7 @@ echo
 
 zgrep -h "Ban " /var/log/fail2ban.log* | awk '{print $NF}' | sort | uniq -c | sort -nr | tee /tmp/ips_bloqueadas.txt
 
-./whois_list /tmp/ips_bloqueadas.txt
+dn=`dirname "$0"`
+
+${db}/whois_list /tmp/ips_bloqueadas.txt
 
