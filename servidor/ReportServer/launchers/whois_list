@@ -1,17 +1,20 @@
 #!/bin/bash
 
-## @brief Mostar estado de fail2ban.
+## @brief Mostar info de IPs.
 
 help() {
     echo
-    echo Mostar estado de fail2ban.
+    echo Mostar información de IPs.
     echo
 }
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
+f=$1   # Fichero con la lista.
+l=30  # Limite de IPs
+
 echo
-echo "## Fail2Ban"
+echo "## WhoisList"
 
 echo
 echo "Mostramosinformación de las 10 primeras."
@@ -28,7 +31,7 @@ c=0 ; while read line ; do
         SERVICE_NAME="`echo \"$INFO\" | grep -i -m 1 'Service' | cut -f2 -d:`"
         ADDRESS="`echo \"$INFO\" | grep -i -m 1 'Address' | cut -f2 -d:`"
         echo -e "${IP}\t${NUM}\t${COUNTRY}\t${NETNAME}\t${ORGANIZACION}\t${SERVICE_NAME}\t${ADDRESS}"
-        [ $c -gt 10 ] && break;
-done < /tmp/ips_bloqueadas.txt
+        [ $c -gt $l ] && break;
+done < "$f"
 
 

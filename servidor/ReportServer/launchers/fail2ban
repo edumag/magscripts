@@ -31,24 +31,5 @@ echo
 
 zgrep -h "Ban " /var/log/fail2ban.log* | awk '{print $NF}' | sort | uniq -c | sort -nr | tee /tmp/ips_bloqueadas.txt
 
-echo
-echo "Mostramosinformación de las 10 primeras."
-echo
-echo -e "IP\tN.\tCOUNTRY\tNAME\tORG.\tSERVICE\tADDRESS"
-c=0 ; while read line ; do
-        let c++
-        IP=`echo $line | colrm 1 2`
-        NUM=`echo $line | cut -d' ' -f1`
-        INFO=`whois $IP`
-        COUNTRY="`echo \"$INFO\" | grep -i -m 1 'country' | cut -f2 -d: | sed 's/ //g'`"
-        NETNAME="`echo \"$INFO\" | grep -i -m 1 'netname' | cut -f2 -d: | sed 's/ //g'`"
-        ORGANIZACION="`echo \"$INFO\" | grep -i -m 1 'Organization' | cut -f2 -d: | sed 's/ //g'`"
-        SERVICE_NAME="`echo \"$INFO\" | grep -i -m 1 'Service' | cut -f2 -d: | sed 's/ //g'`"
-        ADDRESS="`echo \"$INFO\" | grep -i -m 1 'Address' | cut -f2 -d: | sed 's/ //g'`"
-        echo -e "${IP}\t${NUM}\t${COUNTRY}\t${NAME}\t${ORGANIZACION}\t${SERVICE_NAME}\t${ADDRESS}"
-        if [ $c -gt 10 ] ; then
-                break;
-        fi
-done < /tmp/ips_bloqueadas.txt
-
+./whois_list /tmp/ips_bloqueadas.txt
 
