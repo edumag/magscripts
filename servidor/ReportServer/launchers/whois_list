@@ -10,8 +10,8 @@ help() {
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
-f=$1   # Fichero con la lista.
-l=30  # Limite de IPs
+f="$1"   # Fichero con la lista.
+l=30     # Limite de IPs
 
 echo
 echo "## WhoisList"
