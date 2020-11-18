@@ -12,6 +12,7 @@ if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
 f="$1"   # Fichero con la lista.
 l=30     # Limite de IPs
+ff="/tmp/ips_bloqueadas.csv"
 
 echo
 echo "## WhoisList"
@@ -30,7 +31,7 @@ c=0 ; while read line ; do
         ORGANIZACION="`echo \"$INFO\" | grep -i -m 1 'Organization' | cut -f2 -d:`"
         SERVICE_NAME="`echo \"$INFO\" | grep -i -m 1 'Service' | cut -f2 -d:`"
         ADDRESS="`echo \"$INFO\" | grep -i -m 1 'Address' | cut -f2 -d:`"
-        echo -e "${IP}\t${NUM}\t${COUNTRY}\t${NETNAME}\t${ORGANIZACION}\t${SERVICE_NAME}\t${ADDRESS}"
+        echo -e "${IP}\t${NUM}\t${COUNTRY}\t${NETNAME}\t${ORGANIZACION}\t${SERVICE_NAME}\t${ADDRESS}" |  tee a "$ff"
         [ $c -gt $l ] && break;
 done < "$f"
 
