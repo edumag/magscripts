@@ -1,0 +1,34 @@
+#!/bin/bash
+
+## @brief Mostar estado de fail2ban.
+
+help() {
+    echo
+    echo Mostar estado de fail2ban.
+    echo
+}
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
+echo
+echo "## Fail2Ban"
+
+echo
+echo "Mostramosinformación de las 10 primeras."
+echo
+echo -e "IP\tN.\tCOUNTRY\tNAME\tORG.\tSERVICE\tADDRESS"
+c=0 ; while read line ; do
+        let c++
+        IP=`echo $line | colrm 1 2`
+        NUM=`echo $line | cut -d' ' -f1`
+        INFO=`whois $IP`
+        COUNTRY="`echo \"$INFO\" | grep -i -m 1 'country' | cut -f2 -d:`"
+        NETNAME="`echo \"$INFO\" | grep -i -m 1 'netname' | cut -f2 -d:`"
+        ORGANIZACION="`echo \"$INFO\" | grep -i -m 1 'Organization' | cut -f2 -d:`"
+        SERVICE_NAME="`echo \"$INFO\" | grep -i -m 1 'Service' | cut -f2 -d:`"
+        ADDRESS="`echo \"$INFO\" | grep -i -m 1 'Address' | cut -f2 -d:`"
+        echo -e "${IP}\t${NUM}\t${COUNTRY}\t${NETNAME}\t${ORGANIZACION}\t${SERVICE_NAME}\t${ADDRESS}"
+        [ $c -gt 10 ] && break;
+done < /tmp/ips_bloqueadas.txt
+
+
