@@ -9,8 +9,6 @@
 ##
 ## Para que funcione mysql debe haber un archivo con el usuario y contraseña
 ## en ~/.my.cnf
-##
-## @todo No borramos copias antiguas hasta tener servidor local con replica.
 
 help() { doxygen2help "$0" ; }
 
