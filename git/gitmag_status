@@ -54,8 +54,8 @@ gitCheckStatus() {
 
 gitstatusall() {
 
-
   for x in $* ; do
+    echo "- $x"
     if [[ -d "$x" ]] ; then
       cd "$x"
       if [ -e .git ] ; then
@@ -69,10 +69,14 @@ gitstatusall() {
                 gitCheckStatus "$s"
             fi
             cd ../
+          else
+            echo "$s no es un directorio"
           fi
         done
         cd ../
       fi
+    else
+      echo "$x no es un directorio"
     fi
   done
 }
