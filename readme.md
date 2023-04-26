@@ -1,5 +1,26 @@
 # magscripts
 
+Scripts para linux que nos facilitan la vida.
+
+## Instalación
+
+- Bajar los scripts desde: https://codeload.github.com/edumag/magscripts/zip/master
+
+- Renombrar la carpeta a "scripts" por ejemplo.
+
+- Añadir a PATH los scripts desde $HOME/.bashrc
+
+  ```
+  for x in $HOME/scripts/* ; do if [ -d $x ] ; then PATH="$PATH:$x" ; fi ; done
+  export PATH
+  ```
+
+### En nautilus
+
+```
+cd .local/share/nautilus/scripts
+ln -s $HOME/scripts ./
+```
 
 ## Listado
 
@@ -545,19 +566,3 @@ Mostrar estado del sistema.
  This source code is released for free distribution under the terms of the
  GNU General Public License as published by the Free Software Foundation.
 ```
-
-
-## Instalación
-
-- Bajar los scripts desde: https://codeload.github.com/edumag/magscripts/zip/master
-
-- Renombrar la carpeta a "scripts" por ejemplo.
-
-- Añadir a PATH los scripts desde $HOME/.bashrc
-
-  ```
-  for x in $HOME/scripts/* ; do if [ -d $x ] ; then PATH="$PATH:$x" ; fi ; done
-  export PATH
-  ```
-
-
