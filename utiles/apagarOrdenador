@@ -59,12 +59,17 @@ else
    SALIR=1
 fi
 
+## backups
+magbackup
+
 ## Apagamos ordenador si todo fue bien
 if [ $SALIR = 0 ] ; then
 
    echo
+   echo "Se han encontrado incidencias, pero si no candelas el"
+   echo "apagado, continuara en 60s"
    echo
-   read -p '[ENTER] apaga ordenador / CTRL-c Cancela' OPCION
+   read -t 60 -p '[ENTER] apaga ordenador / CTRL-c Cancela' OPCION
    sudo poweroff
    # gksudo 'poweroff'
 
