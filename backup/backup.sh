@@ -56,11 +56,13 @@ fi
 test -d $BACKUP_DIR/$SEMANA || mkdir -p $BACKUP_DIR/$SEMANA
 test -d $BACKUP_DIR/$SEMANA/$DIA || mkdir -p $BACKUP_DIR/$SEMANA/$DIA
 
-for db in $(mysql -B -s -e 'show databases' | grep -vE '(information_schema|performance_schema|mysql)' )
-  do
-  logger "$LOG_MSG Iniciada copia de seguridad $db"
-  test -e $BACKUP_DIR/$SEMANA/$DIA/$db.sql.gz || mysqldump $db | gzip > $BACKUP_DIR/$SEMANA/$DIA/$db.sql.gz
-done
+if [[ -z $MYSQLS ]] ; then
+  for db in $(mysql -B -s -e 'show databases' | grep -vE '(information_schema|performance_schema|mysql)' )
+    do
+    logger "$LOG_MSG Iniciada copia de seguridad $db"
+    test -e $BACKUP_DIR/$SEMANA/$DIA/$db.sql.gz || mysqldump $db | gzip > $BACKUP_DIR/$SEMANA/$DIA/$db.sql.gz
+  done
+fi
 
 
 # cd "$WWW_DIR"
