@@ -16,15 +16,15 @@ if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
 ## Lista de directorios.
 DIRECTORIOS=
-BACKUP_DIR=/var/backups/example
+BACKUP_DIR="$HOME/backups/"
 # Número de semanas que guardamos.
 GUARDAMOS=3
 # Indicador para mensajes de log.
-LOG_MSG="backup_example"
+LOG_MSG="backup.sh"
 # Acaba configuración.
 
 # Buscamos configuración en archivo de usuario.
-CONF_FILE=$HOME/.backup_example.conf
+CONF_FILE=$HOME/.backup.conf
 
 if [ ! -e "$CONF_FILE" ] ; then
   echo
