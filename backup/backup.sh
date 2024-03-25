@@ -56,7 +56,7 @@ fi
 test -d $BACKUP_DIR/$SEMANA || mkdir -p $BACKUP_DIR/$SEMANA
 test -d $BACKUP_DIR/$SEMANA/$DIA || mkdir -p $BACKUP_DIR/$SEMANA/$DIA
 
-if [[ -z $MYSQLS ]] ; then
+if [[ ! -z $MYSQLS ]] ; then
   for db in $(mysql -B -s -e 'show databases' | grep -vE '(information_schema|performance_schema|mysql)' )
     do
     logger "$LOG_MSG Iniciada copia de seguridad $db"
