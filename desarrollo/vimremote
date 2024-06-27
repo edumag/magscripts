@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    input=`xclip -o -f`
+    if [ -z "$input" ]; then
+        input=`xclip -i -f`
+    fi
+    if [ -z "$input" ]; then
+        input=`xclip -f -o -sel clip`
+    fi
+else
+    input=$1
+fi
+
+logger "input: $input"
+
+cmd="vim --servername vimserver --remote-send ':e $input<CR>'"
+
+logger "$cmd"
+echo $cmd
+eval "$cmd"
+

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+vim --servername vimserver --remote-silent $@
+
