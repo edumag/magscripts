@@ -1,4 +1,4 @@
 #!/bin/bash
 
-vim --servername vimserver --remote-silent $@
+vim --servername vimserver $@
 
