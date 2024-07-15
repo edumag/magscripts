@@ -1,4 +1,7 @@
 #!/bin/bash
 
-vim --servername vimserver $@
-
+if [ -f Session.vim ] ; then
+    vim --servername vimserver -S Session.vim $@
+else
+    vim --servername vimserver $@
+fi
