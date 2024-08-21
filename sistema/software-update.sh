@@ -39,7 +39,7 @@
 # # Eliminar paquetes
 # pacman -R “paquete” #Borra paquete sin sus dependencias.
 # pacman -Rs “paquete” #Borra paquete y sus dependencias no utilizadas.
-which pacman > /dev/null
+which pacman > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
   echo
   echo "pacman"
@@ -55,7 +55,7 @@ if [[ $? -eq 0 ]] ; then
   echo
 fi
 
-which flatpak > /dev/null
+which flatpak > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
   echo
   echo "flatpak"
@@ -69,7 +69,7 @@ if [[ $? -eq 0 ]] ; then
   sudo flatpak update
 fi
 
-which snap > /dev/null
+which snap > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
   echo
   echo "snap"
@@ -83,7 +83,7 @@ if [[ $? -eq 0 ]] ; then
   sudo snap refresh
 fi
 
-which apt-get > /dev/null
+which apt-get > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
   echo
   echo "apt-get"
