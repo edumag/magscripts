@@ -17,6 +17,9 @@
 # sudo pkcon update -y
 
 ## pacman
+#
+# https://www.busindre.com/guia_rapida_y_completa_de_pacman_arch
+#
 # #Instalar paquetes
 # pacman -S “paquete” #Instala un paquete.
 # pacman -Sy “paquete” #Sincroniza repositorios e instala el paquete.
@@ -39,6 +42,10 @@
 # # Eliminar paquetes
 # pacman -R “paquete” #Borra paquete sin sus dependencias.
 # pacman -Rs “paquete” #Borra paquete y sus dependencias no utilizadas.
+#
+# En caso de conflictos podemos actualizar mirando de ignorar los paquetes afectados
+# pacman -Syu --ignore llvm-libs,pipewire-pulse
+#
 which pacman > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
   echo
@@ -46,13 +53,23 @@ if [[ $? -eq 0 ]] ; then
   echo "-------"
   echo
   echo "Sincronizando repositorios"
-  echo
+  echo pacman -Sy
   sudo pacman -Sy #Sincroniza repositorios.
   echo
   echo "Actualizando paquetes"
-  echo
+  echo pacman -Su
   sudo pacman -Su #Actualiza paquetes.
+  if [ ! $? -eq 0 ] ; then
+      echo
+      echo "En caso de conflictos podemos actualizar mirando de ignorar los paquetes afectados"
+      echo "Ejemplo: pacman -Syu --ignore llvm-libs,pipewire-pulse"
+      read -p "Presione [Enter] para continuar..."
+  fi
   echo
+  echo "Eliminando paquetes huerfanos"
+  echo 'pacman -Rs $(pacman -Qtdq)'
+  echo
+  sudo pacman -Rs $(pacman -Qtdq) 2> /dev/null
 fi
 
 which flatpak > /dev/null 2>&1
@@ -60,12 +77,11 @@ if [[ $? -eq 0 ]] ; then
   echo
   echo "flatpak"
   echo "-------"
-  echo "flatpak list"
   echo
+  echo "flatpak list"
   sudo flatpak list
   echo
-  echo "flatpak -v  update"
-  echo
+  echo "flatpak update"
   sudo flatpak update
 fi
 
@@ -74,12 +90,11 @@ if [[ $? -eq 0 ]] ; then
   echo
   echo "snap"
   echo "----"
-  echo "snap list"
   echo
+  echo "snap list"
   sudo snap list
   echo
   echo "snap refresh"
-  echo
   sudo snap refresh
 fi
 
@@ -89,6 +104,7 @@ if [[ $? -eq 0 ]] ; then
   echo "apt-get"
   echo "-------"
   echo
+  echo 'apt-get update && apt-get upgrade && apt-get dist-upgrade && apt-get autoremove && apt-get autoclean'
   sudo apt-get update
   sudo apt-get upgrade
   sudo apt-get dist-upgrade
