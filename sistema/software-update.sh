@@ -81,8 +81,8 @@ if [[ $? -eq 0 ]] ; then
   echo "flatpak list"
   sudo flatpak list
   echo
-  echo "flatpak update"
-  sudo flatpak update
+  echo "flatpak update -y"
+  sudo flatpak update -y
 fi
 
 which snap > /dev/null 2>&1
@@ -106,9 +106,9 @@ if [[ $? -eq 0 ]] ; then
   echo
   echo 'apt-get update && apt-get upgrade && apt-get dist-upgrade && apt-get autoremove && apt-get autoclean'
   sudo apt-get update
-  sudo apt-get upgrade
-  sudo apt-get dist-upgrade
-  sudo apt-get autoremove
-  sudo apt-get autoclean
+  sudo apt-get upgrade -y
+  sudo apt-get dist-upgrade -y
+  sudo apt-get autoremove -y
+  sudo apt-get autoclean -y
   echo
 fi
