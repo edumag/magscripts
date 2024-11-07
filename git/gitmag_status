@@ -27,12 +27,12 @@ fi
 
 gitStatusShow() {
 
-    echo $* | grep 'use "git push' > /dev/null
+    echo $* | grep '"git push' > /dev/null
     if [ $? == 0 ] ; then
         # echo -en "$*"
         return 1
     fi
-    echo $* | grep 'use "git add' > /dev/null
+    echo $* | grep '"git add' > /dev/null
     if [ $? == 0 ] ; then
         # echo -en "$*"
         return 2
@@ -62,18 +62,21 @@ gitstatusall() {
         gitCheckStatus "$x"
         cd ../
       else
-        for s in * ; do
-          if [[ -d "$s" ]] ; then
-            cd "$s"
-            if [ -e .git ] ; then
-                gitCheckStatus "$s"
-            fi
-            cd ../
-          else
-            echo "$s no es un directorio"
-          fi
-        done
+        echo "$x no es un repositorio git"
         cd ../
+      # else
+      #   for s in .* ; do
+      #     if [[ -d "$s" ]] ; then
+      #       cd "$s"
+      #       if [ -e .git ] ; then
+      #           gitCheckStatus "$s"
+      #       fi
+      #       cd ../
+      #     else
+      #       echo "$x/$s no es un directorio"
+      #     fi
+      #   done
+      #   cd ../
       fi
     else
       echo "$x no es un directorio"
