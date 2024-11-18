@@ -12,11 +12,11 @@ else
     input=$1
 fi
 
-logger "input: $input"
+input=`echo $input | sed 's/(/:/g' | sed 's/)//g' | sed 's/,/:/g'`
+# echo "input: $input"
 
 cmd="vim --servername vimserver --remote-send ':e $input<CR>'"
 
-logger "$cmd"
 echo $cmd
 eval "$cmd"
 
