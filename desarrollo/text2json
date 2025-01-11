@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ -z $1 ]; then
+    TEXT="$(xclip -f -o -sel clip)"
+else
+    TEXT="$*"
+fi
+echo $TEXT | jq -s '.'
+if [ $? -ne 0 ]; then
+    echo "Error converting text to json"
+   echo -e "$TEXT" | sed -e 's/,/,\n/g'
+fi
+read -p "Press enter to continue"
