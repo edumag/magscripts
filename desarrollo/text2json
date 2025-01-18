@@ -1,13 +1,17 @@
 #!/bin/bash
 
+DATE=`date +%Y%m%d%H%M%S`
+FILE=/tmp/${DATE}-text.json
 if [ -z $1 ]; then
     TEXT="$(xclip -f -o -sel clip)"
 else
     TEXT="$*"
 fi
-echo $TEXT | jq -s '.'
+echo $TEXT | jq -s '.' > $FILE
 if [ $? -ne 0 ]; then
     echo "Error converting text to json"
    echo -e "$TEXT" | sed -e 's/,/,\n/g'
+else
+    vim $FILE
 fi
 read -p "Press enter to continue"
