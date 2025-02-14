@@ -1,17 +1,17 @@
-#!/bin/bash 
+#!/bin/bash
 
 ## @file transformar_imagenes
-## 
+##
 ## @brief Transformar una imagen a formato jpg con la anchura o altura especificada
 ##
 ## Transformar una imagen a formato jpg con la anchura o altura especificada por el usuario.
-## 
+##
 ## Practico para una conversión rápida de imágenes para por ejemplo enviar por email.
-## 
+##
 ## Ejemplo de utilización de zenity.
-## 
+##
 ## @todo Las imágenes transformadas se guardan en el mismo directorio que las originales, estaría bien poder elegir un directorio diferente"
-## 
+##
 ## dependencias: convert zenity
 ##
 ## Opciones:
@@ -30,7 +30,7 @@
 ##  Revision  SVN $Id: $
 ##
 ## Copyright  Copyright (c) 2011, Eduardo Magrané
-## 
+##
 ## This source code is released for free distribution under the terms of the
 ## GNU General Public License as published by the Free Software Foundation.
 
@@ -39,11 +39,11 @@
 function help() {
 
    local -i count=0
-   while read linea ; do 
+   while read linea ; do
       let count++
       if [ $count -gt 2 ] ; then
          [ "$linea" = "" ] && return
-         echo "$linea" | sed 's/^##//' | sed 's/@brief //' | sed 's/@file //' 
+         echo "$linea" | sed 's/^##//' | sed 's/@brief //' | sed 's/@file //'
       fi
    done < "$0"
    echo
@@ -52,7 +52,7 @@ function help() {
 
 # Si se lanza el programa para saber si debe publicarse en la web
 # contestamos y salimos
-[[ "$1" = "--publico" ]] &&  echo 'SI' && exit 0 
+[[ "$1" = "--publico" ]] &&  echo 'SI' && exit 0
 
 autor='Eduardo Magrané'
 mail='edu.lesolivex.com'
@@ -85,13 +85,15 @@ desc_var_altura='Altura por defecto'
 var_sufijo='_m'
 desc_var_sufijo='Sufijo para imagen transformada'
 
+quality="70%"
+
 # Si tenemos fichero de configuración recogemos lo insertamos
 [[ -e "$var_fich_conf" ]] && source $var_fich_conf
 
 while [ -n "$1" ] ; do
 
    case "$1" in
-      
+
       -h|-help|--help) help ; exit ;;
       *) break ;;
 
@@ -118,7 +120,12 @@ if [ -z "$1" ] ; then
    echo "Sin imágenes"
    exit
 else
-   echo Imágenes: $*
+   echo Imágenes:
+   DIFS="$IFS" ; IFS=$'\|'
+   for f in $@ ; do
+    echo "- $f"
+   done
+   IFS="$DIFS"
 fi
 
 if [ "$DISPLAY" != "" ] ; then
@@ -130,6 +137,8 @@ if [ "$DISPLAY" != "" ] ; then
    elif [ "$SALIDA" = "Modificar por altura" ] || [ "$SALIDA" == "Modificar por altura|Modificar por altura" ] ; then
       altura=$(zenity  --title "Altura" --entry --text "Altura en pixeles")
       [[ "$altura" != "" ]] && modificar_altura=1
+   else
+       exit
    fi
 fi
 
@@ -137,24 +146,24 @@ fi
 
 DIFS="$IFS"
 IFS=$'\n'
-while [ "$1" != "" ] ; do
-	echo -e "\nConvirtiendo: " $1
+for f in $@ ; do
+	echo -e "\nConvirtiendo: " "$1"
    # Eliminamos extensión
-	extension=$(echo $1 | awk -v FS='.' '{print $(NF)}')
+	extension=$(echo $f | awk -v FS='.' '{print $(NF)}')
 	echo $extension
 	cmd="awk -v FS='.${extension}' '{print \$1}'"
-	f2="$(echo $1 | eval $cmd)"
+	f2="$(echo $f | eval $cmd)"
 
 	echo -e "a $f2-peque.jpg"
    if [ $modificar_anchura = 1 ] ; then
      echo Modificar por anchura: $anchura
-     cmd='convert -geometry x$anchura "$1" "${f2}${sufijo}_an${anchura}.jpg"'
+     cmd='convert -quality $quality -geometry ${anchura} "$f" "${f2}${sufijo}_an${anchura}.jpg"'
    elif [ $modificar_altura = 1 ] ; then
      echo Modificar por altura: $altura
-      cmd='convert -geometry $altura "$1" "${f2}${sufijo}_al${altura}.jpg"'
+      cmd='convert -quality $quality -geometry x${altura} "$f" "${f2}${sufijo}_al${altura}.jpg"'
    else
      echo Solo convertimos a jpg
-      cmd='convert "$1" "${f2}${sufijo}-convert.jpg"'
+      cmd='convert "$f" "${f2}${sufijo}-convert.jpg"'
    fi
 
    if [ "$DISPLAY" = "" ] ; then

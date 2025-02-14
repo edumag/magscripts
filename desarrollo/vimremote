@@ -15,7 +15,7 @@ fi
 input=`echo $input | sed 's/(/:/g' | sed 's/)//g' | sed 's/,/:/g'`
 # echo "input: $input"
 
-cmd="vim --servername vimserver --remote-send ':e $input<CR>'"
+cmd="vim --servername vimserver --remote-send ':new $input<CR>'"
 
 echo $cmd
 eval "$cmd"
