@@ -1,0 +1,12 @@
+#!/bin/bash
+
+function md2pdf() {
+
+    [[ -d ~/tmp ]] || mkdir -p ~/tmp
+    o=~/tmp/`basename "$1" '.md'`.pdf
+    pandoc -s "$1" -o "$o"
+    xdg-open "$o" &
+
+}
+
+md2pdf "$@"
