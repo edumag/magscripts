@@ -8,3 +8,5 @@ help() { doxygen2help "$0" ; }
 if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
 curl -s ipecho.net/plain;echo
+curl -4 ifconfig.io
+
