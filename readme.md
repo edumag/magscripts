@@ -24,545 +24,68 @@ ln -s $HOME/scripts ./
 
 ## Listado
 
-- [**administración/comparar_directorios**](#comparar_directorios)	Comparamos estructura de directorios.
-- [**backup/backup.sh**](#backup.sh)	Comprobar enlaces rotos
-- [**backup/sincronizar.sh**](#sincronizar.sh)	Sincronizamos directorios de un ordenador a otro
-- [**git/gitmag_status**](#gitmag_status)	Verificar estado de proyectos con git.
-- [**hardware/informacion_ordenador**](#informacion_ordenador)	Presentar por pantalla la información relevante del ordenador
-- [**imagenes/archivarFotos**](#archivarFotos)	Automatizar el proceso de archivar las fotos
-- [**imagenes/logoAimagen**](#logoAimagen)	Insertar logo en una imagen
-- [**imagenes/transformar_imagenes**](#transformar_imagenes)	Transformar una imagen a formato jpg con la anchura o altura especificada
-- [**internet/buscarEnBlog**](#buscarEnBlog)	Busqueda en nuestro propio blog.
-- [**internet/comprobar_conexion**](#comprobar_conexion)	Testeamos conexión a internet hasta tener resultado positivo.
-- [**internet/verip**](#verip)	Muestra nuestra ip actual.
-- [**juegos/dat2zsnes**](#dat2zsnes)	Comprobar enlaces rotos
-- [**juegos/xmame_iconos**](#xmame_iconos)	Generación de iconos con las imágenes de las roms
-- [**musica/ordenarMp3**](#ordenarMp3)	Ordenar mp3 por artistas y albunes.
-- [**programacion/ctags_php**](#ctags_php)	ctags para proyectos en php
-- [**programacion/ctags_python**](#ctags_python)	ctags para proyectos en python
-- [**programacion/time2date**](#time2date)	Convierte fecha en formato unix a formato humano.
-- [**launchers/chkrootkit**](#chkrootkit)	Lanzador para chkrootkit.
-- [**launchers/clamscan**](#clamscan)	Lanzador para clamscan.
-- [**launchers/docker**](#docker)	Estado de docker.
-- [**launchers/dokku**](#dokku)	Mostrar estado de dokku.
-- [**launchers/fail2ban**](#fail2ban)	Mostar estado de fail2ban.
-- [**launchers/firewall**](#firewall)	Mostrar estado del firewall.
-- [**launchers/logcheck**](#logcheck)	Mostrar estado de logcheck.
-- [**launchers/lynis**](#lynis)	Auditoria con lynis.
-- [**launchers/system.sh**](#system.sh)	Mostrar estado del sistema.
-- [**ReportServer/reportServer.sh**](#reportServer.sh)	Pequeños scripts para saber el estado del servidor.
-- [**servidor/tunel.sh**](#tunel.sh)	Script para hacer tunel ssh inverso
-- [**utiles/apagarOrdenador**](#apagarOrdenador)	Revisar estado de trabajo antes de cerrar.
-- [**utiles/pasarLatin1**](#pasarLatin1)	Pasar archivos a latin1
-- [**utiles/pasarUTF8**](#pasarUTF8)	Pasar archivos a utf-8
-
-## Scripts
-
-<a name="comparar_directorios"/>
-
-### administración/comparar_directorios
-
 ```
-
- comparar_directorios
- Comparamos estructura de directorios.
-```
-
-<a name="backup.sh"/>
-
-### backup/backup.sh
-
-```
-
- backup.sh
- Comprobar enlaces rotos
-
- Recogemos el numero de la semana y año.
- Si no tenemos directorio creamos una copia total del directorio WWW.
- Si tenemos directorio creamos una copia incremental.
-
- Para que funcione mysql debe haber un archivo con el usuario y contraseña
- en ~/.my.cnf
-
- @todo No borramos copias antiguas hasta tener servidor local con replica.
-```
-
-<a name="sincronizar.sh"/>
-
-### backup/sincronizar.sh
-
-```
-
- Sincronizar dos directorios en remoto.
-```
-
-<a name="gitmag_status"/>
-
-### git/gitmag_status
-
-```
-
- gitmag_status
- Verificar estado de proyectos con git.
-```
-
-<a name="informacion_ordenador"/>
-
-### hardware/informacion_ordenador
-
-```
- informacion_ordenador
-
- Presentar por pantalla la información relevante del ordenador
-
- Nos permite con un solo comando tener un informe de las características del hardware del ordenador
-
- dependencias: dmidecode lspci fdisk
-
- @author   Eduardo Magrané
-
- @internal
-
-       web  http://www.lesolivex.com
-
-      mail  edu.lesolivex.com
-
-  Revision  SVN $Id: $
-
- Copyright  Copyright (c) 2011, Eduardo Magrané
-
- This source code is released for free distribution under the terms of the
- GNU General Public License as published by the Free Software Foundation.
-```
-
-<a name="archivarFotos"/>
-
-### imagenes/archivarFotos
-
-```
-archivarFotos
-
-Automatizar el proceso de archivar las fotos
-Características del programa
-
- - Con este programa y con ayuda de jhead extremos la información de las fotos que queremos guardar.
- - Añadimos fecha de la imagen al nombre de la carpeta donde se guardaran.
- - Giramos las fotos automáticamente.
-
-dependencias: jhead
-@author   Eduardo Magrané
-@internal
-      web  http://www.lesolivex.com
-Variables configurables
------------------------
-
-# Color para el texto que se ha de destacar
-var_color_1='[0;33m'
-
-# Directorio predeterminado para guardar las fotos
-var_dir_galerias='/home/edumag/fotos'
-
-# Archivo de configuración
-var_fich_conf='/home/edumag/.archivarFotosrc'
-
-# Navegador de archivos
-var_prog_ver_archivos='xdg-open'
-```
-
-<a name="logoAimagen"/>
-
-### imagenes/logoAimagen
-
-```
-
-uso
----
-
-
-logoAimagen -info, Para más información
-```
-
-<a name="transformar_imagenes"/>
-
-### imagenes/transformar_imagenes
-
-```
- transformar_imagenes
-
- Transformar una imagen a formato jpg con la anchura o altura especificada
-
- Transformar una imagen a formato jpg con la anchura o altura especificada por el usuario.
-
- Practico para una conversión rápida de imágenes para por ejemplo enviar por email.
-
- Ejemplo de utilización de zenity.
-
- @todo Las imágenes transformadas se guardan en el mismo directorio que las originales, estaría bien poder elegir un directorio diferente"
-
- dependencias: convert zenity
-
- Opciones:
- <pre>
- --help | -h              Pantalla de ayuda
- </pre>
-
- @author   Eduardo Magrané
-
- @internal
-
-       web  http://www.lesolivex.com
-
-      mail  edu.lesolivex.com
-
-  Revision  SVN $Id: $
-
- Copyright  Copyright (c) 2011, Eduardo Magrané
-
- This source code is released for free distribution under the terms of the
- GNU General Public License as published by the Free Software Foundation.
-```
-
-<a name="buscarEnBlog"/>
-
-### internet/buscarEnBlog
-
-```
-
- buscarEnBlog
- Busqueda en nuestro propio blog.
-```
-
-<a name="comprobar_conexion"/>
-
-### internet/comprobar_conexion
-
-```
-
- comprobar_conexion
- Testeamos conexión a internet hasta tener resultado positivo.
-
- Una vez detectada la vuelta de internet se lanzara reproductor.
-```
-
-<a name="verip"/>
-
-### internet/verip
-
-```
-
- verip
- Muestra nuestra ip actual.
-```
-
-<a name="dat2zsnes"/>
-
-### juegos/dat2zsnes
-
-```
-
- buscar_enlaces_rotos
- Comprobar enlaces rotos
-```
-
-<a name="xmame_iconos"/>
-
-### juegos/xmame_iconos
-
-```
- xmame_iconos
-
- Generación de iconos con las imágenes de las roms
-
- Creando un directorio que lance directamente los juegos.
-
- Si se necesitam imágenes de los juegos en internet se pueden encontrar en por
- ejemplo: http://www.progettosnaps.net/snaps_en.html.
-
-
- Opciones:
- <pre>
- --help | -h              Pantalla de ayuda
- </pre>
-
- @author   Eduardo Magrané
-
- @internal
-
-       web  http://www.lesolivex.com
-
-      mail  edu.lesolivex.com
-
-  Revision  SVN $Id: $
-
- Copyright  Copyright (c) 2011, Eduardo Magrané
-
- This source code is released for free distribution under the terms of the
- GNU General Public License as published by the Free Software Foundation.
-```
-
-<a name="ordenarMp3"/>
-
-### musica/ordenarMp3
-
-```
-
- ordenarMp3
- Ordenar mp3 por artistas y albunes.
-```
-
-<a name="ctags_php"/>
-
-### programacion/ctags_php
-
-```
- ctags_php
-
- ctags para proyectos en php
-
- Generar archivo de ctags para proyecto en php, sobre el directorio donde estamos situados
-
- dependencias: ctags-exuberant
-
- @author   Eduardo Magrané
-
- @internal
-
-       web  http://www.lesolivex.com
-
-      mail  edu.lesolivex.com
-
-  Revision  SVN $Id: $
-
- Copyright  Copyright (c) 2011, Eduardo Magrané
-
- This source code is released for free distribution under the terms of the
- GNU General Public License as published by the Free Software Foundation.
-```
-
-<a name="ctags_python"/>
-
-### programacion/ctags_python
-
-```
-
- ctags_python
-
- ctags para proyectos en python
-
- Generar archivo de ctags para proyecto en python, sobre el directorio donde estamos situados
-
- dependencias: ctags-exuberant
-
- @author   Eduardo Magrané
-
- @internal
-
-       web  http://www.lesolivex.com
-
-      mail  edu.lesolivex.com
-
- Copyright  Copyright (c) 2011, Eduardo Magrané
-
- This source code is released for free distribution under the terms of the
- GNU General Public License as published by the Free Software Foundation.
-```
-
-<a name="time2date"/>
-
-### programacion/time2date
-
-```
-
- time2date
- Convierte fecha en formato unix a formato humano.
-```
-
-<a name="chkrootkit"/>
-
-### launchers/chkrootkit
-
-```
-
-Lanzador para chkrootkit
-```
-
-<a name="clamscan"/>
-
-### launchers/clamscan
-
-```
-
-Lanzador para clamscan.
-```
-
-<a name="docker"/>
-
-### launchers/docker
-
-```
-
-Mostrar estado de docker.
-```
-
-<a name="dokku"/>
-
-### launchers/dokku
-
-```
-
-Mostrar estado de dokku.
-```
-
-<a name="fail2ban"/>
-
-### launchers/fail2ban
-
-```
-
-Mostar estado de fail2ban.
-```
-
-<a name="firewall"/>
-
-### launchers/firewall
-
-```
-
-Mostrar estado del firewall.
-```
-
-<a name="logcheck"/>
-
-### launchers/logcheck
-
-```
-
-Mostrar estado de logcheck.
-```
-
-<a name="lynis"/>
-
-### launchers/lynis
-
-```
-
-Consejos de seguridad para nuestro servidor.
-```
-
-<a name="system.sh"/>
-
-### launchers/system.sh
-
-```
-
-Mostrar estado del sistema.
-```
-
-<a name="reportServer.sh"/>
-
-### ReportServer/reportServer.sh
-
-```
-
- reportServer
- Pequeños scripts para saber el estado del servidor.
-```
-
-<a name="tunel.sh"/>
-
-### servidor/tunel.sh
-
-```
-
- tunel.sh
- Script para hacer tunel ssh inverso
-
- Fork de David Martí - http://sukiweb.net
-
- Ejecutar:
-
- bash <(curl -s https://raw.githubusercontent.com/edumag/magscripts/master/servidor/tunel.sh )
-
- Referencias: https://es.itcooky.com/?p=142
-```
-
-<a name="apagarOrdenador"/>
-
-### utiles/apagarOrdenador
-
-```
-
- apagarOrdenador
- Revisar estado de trabajo antes de cerrar.
-
- Apagar ordenador comprobando antes las cosas que nos interesa
- Mirar que no tengamos ningun proyecto con los tiempos abiertos en magtrabajos
-
- Podemos personalizar un atajo de teclado con la siguiente orden.
-
- terminator -e /home/edu/desarrollo/magscripts/utiles/apagarOrdenador
-```
-
-<a name="pasarLatin1"/>
-
-### utiles/pasarLatin1
-
-```
- pasarLatin1
-
- Pasar archivos a latin1
-
- dependencias: vi
-
- Opciones:
- <pre>
- --help | -h              Pantalla de ayuda
- </pre>
-
- @author   Eduardo Magrané
-
- @internal
-
-       web  http://www.lesolivex.com
-
-      mail  edu.lesolivex.com
-
-  Revision  SVN $Id: $
-
- Copyright  Copyright (c) 2011, Eduardo Magrané
-
- This source code is released for free distribution under the terms of the
- GNU General Public License as published by the Free Software Foundation.
-```
-
-<a name="pasarUTF8"/>
-
-### utiles/pasarUTF8
-
-```
- pasarUTF8
-
- Pasar archivos a utf-8
-
- dependencias: vi
-
- Opciones:
- <pre>
- --help | -h              Pantalla de ayuda
- </pre>
-
- @author   Eduardo Magrané
-
- @internal
-
-       web  http://www.lesolivex.com
-
-      mail  edu.lesolivex.com
-
-  Revision  SVN $Id: $
-
- Copyright  Copyright (c) 2011, Eduardo Magrané
-
- This source code is released for free distribution under the terms of the
- GNU General Public License as published by the Free Software Foundation.
+.
+├── administración
+│   └── comparar_directorios: Compara dos directorios y muestra las diferencias.
+├── backup
+│   ├── backup.sh: Realiza un backup de archivos seleccionados.
+│   └── sincronizar.sh: Sincroniza dos directorios.
+├── desarrollo
+│   ├── ctags_php: Genera tags para PHP.
+│   ├── ctags_python: Genera tags para Python.
+│   ├── ctags_vue: Genera tags para Vue.js.
+│   ├── test_rest.sh: Realiza pruebas RESTful.
+│   ├── text2json: Convierte texto a formato JSON.
+│   ├── time2date: Convierte timestamp a fecha legible.
+│   ├── urldecode.sh: Decodifica URLs.
+│   ├── urlencode.sh: Codifica URLs.
+│   ├── vimremote: Configura Vim para acceso remoto.
+│   ├── vimserver: Configura un servidor Vim.
+│   └── vue.ctags: Genera tags para Vue.js.
+├── git
+│   ├── gitmag_status: Muestra el estado del repositorio Git.
+│   └── magGitAddedOrModifiedFiles: Muestra archivos añadidos o modificados en el último commit.
+├── hardware
+│   └── informacion_ordenador: Muestra información del sistema.
+├── imagenes
+│   ├── archivarFotos: Archiva fotos seleccionadas.
+│   ├── logoAimagen: Convierte logos a formato de imagen.
+│   └── transformar_imagenes: Transforma imágenes según parámetros especificados.
+├── internet
+│   ├── buscarEnBlog: Busca en un blog específico.
+│   ├── comprobar_conexion: Comprueba la conexión a Internet.
+│   └── verip: Muestra la dirección IP actual.
+├── juegos
+│   ├── dat2zsnes: Convierte archivos de datos a formato ZSNES.
+│   └── xmame_iconos: Crea iconos para XMAME.
+├── musica
+│   └── ordenarMp3: Ordena y clasifica archivos MP3.
+├── servidor
+│   ├── ReportServer
+│   │   ├── launchers
+│   │   │   ├── chkrootkit: Ejecuta chkrootkit.
+│   │   │   ├── clamscan: Ejecuta clamscan.
+│   │   │   ├── docker: Gestiona contenedores Docker.
+│   │   │   ├── dokku: Gestiona Dokku.
+│   │   │   ├── fail2ban: Configura y ejecuta fail2ban.
+│   │   │   ├── firewall: Configura el firewall.
+│   │   │   ├── logcheck: Ejecuta logcheck.
+│   │   │   ├── lynis: Ejecuta Lynis.
+│   │   │   ├── system.sh: Script de sistema.
+│   │   │   └── whois_list: Lista registros WHOIS.
+│   │   ├── Readme.md: Documentación del servidor.
+│   │   └── reportServer.sh: Genera un informe del servidor.
+│   └── tunel.sh: Configura un túnel SSH.
+├── sistema
+│   ├── docker_clean_all: Limpia todos los contenedores Docker.
+│   ├── software-search.sh: Busca software en el sistema.
+│   └── software-update.sh: Actualiza el software del sistema.
+├── texto
+│   ├── md2html: Convierte archivos Markdown a HTML.
+│   └── md2pdf: Convierte archivos Markdown a PDF.
+└── utiles
+    ├── apagarOrdenador: Apaga el ordenador.
+    ├── pasarLatin1: Cambia la codificación de Latin1 a UTF-8.
+    └── pasarUTF8: Cambia la codificación de UTF-8 a Latin1.
 ```

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+## @file
+## @brief Script para listar los ficheros añadidos o modificados en un repositorio Git.
+
+listAddOrModifiedFiles() {
+    git status --porcelain | grep -E '^[AM?]' | awk '{print $2}'
+}
+
+listAddOrModifiedFiles
