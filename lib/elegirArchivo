@@ -1,0 +1,485 @@
+#!/bin/bash
+
+## @file elegirArchivo
+##
+## @brief librería para seleccionar archivos
+##
+## Para utilizar esta librería hay que insertarla haciendo un source 
+## tienes un ejemplo un poco abajo de como utilizar una librería externa de bash
+## con la librería de pantalla.
+##
+## Una vez insertada la librería solo tienes que llamar a la función elegirArchivo.
+##
+## Si se cancela la operación el array e_archivos_seleccionados devolvera 'CANCELADO' para poder diferenciar
+## si e ha deseleccionado archivos o simplemente se ha cancelado y no se quiere cambiar nada.
+##
+## Seleccionar un archivo
+## 
+## Se puede pasar como argumento el directorio donde queremos empezar a buscar.
+## 
+## Cada archivo se presenta con el numero correspondiente para seleccionarlo
+## 
+## Se puede utilizar rangos; ejemplo: 2-6 ( del 2 al 6) o listas 3 6 8 12 34.
+## 
+## parámetros posibles desde consola:
+## 
+##    --filtro [patrón]     Solo se presentan archivos que coincidan con el patrón.
+##    --dudir               Presentar tamaño de archivos.
+##    --accion [Comando]    lanzar comando sobre archivos seleccionados.
+##    --subir               Permite ir mas aya del directorio de inicio.
+##    --dusel               Se presentan tamaño de archivos seleccionados y su total.
+##    --cols [columnas]     Numero de columnas, por defecto 3.
+##    --fichero             Para seleccionar un archivo (Por defecto).
+##    --varios              Para seleccionar mas de un archivo. (Por defecto)
+##    --dir                 Nos permite seleccionar un directorio, pero también podemos devolver archivos.
+##    --dirinicio           Nos permite pasar el directorio de inicio para después poder eliminarlo del nombre del archivo
+##    --nombres-absolutos   Recoger los nombres con la dirección absoluta y no la relativa.
+##    --excluir             Lista de patrones de archivos que queremos ocultar, separada por '|', ej. ('*.LCK|*.swf|session.vim')
+##    --titulo              Titulo para presentar en la cabecera
+## 
+## @todo Si solo tenemos un archivo y el directorio es el de inicio, se selecciona directamente.
+##
+## @ingroup libash
+##
+## @author   Eduardo Magrané
+##
+## @internal
+##
+##       web  http://www.lesolivex.com
+##
+##      mail  edu.lesolivex.com
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+## 
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+
+## Pantalla de ayuda de menú
+
+function help() {
+   doxygen2help "$0" "false" "@author"
+   }
+
+## Colores por defecto
+color_0="\033[0m"
+color_1="\033[0;33m"
+color_2="\033[1;32m"
+
+# Si tenemos fichero de configuración lo incluimos
+[[ -e ~/.libashrc ]] && source ~/.libashrc
+
+# buscamos librería de pantalla
+LIB=${DIR_LIB}pantalla
+if [ -e "$LIB" ] ; then
+   source "$LIB"
+   pantalla
+else
+   echo "No se encontro la libreria $LIB"
+   COL=$(tput cols)
+fi
+
+declare -a e_archivos_seleccionados
+e_archivos_seleccionados=()
+
+elegirArchivo() 	{
+
+local longMax=0     ## Longitud más larga de los nombres de archivos
+local longMin=11     ## Longitud a sumar al nombre como minimo 11 ($conta - $size)
+
+function deseleccionarArchivos() {
+
+   ## Listamos los archivos seleccionados haasta el momento para permitir eliminar de la
+   ## lista mediante patron o lista.
+
+   clear
+
+   # Presentar archivos
+   echo -n $linea
+   caja 'Deseleccionar archivos' 'elegirArchivo'
+   echo -n $linea
+   visualizarSeleccionados
+   # Pedir opcion
+   echo -n $linea
+   read -p 'Opcion: ' -a OPCION
+
+   if [ "$OPCION" = "" ] ; then                        # Si no hay opcion nos volvemos
+      return
+   # Si es una t deselecionamos todo
+   elif [ "$OPCION" = "t" ] ; then
+      e_archivos_seleccionados=()
+   # Si es un patron o lista
+   elif [ ${#OPCION[*]} -gt 1 ] ; then                 # Si hay más de una opcion miramos una por una
+
+      for o in ${OPCION[*]} ; do
+
+         if [ $(echo $o | grep - ) ] ; then            # recibimos una serie
+            # echo "Es una serie: $OPCION"
+            inicio=$(echo $OPCION | cut -d- -f 1)
+            fin=$(echo $OPCION | cut -d- -f 2)
+            echo "inicio: $inicio , fin: $fin"
+            for x in `seq $inicio $fin` ; do
+               # Miramos que no sea un directorio
+               if [ -d "${e_archivos_seleccionados[$x]}" ] ; then
+                  echo "Es un directorio no se selecciona"
+               else
+                  unset e_archivos_seleccionados[$x]
+               fi
+            done
+         else # Es una lista
+            # Miramos que no sea un directorio
+            if [ -d "${e_archivos_seleccionados[$o]}" ] ; then
+               echo "Es un directorio no se selecciona"
+            else
+               unset e_archivos_seleccionados[$o]
+            fi
+         fi
+      done
+
+   # Hay una opcion
+   else                                                   # Solo hay una opcion
+
+      if [ $(echo ${OPCION[0]} | grep - ) ] ; then        # recibimos una serie
+         # echo "Es una serie: $OPCION"
+         inicio=$(echo ${OPCION[0]} | cut -d- -f 1)
+         fin=$(echo ${OPCION[0]} | cut -d- -f 2)
+         echo "inicio: $inicio , fin: $fin"
+         for x in `seq $inicio $fin` ; do
+            # Miramos que no sea un directorio
+            if [ -d "${e_archivos_seleccionados[$x]}" ] ; then
+               echo "Es un directorio no se selecciona"
+            else
+               unset e_archivos_seleccionados[$x]
+            fi
+         done
+
+      else
+
+         unset e_archivos_seleccionados[$OPCION]
+
+      fi
+   fi
+
+   recomponerArray
+}
+
+function recomponerArray() {
+
+   ## Tenemos que eliminar los items del array que se han borrado
+   e_archivos_seleccionados=(`echo ${e_archivos_seleccionados[*]}`)
+}
+
+function presentarDirectorio() {
+
+   ## Presentar directorio
+
+   local conta=0
+   local contaCol=1
+   for x in "${e_directorio}"/* ; do
+
+      if [ "$x" = "${e_directorio}"/'*' ] ; then 
+         echo "Directorio sin contenido"
+      else
+
+         xx="`basename \"$x\"`"
+
+         ## Si tenemos lista de ficheros a ocultar miramos que no coincidan
+         if [ "$e_elegirArchivoOcultar" != "" ] ; then
+            if [ ! `echo $xx | egrep $e_elegirArchivoOcultar` ] ; then
+               e_archivos_propuestos[$conta]=$x
+            else
+               e_archivos_propuestos[$conta]='Oculto'
+            fi
+         else
+            e_archivos_propuestos[$conta]=$x
+         fi
+
+         if [ "${e_archivos_propuestos[$conta]}" != "Oculto" ] ; then
+
+            if [ -d "$x" ] ; then
+               if [ "$e_elegirArchivodudir" = 'SI' ] ; then                      # Se presenta tamaño directorios
+                  local size=$(du -hs "$x" 2> /dev/null | cut -f 1 )
+               else
+                  local size=""
+               fi
+            else
+               if [ "$e_elegirArchivodudir" = "SI" ] ; then
+                  local size=$(du -h "$x" 2> /dev/null | cut -f 1)
+               else
+                  local size=''
+               fi
+            fi
+
+            if [ -d "$x" ] ; then
+               if [ "$size" != "" ] ; then
+                  local salida=$(printf "%2d - %-5s %-s" $conta "$size" "${x##*/}/")
+               else
+                  local salida=$(printf "%2d - %-s" $conta "${x##*/}/")
+               fi
+            else
+               if [ "$size" != "" ] ; then
+                  local salida=$(printf "%2d - %-5s %-s" $conta "$size" "${x##*/}")
+               else
+                  local salida=$(printf "%2d - %-s" $conta "${x##*/}")
+               fi
+            fi
+
+            printf "%-${longMax}s" "$salida"
+
+            if [ $contaCol -eq $colNum ] ; then                                  # Control de salto de linea para columnas
+               contaCol=0
+               echo ''
+            fi
+            conta=$(($conta+1))
+            contaCol=$(($contaCol+1))
+
+         fi
+      fi
+
+   done
+}
+
+function visualizarSeleccionados() {
+
+   ## Visualizar archivos seleccionados
+
+   if [ ${#e_archivos_seleccionados[*]} -gt 0 ] ; then
+
+      if [ "$e_elegirArchivodusel" = "SI" ] ; then 
+         tput bold
+         local SALIDA=''
+         for d in `seq 0 $((${#e_archivos_seleccionados[*]}-1))` ; do
+            local size=$(du -hs "${e_archivos_seleccionados[$d]}" 2> /dev/null | cut -f 1 )
+            printf "\n%3d - %5s - %-s" "$d" "$size" "${e_archivos_seleccionados[$d]}"
+            SALIDA="$SALIDA '${e_archivos_seleccionados[$d]}'"
+         done
+         tput rmso
+         echo
+         # Mostrar total
+         local total=$(eval du -ch $SALIDA | grep total)
+         echo " $total"
+      else
+         for x in $(seq 0 $((${#e_archivos_seleccionados[*]}-1))) ; do 
+            echo -n "$x) - "
+            tput bold
+            echo ${e_archivos_seleccionados[$x]}
+            tput rmso
+         done
+      fi
+   fi
+
+   }
+
+while [ -n "$1" ]; do
+   case $1 in
+       -h|-help|--help) help ; shift 1 ;;
+       --filtro) e_elegirArchivofiltro="$2" ; shift 2 ;;
+       --dudir) e_elegirArchivodudir="SI" ; shift 1 ;;
+       --accion) e_elegirArchivoaccion="$2" ; shift 2 ;;
+       --dir) e_elegirArchivodir="SI" ; shift 1 ;;
+       --subir) e_elegirArchivosubir="SI" ; shift 1 ;;
+       --dusel) e_elegirArchivodusel="SI" ; shift 1 ;;
+       --cols) e_elegirArchivocols="$2" ; shift 2 ;;
+       --dirinicio) e_elegirArchvioDirInicio="$2" ; shift 2 ;;
+       --nombres-absolutos) e_elegirArchivoAbsoluto=1 ; shift 1 ;;
+       --excluir) e_elegirArchivoOcultar=$2 ; shift 2 ;;
+       --titulo) titulo="$2" ; shift 2 ;;
+       *)  break;;
+   esac
+done
+
+   clear    # limpiamos pantalla
+
+   ## Si tenemos titulo lo colocamos
+   [[ $titulo ]] || titulo='Directorio'
+
+	## Nos permite elejir un archivo, recibe como
+	## argumento el directorio de inicio.
+   #linea=$(printf "%`tput cols`s" | tr ' ' '⎼')
+   #linea=$(echo -n ' ' ; for x in `seq 1 $(tput cols)` ; do echo -n "⎼" ; done ; echo -n ' ')
+   declare -a e_archivos_propuestos
+	# e_directorio="${1:-`pwd`}"
+	e_directorio="${1:-.}" # Evitamos nombre de archivos con todo el camino
+   [[ "$e_elegirArchvioDirInicio" = "" ]] && e_elegirArchvioDirInicio=.
+   ## Nivel de directorio que podemos pasar
+   e_nivel=${2:-0}
+
+	SALIDA="$e_directorio"
+
+   if [ "$e_elegirArchivofiltro" != "" ] ; then SALIDA="$SALIDA filtro:$e_elegirArchivofiltro" ; fi
+   if [ "$e_elegirArchivodudir" != "" ] ; then SALIDA="$SALIDA dudir:$e_elegirArchivodudir" ; fi
+   if [ "$e_elegirArchivoaccion" != "" ] ; then SALIDA="$SALIDA accion:$e_elegirArchivoaccion" ; fi
+   if [ "$e_elegirArchivodusel" != "" ] ; then SALIDA="$SALIDA dusel:$e_elegirArchivodusel" ; fi
+   if [ "$e_elegirArchivocols" != "" ] ; then SALIDA="$SALIDA cols:$e_elegirArchivocols" ; fi
+   if [ "$e_elegirArchivosubir" != "" ] ; then SALIDA="$SALIDA subir:$e_elegirArchivosubir" ; fi
+   if [ "$e_elegirArchivodir" != "" ] ; then SALIDA="$SALIDA dir:$e_elegirArchivodir" ; fi
+   [[ "$e_elegirArchivoOcultar" != "" ]] && SALIDA="$SALIDA Ocultar archivos:SI"
+
+   caja "$SALIDA" "$titulo"
+   ## Columnas
+
+   for x in "${e_directorio}"/* ; do
+      [[ ${#x} -gt $longMax ]] && longMax=${#x}
+   done
+
+   # Si no queremos tamaño de archivos rebajamos el longMin para calcular las
+   # columnas
+   if [ "$e_elegirArchivodudir" = 'SI' ] ; then
+      local longMin=11
+   else
+      local longMin=5
+   fi
+
+   longMax=$(($longMax+$longMin))
+   local colNum=$(($COL/$longMax))
+
+   while [ -d "${e_directorio}" ] ; do
+
+      presentarDirectorio
+
+      echo ''
+      echo $linea
+      menu="[T]odo el directorio - [D]eselecionar archivo - D[e]seleccionar todo - [A]ceptar - [C]ancelar - [H]elp"
+      if [ $e_nivel -gt 0 ] ; then
+         menu=" [S]ubir directorio - $menu"
+      fi
+      echo $menu
+      echo $linea
+
+      visualizarSeleccionados
+
+      # if [ ${#e_archivos_propuestos[*]} == 1 ] ; then
+      #    echo "Solo hay un archivo, se selecciona"
+      #    OPCION=0
+      # else
+      #    read -p "->" -a OPCION
+      # fi
+
+      read -p "->" -a OPCION
+
+      if [ "${OPCION[*]}" = "" ] ; then                                   # No se a seleccionado nada
+         echo Sin seleccion
+      elif [ "${OPCION[0]}" = "to" ] ; then                               # Ver tamaño total
+         e_elegirArchivoTotal='SI'
+      elif [ "${OPCION[0]}" = "ta" ] ; then                               # Ver tamaño de archivos
+         e_elegirArchivodusel="SI"
+      elif [ "${OPCION[0]}" = "d" ] ||  [ "${OPCION[0]}" = "D" ] ; then   # Deseleccionar archivos
+         deseleccionarArchivos
+      elif [ "${OPCION[0]}" = "a" ] ; then                                # Aceptar (Salimos)
+         # Si tenemos la posibilidad de seleccionar un directorio
+         # hay que seleccionar en el que estamos
+         if [ "$e_elegirArchivodir" != "" ] ; then
+            # Si no hay archivos seleccionados devolvemos el directorio
+            if [ ! ${#e_archivos_seleccionados[*]} -gt 0 ] ; then
+               # Quitar './' del directorio
+               e_archivos_seleccionados=("${e_directorio#./}")
+            fi
+         fi
+         # salimos
+         echo "Aceptar"
+         #return -2
+         return
+      elif [ "${OPCION[0]}" = "c" ] ; then                                # Cancelar borramos lista y salimos
+          e_archivos_seleccionados=('CANCELADO')
+          echo 'Cancelado'
+          return
+      elif [ "${OPCION[0]}" = "h" ] ; then                                # Ayuda
+         help 
+      elif [ "${OPCION[0]}" = "s" ] ; then                                # Subir un directorio
+         elegirArchivo --dirinicio "${e_elegirArchvioDirInicio:-e_directorio}" "${e_directorio%/*}"  $(($e_nivel-1))
+         break
+      elif [ "${OPCION[0]}" = "t" ] ; then                                # Seleccionar todos los archivos del directoio
+         for x in "${e_directorio}"/* ; do
+            # Mirar que no sea un directorio
+            if [ -d "$x" ] ; then
+               echo "Es un directorio no se selecciona"
+            else
+               if [ e_elegirArchivoAbsoluto = 1 ] ; then
+                  e_archivos_seleccionados[${#e_archivos_seleccionados[*]}]=$x
+               else
+                  x=${x#$e_elegirArchvioDirInicio/*}
+                  e_archivos_seleccionados[${#e_archivos_seleccionados[*]}]=${x}
+               fi
+            fi
+         done
+      elif [ ${#OPCION[*]} -gt 1 ] ; then                                 # Si hay más de una opcion miramos una por una
+
+         for o in ${OPCION[*]} ; do
+
+            if [ $(echo $o | grep - ) ] ; then                            # recibimos una serie
+               # echo "Es una serie: $OPCION"
+               inicio=$(echo $OPCION | cut -d- -f 1)
+               fin=$(echo $OPCION | cut -d- -f 2)
+               echo "inicio: $inicio , fin: $fin"
+               for x in `seq $inicio $fin` ; do
+                  # Miramos que no sea un directorio
+                  if [ -d "${e_archivos_propuestos[$x]}" ] ; then
+                     echo "Es un directorio no se selecciona"
+                  else
+                     if [ e_elegirArchivoAbsoluto = 1 ] ; then
+                        e_archivos_seleccionados[${#e_archivos_seleccionados[*]}]=${e_archivos_propuestos[$x]}
+                     else
+                        x=${e_archivos_propuestos[$x]}
+                        x=${x#$e_elegirArchvioDirInicio/*}
+                        e_archivos_seleccionados[${#e_archivos_seleccionados[*]}]=${x}
+                     fi
+                  fi
+               done
+            else # Es una lista
+               # Miramos que no sea un directorio
+               if [ -d "${e_archivos_propuestos[$o]}" ] ; then
+                  echo "Es un directorio no se selecciona"
+               else
+                  if [ e_elegirArchivoAbsoluto = 1 ] ; then
+                     e_archivos_seleccionados[${#e_archivos_seleccionados[*]}]=${e_archivos_propuestos[$o]}
+                  else
+                     x=${e_archivos_propuestos[$o]}
+                     x=${x#$e_elegirArchvioDirInicio/*}
+                     e_archivos_seleccionados[${#e_archivos_seleccionados[*]}]=${x}
+                  fi
+               fi
+            fi
+         done
+
+      else                                                                     # Solo hay una opcion
+         if [ $(echo ${OPCION[0]} | grep - ) ] ; then                          # recibimos una serie
+            # echo "Es una serie: $OPCION"
+            inicio=$(echo ${OPCION[0]} | cut -d- -f 1)
+            fin=$(echo ${OPCION[0]} | cut -d- -f 2)
+            echo "inicio: $inicio , fin: $fin"
+            for x in `seq $inicio $fin` ; do
+               # Miramos que no sea un directorio
+               if [ -d "${e_archivos_propuestos[$x]}" ] ; then
+                  echo "Es un directorio no se selecciona"
+               else
+                  if [ e_elegirArchivoAbsoluto = 1 ] ; then
+                     e_archivos_seleccionados[${#e_archivos_seleccionados[*]}]=${e_archivos_propuestos[$x]}
+                  else
+                     x=${e_archivos_propuestos[$x]}
+                     x=${x#$e_elegirArchvioDirInicio/*}
+                     e_archivos_seleccionados[${#e_archivos_seleccionados[*]}]=${x}
+                  fi
+               fi
+            done
+         elif [ -d "${e_archivos_propuestos[${OPCION[0]}]}" ] ; then 
+            elegirArchivo --dirinicio "${e_elegirArchvioDirInicio:-e_directorio}"  "${e_archivos_propuestos[$OPCION]}" $(($e_nivel+1))
+            break
+         else
+            if [ e_elegirArchivoAbsoluto = 1 ] ; then
+               e_archivos_seleccionados[${#e_archivos_seleccionados[*]}]=${e_archivos_propuestos[${OPCION[0]}]}
+            else
+               x=${e_archivos_propuestos[${OPCION[0]}]}
+               x=${x#$e_elegirArchvioDirInicio/*}
+               e_archivos_seleccionados[${#e_archivos_seleccionados[*]}]=${x}
+            fi
+         fi
+      fi
+
+      elegirArchivo --dirinicio "${e_elegirArchvioDirInicio:-e_directorio}" "${e_directorio}" $e_nivel
+      break
+
+   done
+
+	}

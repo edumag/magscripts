@@ -1,0 +1,27 @@
+#!/bin/bash
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
+salida="`find -name '*swp'`"
+
+if [ "$salida" == "" ] ; then
+
+   echo
+   echo 'No se encontraron sesiones de vim abiertas'
+   exit
+
+fi
+
+echo
+echo -e "$salida"
+echo
+
+read -p 'Borrar las sesiones (s/n): ' OPCION
+
+if [ "$OPCION" == 's' ] ; then
+
+   find -name '*swp' -delete
+
+fi

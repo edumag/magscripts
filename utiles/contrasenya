@@ -1,0 +1,41 @@
+#!/bin/bash
+
+## @file contrasenya
+## @brief Imprimir contraseña de comando
+##
+## Nos permite tener un modo simple de recuperar contraseñas a la hora de lanzar comandos
+## sin la necesidad de añadirlas en el mismo código, ganando en seguridad.
+##
+## El mecanismo es muy simple, se tiene un archivo con los permisos adecuados ( solo lectura para
+## el dueño, chmod 0400 $datos) en la carpeta de usuario con el nombre '.gcm_ctsrc' y con formato 'comando|contraseña'
+##
+## Uso: contrasenya [NOMBRE]
+##
+## Devuelve el valor de la clave con nombre especificado.
+##
+## -s: Generar clave:valor
+##
+##
+## @todo Encriptar el archivo para más seguridad
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
+datos="$HOME/.magtrabajos/dt"
+
+if [ "$1" == '-s' ] ; then
+
+  echo
+  echo "Añadir contraseña."
+  echo
+  read -p "Nombre: " NAME
+  read -p "Valor: " VALOR
+  echo "${NAME}|${VALOR}" >> $datos
+  exit
+
+fi
+
+
+salida=`grep ^"$1" "$datos" | cut -d\| -f2`
+echo $salida

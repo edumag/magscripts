@@ -1,0 +1,251 @@
+#!/bin/bash
+
+## @file pantalla
+##
+## @brief Librería para mejorar la salida por pantalla
+##
+## @ingroup libash
+##
+## @author   Eduardo Magrané
+##
+## @internal
+##
+##       web  http://www.lesolivex.com
+##
+##      mail  edu.lesolivex.com
+##
+##   Created  13/03/11
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+## 
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+## Nos permite saber si ya la hemos incluido
+
+pantalla_incluida=1
+
+## Si no hemos incluido pantalla lo hacemos
+
+[[ -z "$libash_general_incluida" ]] && source "$(dirname "${BASH_SOURCE}")/general"
+
+## Variables globales
+linea=''
+linea1=''
+linea2=''
+linea3=''
+COL=''
+
+## Caracteres para los marcos
+
+crt_esquina_izq_arriba=┌
+crt_esquina_izq_abajo=└
+crt_esquina_der_arriba=┐
+crt_esquina_der_abajo=┘
+crt_linea_hor=─
+crt_linea_ver=│
+
+## Funciones relacionadas con la mejora de la presentación de los scripts
+
+function pantalla(){
+
+   ## Buscamos los valores necesarios para dibujar las cajas y centrar los textos
+   ## Esta función deberia llamarse al inicio del programa y cada vez que se inici el menu general
+   ##
+
+   ## Numero de columnas actuales
+	COL=$(tput cols)
+
+   ## Dibuja una linea.
+   ## Se le debe imbocar con "echo -n $linea"
+	linea="$(for x in `seq 1 $(($COL))` ; do echo -n "⎼" ; done )"
+
+   ## Linea1 Dibuja el marco de arriba
+   ## echo -n linea1
+	linea1="$(echo -n "$crt_esquina_izq_arriba" ; for x in `seq 1 $(($COL-2))` ; do echo -n "$crt_linea_hor" ; done ; echo -n "$crt_esquina_der_arriba")"
+
+   ## Linea2 Dibuja el marco de abajo
+   ## echo -n linea2
+	linea2="$(echo -n "$crt_esquina_izq_abajo" ; for x in `seq 1 $(($COL-2))` ; do echo -n "$crt_linea_hor" ; done ; echo -n "$crt_esquina_der_abajo")"
+
+   ## linea3 linea para dibidir la caja
+   # #linea3="$(echo -n '├' ; for x in `seq 1 $(($COL-2))` ; do echo -n "⎼" ; done ; echo -n '┤')"
+   #linea3="$(echo -n '├' ; for x in `seq 1 $(($COL-2))` ; do echo -n "⎼" ; done ; echo -n '┤')"
+   linea3="$(echo -n "$crt_linea_ver" ; for x in `seq 1 $(($COL-2))` ; do echo -n " " ; done ; echo -n "$crt_linea_ver")"
+
+	# entradaMenu='printf " %2s%-$((${COL}-4))s \n" " "' 
+
+}
+
+## Imprimir una caja con el contenido del primer parametro
+##
+## $1 Contenido
+## $2 Titulo de la caja
+## $3 Color del texto 0,1,2
+## $4 Alineación del texto 0: izquierda, 1: centro, 2: derecha. (Por defecto centro)
+
+function caja()	{
+
+   local contenido="`echo $1 | uni2ascii -qB`"
+
+   if [ "$3" != "" ] ; then local color="$3" ; fi
+
+	local POS_CAD=$((($COL/2)-${#contenido}))
+   local numCaracteres=$((${#contenido}+1))
+   local divCaracter=$(echo "scale=0 ; ($numCaracteres/$COL)+1 " | bc -l )
+   local numColumnas=$(($numCaracteres/$divCaracter))
+   ## Si el mensaje es demasiado largo se divide en partes
+   local mensaje="$(echo $contenido | fold -s -w $(($COL-8)))"
+
+   # Si tenemos un segundo parametro sera el título de la caja
+   if [ "$2" != "" ] ; then
+      local anchoT=$((${#2}+1))
+      local linea1="$(echo -n "$crt_esquina_izq_arriba$crt_linea_hor$2" ; for x in `seq 1 $(($COL-$anchoT-2))` ; do echo -n "$crt_linea_hor" ; done ; echo -n "$crt_esquina_der_arriba")"
+   fi
+	echo -n $linea1
+
+   DIFS="$IFS" # separador fin de linea para que salga linea por linea
+   IFS=$'\n'
+   local conta=0
+   for x in $mensaje ; do 
+      conta=$(($conta+1))
+      # [[ $conta -gt 1 ]] && echo -n $linea3                    # División de la caja entre lineas
+      [[ $conta -gt 1 ]] && printf "$crt_linea_ver$color%-$((${COL}-2))s`color`$crt_linea_ver\n" ""   # División de la caja entre lineas
+      POS_CAD=$((($COL/2)-(${#x}/2)))
+      if [ "$4" = "0" ] ; then 
+         printf "$crt_linea_ver$color%-$((${COL}-2))s`color`$crt_linea_ver\n" "$x" 
+      elif [ "$4" = "2" ] ; then 
+         printf "$crt_linea_ver$color%$((${COL}-2))s`color`$crt_linea_ver\n" "$x" 
+      else
+         printf "$crt_linea_ver$color%${POS_CAD}s%-$((${COL}-${POS_CAD}-2))s`color`$crt_linea_ver\n" "" "$x" 
+      fi
+   done
+   IFS="$DIFS"
+	echo -n $linea2
+	}
+
+## Presentamos texto centrado
+##
+## $1 texto
+## $2 Descontar caracteres al centrar texto, Esto es necesario porque al añadir
+##           colores no se puede calcular bien ya que los codigos de los colores son
+##           sumados
+
+function centrar() {
+   local CAD=$((${#1}-${2:-0}))
+   local POS_CAD=$(($COL/2-($CAD/2)))
+   if [ $POS_CAD -lt 1 ] ; then local POS_CAD=0 ; fi
+   SALIDA=`printf "%${POS_CAD}s%-$((${COL}-${POS_CAD}))s\n" "" "$1"`
+   echo -e "$SALIDA"
+}
+
+## Generamos linea con el primer parámetro a la izquierda y el segundo a la derecha
+##
+## $1 Texto a la izquierda
+## $2 Texto a la derecha
+## $3 Color
+
+function linea_caja() {
+
+   local color=`color`
+   local dobleLinea=no
+
+   [[ "$3" != "" ]] && local color="$3"
+
+   # Si pasa del limite recalculamos
+   declare -i numCol1
+   declare -i numCol2
+   declare -i numColVar1
+   declare -i numColVar2
+   declare -i cols
+
+   cols=${COL}/2
+   numCol1=$cols-2
+   numCol2=${COL}-$numCol1-4
+   numColVar1=${#1}
+   numColVar2=${#2}
+
+   # Si variable 1 sobrepasa columna1
+
+   if [ $numColVar1 -gt $numCol1 ] ; then
+      declare -i dif=$numColVar1-$numCol1
+      numCol1=$numCol1+$dif
+      numCol2=$numCol2-$dif
+   fi
+
+   # Si la variable2 sobrepasa la columna2
+
+
+   if [ $numColVar2 -gt $numCol2 ] ; then
+      declare -i dif=$numColVar2-$numCol2
+      numCol2=$numCol2+$dif
+      numCol1=$numCol1-$dif
+   fi
+
+   # Si alguna de las dos sobrepasa ya solo queda poner una en cada linea
+
+   if  [ $numColVar2 -gt $numCol2 ] || [ $numColVar1 -gt $numCol1 ] ; then
+      dobleLinea=si
+   fi
+
+   #echo COL: $COL cols: $cols dif: $dif nc1: $numCol1 nc2: $numCol2 ncv1: $numColVar1 ncv2: $numColVar2 
+
+   if [ "$dobleLinea" == 'si' ] ; then
+
+      declare -i columnas=${COL}-4
+
+      printf "│ $color%-${columnas}s`color` │\n" "`echo $1 | uni2ascii -qB`" 
+      printf "│ $color%-${columnas}s`color` │\n" "`echo $2 | uni2ascii -qB`" 
+
+   else
+
+      printf "│ $color%-${numCol1}s" "`echo $1 | uni2ascii -qB`" 
+      printf "%${numCol2}s`color` │\n" "`echo $2 | uni2ascii -qB`" 
+
+   fi
+
+	}
+
+## Titulo para caja
+##
+## $1 Título
+
+function abre_caja() {
+
+   local titulo="`echo $1 | uni2ascii -qB`"
+   if [ "$titulo" != "" ] ; then
+      local anchoT=$((${#titulo}+1))
+      local linea1="$(echo -n "$crt_esquina_izq_arriba$crt_linea_hor$titulo" ; for x in `seq 1 $(($COL-$anchoT-2))` ; do echo -n "$crt_linea_hor" ; done ; echo -n "$crt_esquina_der_arriba")"
+   fi
+	echo -n $linea1
+
+   }
+
+## Linea de cierre de la caja
+
+function cierra_caja() {
+
+   echo $linea2
+
+}
+
+## Presentamos texto centrado
+##
+## $1 texto
+## $2 Descontar caracteres al centrar texto, Esto es necesario porque al añadir
+##           colores no se puede calcular bien ya que los codigos de los colores son
+##           sumados
+
+function centrar() {
+
+   local CAD=$((${#1}-${2:-0}))
+   local POS_CAD=$(($COL/2-($CAD/2)))
+   if [ $POS_CAD -lt 1 ] ; then local POS_CAD=0 ; fi
+   SALIDA=`printf "%${POS_CAD}s%-$((${COL}-${POS_CAD}))s\n" "" "$1"`
+   echo -e "$SALIDA"
+
+   }
+
+pantalla  # iniciamos pantalla

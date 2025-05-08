@@ -1,0 +1,301 @@
+#!/bin/bash
+
+## @file general
+##
+## @brief Funciones genericas para los scripts en bash
+##
+## @defgroup libash Librerías para bash
+## @{
+##
+## @author   Eduardo Magrané
+##
+## @internal
+##
+##       web  http://www.lesolivex.com
+##
+##      mail  edu.lesolivex.com
+##
+##   Created  13/03/11
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+## 
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+libash_general_incluida=1 ##< Para saber si ya la tenemos incluida
+
+## Si no hemos incluido pantalla lo hacemos
+
+[[ -z "$pantalla_incluida" ]] && source "$(dirname "${BASH_SOURCE}")/pantalla"
+
+## @defgroup configuracion_libash Configuración para libash
+## @{
+
+conf_proyecto=".magtrabajos/configuracion/libash.conf"    ##< Con proyecto
+conf_magtrabajos="$HOME/.magtrabajos/configuracion/libash.conf"                     ##< Sin proyecto
+conf="`dirname $BASH_SOURCE`/libash.conf"                                           ##< Por defecto
+
+## @brief Enviar mensaje de log a fichero
+##
+## Generamos registro del programa.
+##
+## 1 Función de la que viene, $FUNCNAME
+## 2 Texto
+
+function log() {
+
+   local archivo_log=${archivo_log:-$HOME/`basename "$0"`.log}
+
+   [[ -e "$archivo_log" ]] || touch "$archivo_log"
+
+   if [ -z "$2" ] ; then
+      echo "` date +'%Y-%m-%d %H:%M'` $1" >> $archivo_log
+   else
+      echo "` date +'%Y-%m-%d %H:%M'` $1 :: $*" >> $archivo_log
+   fi
+
+   }
+
+if [ -e "$conf_proyecto" ] ; then
+   log $FUNCNAME "libash configuración: $conf_proyecto"
+   source "$conf_proyecto"
+elif [ -e "$conf_magtrabajos" ] ; then
+   log $FUNCNAME "libash configuración: $conf_magtrabajos"
+   source "$conf_magtrabajos"
+else
+   log $FUNCNAME "libash configuración: $conf"
+   source "$conf"
+fi
+## @}
+
+## Añadimos color
+## 
+## Uso:
+## @code
+## echo -e "`color colError`Error en la aplicación`color`"
+## @endcode
+##
+## Opciones:
+##
+## lista        Presenta la lista de los colores del tema actual
+## posibles     Presenta tabla con los posibles colores que se pueden
+##              utilizar
+##
+## @todo Detectar si la terminal actual permite colores
+
+function color() { 
+
+   if [ "$1" = "lista" ] ; then
+      echo
+      echo Tema actual: 
+      local c='${!'col'*}'
+      for variable in `eval echo "$c"` ; do
+         echo -e "\n- ${!variable} $variable `color`"
+      done
+
+      return
+   fi
+
+   if [ "$1" = "posibles" ] ; then
+      echo "  Sobre gris claro:        Sobre negro:"
+        echo -e "\033[47m\033[1;37m  Blanco        \033[0m\
+         1;37m \
+        \033[40m\033[1;37m  Blanco        \033[0m"
+        echo -e "\033[47m\033[37m  Gris Claro    \033[0m\
+           37m \
+        \033[40m\033[37m  Gris Claro    \033[0m"
+        echo -e "\033[47m\033[1;30m  Gris          \033[0m\
+         1;30m \
+        \033[40m\033[1;30m  Gris          \033[0m"
+        echo -e "\033[47m\033[30m  Negro         \033[0m\
+           30m \
+        \033[40m\033[30m  Negro         \033[0m"
+        echo -e "\033[47m\033[31m  Rojo          \033[0m\
+           31m \
+        \033[40m\033[31m  Rojo          \033[0m"
+        echo -e "\033[47m\033[1;31m  Rojo Claro    \033[0m\
+         1;31m \
+        \033[40m\033[1;31m  Rojo Claro    \033[0m"
+        echo -e "\033[47m\033[32m  Verde         \033[0m\
+           32m \
+        \033[40m\033[32m  Verde         \033[0m"
+        echo -e "\033[47m\033[1;32m  Verde Claro   \033[0m\
+         1;32m \
+        \033[40m\033[1;32m  Verde Claro   \033[0m"
+        echo -e "\033[47m\033[33m  Marrón        \033[0m\
+           33m \
+        \033[40m\033[33m  Marron        \033[0m"
+        echo -e "\033[47m\033[1;33m  Amarillo      \033[0m\
+         1;33m \
+        \033[40m\033[1;33m  Amarillo      \033[0m"
+        echo -e "\033[47m\033[34m  Azul          \033[0m\
+           34m \
+        \033[40m\033[34m  Azul          \033[0m"
+        echo -e "\033[47m\033[1;34m  Azul Claro    \033[0m\
+         1;34m \
+        \033[40m\033[1;34m  Azul Claro    \033[0m"
+        echo -e "\033[47m\033[35m  Púrpura       \033[0m\
+           35m \
+        \033[40m\033[35m  Purpura       \033[0m"
+        echo -e "\033[47m\033[1;35m  Rosa          \033[0m\
+         1;35m \
+        \033[40m\033[1;35m  Rosa          \033[0m"
+        echo -e "\033[47m\033[36m  Cyan          \033[0m\
+           36m \
+        \033[40m\033[36m  Cyan          \033[0m"
+        echo -e "\033[47m\033[1;36m  Cyan Claro    \033[0m\
+         1;36m \
+        \033[40m\033[1;36m  Cyan Claro    \033[0m"
+
+      return
+   fi
+
+   if [ "$var_color" = 'si' ] ; then 
+      local c=${1:-colNormal} ; 
+      echo -e "${!c}" ; 
+   fi 
+   }
+
+## Recopilar, registrar o presentar mensajes de la aplicación
+
+function mensajes() {
+
+   [[ "$menConta" == "" ]] && menConta=0
+
+   case "$1" in
+
+      -log)
+      # Enviamos mensajes a log y ponemos a cero
+         if [  $menConta -lt 1 ] ; then return 1 ; fi
+         FIN=$((${#MEN[*]}-1))
+         for x in `seq 0 $FIN` ; do
+            if [ $x = $FIN ] ; then
+               log "$FUNCNAME" "${MEN[$x]}"
+            fi
+         done
+         MEN=()
+         menConta=0
+         ;;
+      -crudo)
+         # imprimimos mensaje y ponemos a cero
+         if [  $menConta -lt 1 ] ; then return 1 ; fi
+         FIN=$((${#MEN[*]}-1))
+         for x in `seq 0 $FIN` ; do
+            echo "- ${MEN[$x]}"
+         done
+         MEN=()
+         ;;
+      -get)
+         # imprimimos mensaje y ponemos a cero
+         if [  $menConta -lt 1 ] ; then return 1 ; fi
+         FIN=$((${#MEN[*]}-1))
+         #echo -n $linea
+         #echo -n ' ESTADO: '
+         SALIDA=''
+         for x in `seq 0 $FIN` ; do
+            if [ $x = $FIN ] ; then
+               #tput bold ; echo -n "${MEN[$x]} " ; tput sgr0
+               SALIDA="$SALIDA ${MEN[$x]}"
+            else
+               #tput bold ; echo -n "${MEN[$x]} " ; tput sgr0
+               #echo -n "${MEN[$x]} | "
+               SALIDA="$SALIDA ${MEN[$x]} |"
+            fi
+         done
+         caja "$SALIDA" 'Mensajes' "$cAviso" 0
+         #echo 
+         MEN=()
+         menConta=0
+         ;;
+      *)
+         # Recibimos un nuevo mensaje y lo añadimos a la pila
+         # Por defecto ingresamos nuevo mensaje a la pila
+         MEN[$menConta]="$1"
+         let menConta++
+         # Enviamos mensaje a log
+         log "$FUNCNAME" "$1"
+         [[ $consulta != 1 ]] && echo "$1"
+         ;;
+   esac
+}
+
+## Pedir la pulsación de una tecla para continuar
+
+function tecla() {
+
+   echo 
+   read -n 1 -s -p '[Presione una tecla para continuar]'
+
+   }
+
+## Presentar fecha y horas actuales
+
+function AHORA(){
+
+   ## Imprimir fecha y hora actual
+
+   date +%Y-%m-%d\ %H:%M:%S
+
+   }
+
+## Pasar de minutos a formato hora H:M
+
+function pasarMinHoras(){
+
+   log $FUNCNAME "$*"
+
+   minutos=$(echo $1 | cut -d. -f1)
+   horas=$(($minutos/60))
+   min=$(($minutos%60))
+   printf "%02d:%02d" $horas $min
+
+   }
+
+
+## Lanzar un comando en terminal
+
+function comandoExterno(){
+
+   log $FUNCNAME "$*"
+
+   ## Ejecutar comando externo en $mt_miniterminal
+
+   echo $*
+   CMD="$mt_terminal -e \"$*  ; echo ; read -n 1 -p 'Presione una tecla para salir:'\""
+   ejecutarComando "$CMD"
+
+   }
+
+## Ejecutar comando nos permite ver el comando que estamos ejecutando, 
+## si da error en la salida, nos permite hacer una pausa para verla, 
+## etc...
+##
+## @param $1 Comando a ejecutar
+## @param $2 Mostrar comando por pantalla 1/0
+
+function ejecutarComando() {
+
+   cmd="$1"
+   [[ -z "$2" ]] && mostrar=1 || mostrar=0
+
+   if [ $mostrar -eq 1 ] ; then
+      echo
+      caja "$cmd"
+      echo
+   fi
+
+   eval "$cmd"
+
+   if [ $? != 0 ] ; then
+      echo
+      echo -e "`color colError`Error al lanzar comando`color`"
+      echo
+      tecla
+      return 1
+   fi
+   }
+
+
+## @}

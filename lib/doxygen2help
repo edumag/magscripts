@@ -1,0 +1,93 @@
+#!/bin/bash
+
+## @file doxygen2help
+##
+## @brief Extraer de la documentación en la cabecera de los scripts la ayuda a presentar en consola
+##
+## Puede ser utilizado como librería o como comando externo, doxygen2help [archivo]
+##
+## @ingroup libash
+##
+## @author   Eduardo Magrané
+## @namespace componentes\libash
+## @internal
+##       web  http://www.lesolivex.com
+##
+##      mail  edu.lesolivex.com
+##
+##   Created  13/03/11
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+## 
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+## Parámetros:
+##
+## 1- Archivo en donde buscar la documentación
+##
+## 2- Podemos pasar la palabra a detectar para iniciar la salida por consola como
+##    primer parámetro, por defecto el tag 'file' o 'false' para poder pasar el
+##    tercer parámetro sin definir el segundo.
+##
+##    Si el segundo parámetro es -tag se presentara solo la información del tag
+##    pasado como siguiente parámetro, ejemplo: -tag brief
+##
+## 3- La de terminación como segundo, por defecto una linea en blanco
+
+function doxygen2help() {
+
+   local mostrar=false
+   local archivo="$BASH_SOURCE"
+   local inicio='##'
+   local final=''
+
+   [[  "$1" != "" ]] && archivo="$1"
+   if [  "$2" != "false" ] && [  "$2" != "" ] ; then inicio="$2" ; fi
+   [[  "$3" != "" ]] && final="$3"
+
+   if [ "$inicio" == "-tag" ] ; then
+      local tag="$final"
+      grep -m 1 "@${tag}" "$archivo" | sed 's/## //' | sed "s/@${tag} //"
+      exit
+   fi
+
+   echo
+   while read linea ; do 
+
+      if [ "$mostrar" = "true" ] ; then
+         if [ "$final" = "" ] ; then
+            if [ "$linea" = "" ] ; then
+               return
+            fi
+         else
+            if [ "$(echo $linea | grep $final)" != "" ] ; then
+               return
+            fi
+         fi
+      fi
+
+      if [ "$(echo $linea | grep $inicio)" != "" ] ; then
+         mostrar=true
+      fi
+
+      if [ "$mostrar" = "true" ] ; then
+         if [ "$(echo $linea | grep 'pre>')" != "" ] ; then
+            echo
+         else
+            echo -e "$linea" | sed 's/##//' | sed 's/@file //' | sed 's/@brief //'
+         fi
+      fi
+
+   done < "$archivo"
+   echo
+
+   }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
+# si se llama al script directamente ejecutamos doxygen2help
+
+[[ "`basename "$BASH_SOURCE"`" != "`basename "$0"`" ]] || (doxygen2help $*)

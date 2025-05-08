@@ -1,0 +1,11 @@
+#!/bin/bash
+## @file leberar_memoria
+## @brief Liberar memoria del sistema.
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
+sudo sync && sudo sysctl -w vm.drop_caches=3
+
+

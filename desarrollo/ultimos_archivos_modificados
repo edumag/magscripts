@@ -1,0 +1,77 @@
+#!/bin/bash 
+
+## @file ultimos_archivos_modificados 
+## 
+## @brief listamos los últimos archivos que han sido modificados
+##
+## Por defecto se muestran los archivos modificados en las últimas 24 horas
+## del directorio actual.
+##
+## Opciones:
+## <pre>
+## --help | -h              Pantalla de ayuda
+## </pre>
+##
+## @author   Eduardo Magrané
+##
+## @internal
+##
+##       web  http://www.lesolivex.com
+##
+##      mail  edu.lesolivex.com
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+## 
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
+## Directorio a consultar.
+dir="./"
+
+## Mostrar ayuda
+
+function help() {
+
+   local -i count=0
+   while read linea ; do 
+      let count++
+      if [ $count -gt 2 ] ; then
+         [ "$linea" = "" ] && return
+         echo "$linea" | sed 's/^##//' | sed 's/@brief //' | sed 's/@file //' 
+      fi
+   done < "$0"
+   echo
+
+   }
+
+while [ -n "$1" ] ; do
+
+   case "$1" in
+      
+      -h|-help|--help) help_magtestunit ; exit ;;
+      -info) info_magtestunit ; exit ;;
+      --dependencias|-d) comprobar_dependencias ; exit ;;
+      *) dir="$1" ; break ;;
+
+   esac
+
+done
+
+## Comando
+comando_ultimos_modificados="find '$dir' -type f -mtime 0 | grep -v '.swp' | grep -v 'log/' | grep -v '.git' | grep -v '.svn' | sed 's/\.\///' | sed 's/^\.//'"
+
+echo
+echo Buscar archivos módificados por minutos.
+echo
+echo find ./ -type f -mmin -290
+echo
+echo Buscar las últimas 24 horas
+echo $comando_ultimos_modificados
+echo
+eval "$comando_ultimos_modificados"

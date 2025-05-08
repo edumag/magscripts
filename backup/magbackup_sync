@@ -1,0 +1,17 @@
+## Sincronizar dos directorios en remoto.
+
+## @file sincronizar
+## @brief Sincronizamos directorios de un ordenador a otro
+
+# Recoger configuración de magtrabajos
+source `dirname "$BASH_SOURCE"`/../../config
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
+if [ "$1" == "-c" ] ; then
+   configuracion_menu  'magbackup' ".magtrabajos/configuracion/magbackup" "`dirname "$BASH_SOURCE"`/config.default"
+fi
+
+rsync -rvzt "$magbackup_sync_servidor" "$magbackup_sync_local"

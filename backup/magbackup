@@ -1,0 +1,313 @@
+#!/bin/bash
+
+## @file magbackup
+## @brief magbackup es un script para generar copias de seguridad.
+##
+## Con los ficheros creamos una copia por mes y a partir de esta vamos creando
+## archivos por cada día de la semana con los cambios desde la copia por mes.
+##
+## Para generar las copias se debe crear un fichero de perfil en la carpeta
+## ~/.config/magscripts/magbackup/ficheros/perfil el nombre de la copia que se
+## genera se basa en el nombre del archivo de perfil su formato es:
+##
+## CS_DIR="/home/eduardo/"
+## CS_COPIAR="Scripts .bashrc"
+##
+## CS_DIR: Nos indica la carpeta donde situarnos
+## CS_COPIAR: Las subcarpetas o archivos que deseamos copiar
+##
+## En caso de una copia de mysql en CS_DIR debera añadirse mysql <user> <password> y en
+## CS_COPIAR los nombres de las bases de datos a copiar.
+##
+## En el caso de las copias de mysql no hay la posibilidad de copias incrementales con lo
+## cual se generara una copia completa cada vez.
+##
+## @todo Asistente de configuración.
+##
+## @author   Eduardo Magrané
+## @internal
+##       web  http://www.lesolivex.com
+##
+##      mail  edu.lesolivex.com
+##
+##   Created  13/03/11
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+##
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+## @defgroup configuracion_magbackup Configuración magbackup
+##
+## Colocamos prefijo 'magbackup_' ha las variables para ser reconocibles
+##
+## @{
+
+   ## @var magbackup_dir
+   ## Directorio donde guardar las copias realizadas
+
+   magbackup_dir="$HOME/backup/"
+
+## @}
+
+# variables internas
+
+fichero_configuracion_magbackup="$HOME/.magtrabajos/configuracion/magbackup/config"  ##< Fichero configuración
+directorio__ficheros="$HOME/.magtrabajos/configuracion/magbackup/ficheros/"  ##< Fichero configuración
+directorio__mysql="$HOME/.magtrabajos/configuracion/magbackup/mysql/"  ##< Fichero configuración
+directorio__docker_postgres="$HOME/.magtrabajos/configuracion/magbackup/docker_postgres/"  ##< Fichero configuración
+directorio__dokku_postgres="$HOME/.magtrabajos/configuracion/magbackup/dokku_postgres/"  ##< Fichero configuración
+directorio__dokku_mysql="$HOME/.magtrabajos/configuracion/magbackup/dokku_mysql/"  ##< Fichero configuración
+
+MES=`date +%B`
+DIA=`date +%A`
+
+## Recoger configuración de magtrabajos
+LIBS="$LIBS listado configuracion"
+source "`dirname "$BASH_SOURCE"`/../../config"
+
+
+# Si no encontramos fichero de configuración hay que generarlo
+if [ ! -e "$fichero_configuracion_magbackup" ] ; then
+   echo
+   echo "No se encontró fichero de configuración"
+   echo
+   read -p "Configurar ahora (s/n): " OPCION
+   if [ "$OPCION" = "s" ] ; then
+      configuracion_menu magbackup_ "$fichero_configuracion_magbackup" "`dirname "$BASH_SOURCE"`/config.default"
+   else
+      exit
+   fi
+fi
+
+# Recogemos archivo de configuracion
+# @todo Crear carpetas si no las hay.
+DIR_CONFIG=`dirname $fichero_configuracion_magbackup`
+
+if [[ ! -d "$DIR_CONFIG" ]] ; then
+       mkdir -p "$DIR_CONFIG"
+       mkdir $directorio__ficheros
+       mkdir $directorio__mysql
+       mkdir $directorio__docker_postgres
+       mkdir $directorio__dokku_postgres
+       configuracion_guardar "magbackup_" "$fichero_configuracion_magbackup" "`dirname "$BASH_SOURCE"`/config.default"
+fi
+. "$fichero_configuracion_magbackup"
+
+
+function magbackup_crear_copia_ficheros_perfil() {
+
+   for file in "$directorio__ficheros"* ; do
+
+      [[ ${file:0-1} == '*' ]] && break
+
+      CMD='nice -10 sudo tar -Pcjpf '
+
+      source "$file"
+
+      NOMBRE="$(basename $file)"
+      NOMBRE_MES="${NOMBRE}-`hostname`-${MES}.tar.bz2"
+      NOMBRE_DIA="${NOMBRE}-`hostname`-${DIA}.tar.bz2"
+
+      echo
+      echo ----------------
+      echo copias_seguridad
+      echo ----------------
+      echo
+      echo $NOMBRE
+      echo $NOMBRE | sed 's/./-/g'
+      echo
+      echo Inicio:  $CS_DIR
+      echo Mensual: $NOMBRE_MES
+      echo Diario:  $NOMBRE_DIA
+      echo
+
+      cd $CS_DIR
+
+      if [ ! -d $DIR ] ; then echo Directorio de inicio $CS_DIR no existe! ; exit ; fi
+
+      for origenes in $CS_COPIAR ; do
+         if [ -e $origenes ] ; then
+            echo -e "$origenes OK"
+         else
+            errores="$errores $origenes"
+         fi
+      done
+
+      if [ "$errores" != "" ] ; then
+         echo
+         echo Hay ubicaciones por copiar que no existen
+         echo
+         echo $errores | tr ' ' "\n"
+         exit
+      fi
+
+      # Si encontramos la copia del mes actual realizada
+      # hacemos una copia solo de los ficheros que se han
+      # modificado desde entonces
+
+      ANYO_ACTUAL=`date +%Y`
+
+      if [ -e "${magbackup_dir}$NOMBRE_MES" ] && [ "$ANYO_ACTUAL" = "`date +%Y -r "${magbackup_dir}$NOMBRE_MES"`" ]; then
+
+         # generamos copia diaria incremental
+         DESTINO="${magbackup_dir}$NOMBRE_DIA"
+         FECHA_INCREMENTAL="`date \"+%Y-%m-%d %H:%M\" -r "${magbackup_dir}$NOMBRE_MES"`"
+         CMD="$CMD $DESTINO --newer-mtime \"$FECHA_INCREMENTAL\" $CS_COPIAR"
+
+         echo
+         echo Realizamos copia incremental: $DESTINO
+         echo
+         echo Fecha ultima copia completa $FECHA_INCREMENTAL
+
+      else
+
+         # Generamos copia mensual
+         DESTINO="${magbackup_dir}$NOMBRE_MES"
+         CMD="$CMD $DESTINO $CS_COPIAR"
+
+         echo
+         echo Realizamos copia mensual: $DESTINO
+         echo
+
+      fi
+
+      # Hacer la copia sobre directorio temporal y solo
+      # en caso de exito pasarla al directorio final.
+
+      echo
+      echo Comando: $CMD
+      echo
+      eval "$CMD"
+
+      if [ $? = 0 ] ; then
+         echo Copia generada correctamente
+      else
+         echo Error al generar copia
+         exit 1
+      fi
+
+
+   done
+
+}
+
+function magbackup_crear_copia_mysql_perfil() {
+
+   for file in "$directorio__mysql"* ; do
+
+    [[ ${file:0-1} == '*' ]] && break
+
+      echo
+      echo -----
+      echo Mysql
+      echo -----
+      echo
+
+      source "$file"
+
+      for BD in $BASES_DATOS ; do
+         cmd="nice -10 mysqldump -u$USUARIO -p$PASS $BD | nice -10 bzip2 --best -c > ${magbackup_dir}mysql-${BD}-`hostname`-${DIA}.dump.bz2"
+         echo
+         echo Comando: $cmd
+         eval "$cmd"
+      done
+
+   done
+
+}
+
+function magbackup_crear_copia_docker_postgres_perfil() {
+
+   for file in "$directorio__docker_postgres"* ; do
+
+    [[ ${file:0-1} == '*' ]] && break
+
+      echo
+      echo ---------------
+      echo Docker Postgres
+      echo ---------------
+      echo
+
+      source "$file"
+
+      for BD in $BASES_DATOS ; do
+         cmd="nice -10 docker exec -i -e PGPASSWORD=${DOCKER_PASSWORD} ${DOCKER_IMAGE} /usr/bin/pg_dump -U ${DOCKER_USER} ${DOCKER_DATABASE} > ${magbackup_dir}docker_postgres-${DOCKER_DATABASE}-`hostname`-${DIA}.dump"
+         echo
+         echo Comando: $cmd
+         eval "$cmd"
+      done
+
+   done
+
+}
+
+function magbackup_crear_copia_dokku_postgres_perfil() {
+
+   for file in "$directorio__dokku_postgres"* ; do
+
+    [[ ${file:0-1} == '*' ]] && break
+
+      echo
+      echo --------------
+      echo Dokku Postgres
+      echo --------------
+      echo
+      echo "$file"
+
+      source "$file"
+
+      cmd="nice -10 dokku postgres:export $DOKKU_APP > ${magbackup_dir}dokku_postgres-${DOKKU_APP}-`hostname`-${DIA}.dump"
+      echo
+      echo Comando: $cmd
+      eval "$cmd"
+
+   done
+
+}
+
+function magbackup_crear_copia_dokku_mysql_perfil() {
+
+   for file in "$directorio__dokku_mysql"* ; do
+
+    [[ ${file:0-1} == '*' ]] && break
+
+      echo
+      echo -----------
+      echo Dokku MySQl
+      echo -----------
+      echo
+      echo "$file"
+
+      source "$file"
+
+      cmd="nice -10 dokku mysql:export $DOKKU_APP > ${magbackup_dir}dokku_postgres-${DOKKU_APP}-`hostname`-${DIA}.dump"
+      echo
+      echo Comando: $cmd
+      eval "$cmd"
+
+   done
+
+}
+
+while [ -n "$1" ] ; do
+
+   case "$1" in
+
+      -h|-help|--help) help ; exit ;;
+      -info) info ; help ; exit ;;
+      --dependencias|-d) comprobar_dependencias ; exit ;;
+
+   esac
+
+done
+
+magbackup_crear_copia_ficheros_perfil
+magbackup_crear_copia_mysql_perfil
+magbackup_crear_copia_docker_postgres_perfil
+magbackup_crear_copia_dokku_postgres_perfil
+magbackup_crear_copia_dokku_mysql_perfil
+
+

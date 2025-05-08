@@ -1,0 +1,10 @@
+#!/bin/bash
+
+## @file git-cambios-realizados
+## @brief Muestra los cambios realizados desde git.
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
+git log --graph --pretty=format:'%Cblue%h%Creset -%C(yellow)%d%Creset %s - %C(yellow)%aN%Creset %Cgreen(%cr)%Creset' --abbrev-commit --date=relative

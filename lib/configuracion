@@ -1,0 +1,434 @@
+#!/bin/bash
+
+## @file configuracion
+##
+## @brief Librería para gestionar la configuración de los scripts de bash
+##
+## Para trabajar con esta librería es necesario que tengamos un archivo de configuración definido,
+## y sus variables deben tener un prefijo que las identifique.
+##
+## También es necesario una descripción de cada variable que se define con formato de doxygen, puede
+## estar en el mismo archivo del script, y pasarselo como archivo que contiene las descripciones. En
+## caso de no tenerla pondremos el nombre de la variable
+##
+## ejemplo:
+## @code
+## ## @var miprograma_titulo
+## ## Define el titulo que deseas
+## miprograma_titulo='HOLA'
+## @endcode
+##
+## Podemos definir un archivo con las variables por defecto, este archivo deberá contener el prefijo
+## de las variables más _default, ejemplo: mt_default_teminal="xterm", si al definir una configuración
+## le damos como valor default, a la hora de leer la configuración se recogerá el valor establecido en
+## el archivo de las variables por defecto.
+##
+## Si tenemos un archivo con variables por defecto, este sera el que manda sobre los otros, la idea es
+## que si el archivo por defecto a variado y ahora una variable deja de usarse, al editarse la
+## configuración ya no mostrara esta variable, manteniendo limpios los ficheros de configuración.
+##
+## @ingroup libash, configuracion
+##
+## @author   Eduardo Magrané
+##
+## @internal
+##
+##       web  http://www.lesolivex.com
+##
+##      mail  edu.lesolivex.com
+##
+##   Created  13/03/11
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+##
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+## Si no hemos incluido librería general la incluimos
+
+[[ -z "$libash_general_incluida" ]] && source "$(dirname "${BASH_SOURCE}")/general"
+[[ -z "$libash_listado_incluida" ]] && source "$(dirname "${BASH_SOURCE}")/listado"
+
+
+## Editamos las variables que coincidan con el prefijo
+##
+## Parámetros:
+##
+## - $1 Prefijo
+## - $2 Archivo de las descripciones
+## - $3 Archivo con los valores por defecto, en caso
+##      de no existir el de las descripciones
+
+function configuracion_editar() {
+
+   # comprobamos que tengamos los parámetros necesarios
+   if [ "$1" = "" ] ; then
+      echo 'Se necesita un prefijo'
+      return
+   fi
+   local configuracion_prefijo=$1
+
+   if [ "$2" = "" ] ; then
+      echo 'Sin archivo que contiene las descripciones'
+   else
+      local archivo_descripciones="$2"
+   fi
+
+   if [ "$3" = "" ] ; then
+      local archivo_default="$2"
+   else
+      local archivo_default="$3"
+   fi
+
+   echo "Editar"
+
+   # Presentamos lista variables y valores para seleccionar
+
+   if [ -e "$archivo_default" ] ; then
+
+      source "$archivo_default"
+      local pre_default="default_${configuracion_prefijo}"
+      local default='${!'$pre_default'*}'
+      echo
+      echo Valores por defecto:
+      echo
+      [[ -e ${DIR_TMP}listado ]] && rm ${DIR_TMP}listado
+      for variable in `eval echo "$default"` ; do
+         local a=${!variable}  # valor anterior
+         echo -e "`color colAviso`$variable`color` = `color colAfirmativo`${a:-NULL}`color`"
+         local var="`echo $variable | sed 's/default_//'`"
+         echo -e "$var\t${!var}" >> ${DIR_TMP}listado
+      done
+
+   else
+
+      local c='${!'$configuracion_prefijo'*}'
+      [[ -e ${DIR_TMP}listado ]] && rm ${DIR_TMP}listado
+      for variable in `eval echo "$c"` ; do
+         #if [ "$variable" != "" ] ; then
+            local a=${!variable}  # valor anterior
+            echo -e "$variable\t${a:-NULL}" >> ${DIR_TMP}listado
+         #fi
+      done
+
+   fi
+
+   generar_listado_fichero --ocultar-ayuda
+   [[ "$resultado_listado" == "" ]] && return
+   local a=${!resultado_listado}  # valor anterior
+   local d="`configuracion_descripcion "$archivo_descripciones" default_${resultado_listado}`"
+   echo
+   echo -e "`color colComentario`$d`color`"
+   echo
+   local nom_var_default="default_$resultado_listado"
+   if [ ! -z "${!nom_var_default}" ] ; then
+      echo Si le das el valor default, recogeremos el valor por defecto
+      echo
+      echo -e "Por defecto: `color colAviso`${!nom_var_default}`color`"
+      echo
+   fi
+   read -p "Valor [ENTER]=$a: " $resultado_listado
+   if [ "${!resultado_listado}" = '' ] ; then                    # Si no entran nada ponemos el valor anterior
+      eval "${resultado_listado}=\"$a\""
+   fi
+   configuracion_editar "$1" "$2"
+   }
+
+## Pasar las variables por defecto a variables normales
+
+function configuracion_leer_por_defecto() {
+
+   if [ "$1" = "" ] ; then
+      echo 'Se necesita un prefijo'
+      exit 1
+   fi
+
+   if [ "$2" = "" ] ; then
+      echo 'Sin archivo con los valores por defecto'
+      exit 2
+   fi
+
+   local configuracion_prefijo=$1
+   local archivo_default="$2"
+
+   source "$archivo_default"
+
+   local pre_default="default_${configuracion_prefijo}"
+   local default='${!'$pre_default'*}'
+
+   for variable in `eval echo "$default"` ; do
+      local valor=${!variable}  # valor anterior
+      local nom_var="`echo $variable | sed 's/default_//'`"
+      eval "$nom_var='${valor}'"
+   done
+
+   }
+
+## Leemos archivo con las variables
+## Esto se debe hacer desde el propio programa sino no lee las variables desde él
+## Si tenemos un archivo con las variables por defecto las variables que contengan
+## el valor default, su valor sera sustituido por el default
+##
+## Parámetros:
+##
+## - $1 Archivo de configuración
+## - $2 Archivo de configuración por defecto
+## - $3 Prefijo de las variables
+
+function configuracion_leer() {
+
+   if [ "$1" = "" ] ; then
+      echo 'Necesito el archivo de donde leer las variables'
+      exit 1
+   fi
+
+   if [ "$2" = "" ] ; then
+
+      source "$1"
+      [[ `type log >/dev/null 2>&1` = 0 ]] && log "Leemos archivo $1"
+      return 0
+
+   fi
+
+   if [ "$3" = "" ] ; then
+      echo 'Sin prefijo'
+      exit 2
+   fi
+
+   local configuracion_archivo="$1"
+   local archivo_default="$2"
+   local configuracion_prefijo="$3"
+
+   source "$archivo_default"
+   [[ -e "$configuracion_archivo" ]] && source "$configuracion_archivo"
+
+   local pre_default="default_${configuracion_prefijo}"
+   local default='${!'$pre_default'*}'
+
+   for variable in `eval echo "$default"` ; do
+      local a=${!variable}  # valor anterior
+      local var="`echo $variable | sed 's/default_//'`"
+      local valor_conf=${!var}
+      # echo "Valor: $var = $valor_conf"
+      # echo "Por defecto: $var = $a"
+      if [ "$valor_conf" == "default" ] ; then
+         eval "${var}='${a}'"
+      elif [ "$valor_conf" == "" ] ; then
+         eval "${var}='$a'"
+      fi
+
+   done
+
+
+   }
+
+## Guardamos las variables que coincidan con el prefijo en al archivo que se nos indica
+##
+## Únicamente guardamos las variables que están en los archivos por defecto, de esta
+## manera evitamos que variables en desuso se acumulen sin necesidad.
+##
+## $1 Prefijo de las variables a guardar
+## $2 Archivo donde guardar las variables
+## $3 Archivo de variables por defecto
+
+function configuracion_guardar() {
+
+   if [ "$1" = "" ] ; then
+      echo 'Se necesita un prefijo'
+      return
+   fi
+   local configuracion_prefijo=$1
+
+   if [ "$2" = "" ] ; then
+      echo 'Necesito el archivo donde escribir las variables'
+      return
+   fi
+   local configuracion_archivo="$2"
+
+   if [ "$3" = "" ] ; then
+      echo 'Sin archivo con los valores por defecto'
+   else
+      local archivo_default="$3"
+   fi
+
+   # si no existe la carpeta contenedora la creamos
+
+   [ -e "`dirname "$configuracion_archivo"`" ] || mkdir -p "`dirname "$configuracion_archivo"`"
+
+   if [ -e "$archivo_default" ] ; then
+
+      local pre_default="default_${configuracion_prefijo}"
+      local default='${!'$pre_default'*}'
+
+      for variable in `eval echo "$default"` ; do
+         local a=${!variable}  # valor anterior
+         local var="`echo $variable | sed 's/default_//'`"
+         echo -e "\n$var='${!var}'"
+      done > "$configuracion_archivo"
+
+   else
+
+      local c='${!'$configuracion_prefijo'*}'
+      for variable in `eval echo "$c"` ; do
+         echo -e "\n$variable='${!variable}'"
+      done > "$configuracion_archivo"
+
+   fi
+
+
+   if [ $? = 0 ] ; then
+      echo "Archivo $configuracion_archivo guardado"
+   else
+      echo "Archivo $configuracion_archivo No se pudo guardar"
+   fi
+
+   }
+
+## Listar variables y valores
+##
+## $1 Prefijo de las variables a guardar
+## $2 Archivo donde están las descripciones
+
+function configuracion_lista() {
+
+   if [ "$1" = "" ] ; then
+      echo 'Se necesita un prefijo'
+      return
+   fi
+   local configuracion_prefijo=$1
+
+   if [ "$2" = "" ] ; then
+      echo 'Sin archivo de descripciones'
+   else
+      local archivo_descripciones="$2"
+   fi
+
+   local c='${!'$configuracion_prefijo'*}'
+   for variable in `eval echo "$c"` ; do
+      printf "\n- %s : %s" "${variable}" "${!variable}"
+   done
+
+
+   }
+
+## Presentar la configuración actual
+##
+## $1 Prefijo de las variables a guardar
+## $2 Archivo donde están las descripciones
+
+function configuracion_ver() {
+
+   if [ "$1" = "" ] ; then
+      echo 'Se necesita un prefijo'
+      return
+   fi
+   local configuracion_prefijo=$1
+
+   if [ "$2" = "" ] ; then
+      echo 'Sin archivo con las descripciones'
+   else
+      local archivo_descripciones="$2"
+   fi
+
+   local c='${!'$configuracion_prefijo'*}'
+   for variable in `eval echo "$c"` ; do
+      if [ ! -e "$archivo_descripciones" ] ; then
+         # Si no tenemos descripción colocamos nombre de la variable
+         printf "\n`color colAviso`%s`color` = `color 2`%s`color`" "${variable}" "${!variable:-NULL}"
+      else
+         d="`configuracion_descripcion "$archivo_descripciones" default_$variable`"
+         printf "\n%s\n\n`color colAviso`%s`color` = `color colAfirmativo`%s`color`\n" "$d" "${variable}" "${!variable:-NULL}"
+      fi
+   done
+
+
+   }
+
+## Descripción de variable
+
+function configuracion_descripcion() {
+
+   if [ "$1" = "" ] ; then
+      # echo 'Se necesita el archivo que contiene las descripciones'
+      return
+   fi
+   local archivo_descripciones=$1
+
+   if [ "$2" = "" ] ; then
+      # echo 'Se necesita el nombre de la variable a buscar'
+      return
+   fi
+   local variable=$2
+
+   while read linea ; do
+      echo -e "$linea" | sed 's/## //' | sed 's/@code//' | sed 's/@endcode//'
+      if [ "$linea" == "" ] ; then return ; fi
+   done <<< "`grep -A 8 "@var $variable" "$archivo_descripciones" | grep -v "@var"`"
+
+   }
+
+## Menú
+##
+## $1 Prefijo de las variables a guardar
+## $2 Archivo donde guardar las variables
+## $3 Archivo donde buscar las descripciones
+## $4 Archivo valores por defecto, sino el de las descripciones
+
+function configuracion_menu() {
+
+   if [ "$1" = "" ] ; then
+      echo 'Se necesita un prefijo'
+      return
+   fi
+   configuracion_prefijo=$1
+
+   if [ "$2" = "" ] ; then
+      echo 'Necesito el archivo donde guardar las variables'
+      return
+   fi
+   configuracion_archivo="$2"
+
+   if [ "$3" = "" ] ; then
+      echo 'Sin archivo de donde leer las descripciones de las variables'
+   else
+      archivo_descripciones="$3"
+   fi
+
+   if [ "$4" = "" ] ; then
+      archivo_default="$3"
+   else
+      archivo_default="$4"
+   fi
+
+   clear
+   echo
+   echo '+---------------+'
+   echo '| Configuración |'
+   echo '+---------------+'
+   echo
+   echo "Archivo de configuración:..$configuracion_archivo"
+   echo "Archivo descripciones:.....$archivo_descripciones"
+   echo "Archivo default:...........$archivo_default"
+   echo "Prefijo de variables:......$configuracion_prefijo"
+   echo
+   echo '[V]er, [E]ditar'
+   echo
+   read -n 1 -s -p "Opcion: " OPCION
+
+   echo
+   echo
+
+   case "$OPCION" in
+
+      v|V) configuracion_ver "$configuracion_prefijo" "$archivo_descripciones" "$archivo_default" ; tecla ;;
+      e|E) configuracion_editar "$configuracion_prefijo" "$archivo_descripciones" "$archivo_default"
+         configuracion_guardar "$configuracion_prefijo" "$configuracion_archivo" "$archivo_default"
+         ;;
+      *) return ;;
+   esac
+
+   configuracion_menu "$configuracion_prefijo" "$configuracion_archivo" "$archivo_descripciones" "$archivo_default"
+
+   }

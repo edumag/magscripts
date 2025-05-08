@@ -1,0 +1,347 @@
+#!/bin/bash 
+
+## @file listado
+##
+## @brief listado es una librería que podemos insertar en nuestros scripts que nos permite generar menús 
+## de listas donde podremos seleccionar diferentes elementos.
+## 
+## Recibe una lista de elementos en la cual podremos especificar columnas en formato:
+## @code
+## 126\tnombre\tdescripción de la linea, los campos son separados por "\t".
+## @endcode
+## la primera columna sera el identificador único que diferenciara una linea de otra.
+## 
+## Almacenaremos en la variable global resultado_listado el contenido separando un item 
+## de otro por un espacio.
+## 
+## Se puede pasar el argumento -o para que se oculte los identificadores, (primera columna)
+## @code
+## uso: 
+##    source listado
+##    generar_listado [opciones] lineas a mostrar con sus campos separados por \t
+##    echo Seleccionado: \$resultado_listado 
+## 
+## opciones:
+## 
+## -h                   Ayuda
+## -o                   Ocultar el primer campo
+## --ocultar-ayuda      Ocultar la nota explicativa al usuario
+## -t  [titulo]         Titulo a mostrar en el listado 
+## @endcode
+## 
+## ejemplo de uso:
+## 
+## source listado
+## @code
+## generar_listado -t 'Titulo listado de ejemplo' -o '127\tprimer ejemplo\tCon su descripción' \
+## '208\tSegundo ejemplo\tSefunda descripción' \
+## '2\tTercer ejemplo\tTercera descripción'
+## 
+## echo "Resultado: \$resultado_listado"
+## 
+## cd \$HOME
+## generar_listado -t \$HOME/*
+## 
+## echo "Resultado: \$resultado_listado"
+## @endcode
+##
+## @ingroup libash
+##
+## @author   Eduardo Magrané
+## @namespace componentes\libash
+##
+## @todo Unir en una misma función generar_listado y generar_listado_fichero
+## @bug Se presenta segunda columna de listados anteriores, hay que hacer limpieza
+##
+## @internal
+##
+##       web  http://www.lesolivex.com
+##
+##      mail  edu.lesolivex.com
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+## 
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+libash_listado_incluida=1 ##< Para saber si ya la tenemos incluida
+
+resultado_listado=''          ##< Contenido del resultado
+
+function listado_ayuda() {
+
+   doxygen2help "$0" '@file' '@author'
+
+   }
+
+function listado_ayuda_usuario() {
+
+   echo
+   echo "Nota"
+   echo "  Puedes seleccionar elementos del listado en forma de lista 10-15 seria del 10 al 15 ambos inclusive"
+   echo "  También se puede seleccionar alternando, ejemplo: 2 4 8 10-13"
+   echo
+   }
+
+## Función principal encargada de la iniciación del listado
+
+function generar_listado() {
+
+   local cmd=''
+   local conta_lista=0
+   local conta_columna=0
+   local lonMax=()
+   local elementos=('')
+   local ocultar='no'     ##< Ocultar la primera columna que es la que hace de identificador
+   local ocultar_ayuda='no'
+   local -a elementos=''
+   local numCol
+
+   echo -e "\nFormateando salida"
+
+   while [ -n "$1" ] ; do
+
+      case $1 in
+
+         -h|-help|--help) listado_ayuda ; return ;;
+
+         -t) # Título a presentar
+            titulo=$2 ; shift 2 
+            ;;
+         -o) # Ocultar la primera columna
+            ocultar='si' ; shift 1
+            ;;
+         --ocultar-ayuda)
+            ocultar_ayuda='si' ; shift 1
+            ;;
+         *) # iniciamos listado
+            conta_lista=$(($conta_lista+1))
+            DIFS="$IFS" # separador con tabulador
+            IFS=$'\t'
+            conta_columna=0
+            linea="$(echo -e $1 | sed s/\'/\\\'/g)"
+
+            for columna in `echo -e "$linea"` ; do
+               echo -n '.'
+               conta_columna=$(($conta_columna+1))
+               cmd="lista_${conta_lista}[$conta_columna]='$(echo $columna | sed s/\'/\\\'/g)'"
+               [[ ${#columna} -gt ${lonMax[$conta_columna]} ]] && lonMax[$conta_columna]=${#columna}
+               [[ $conta_columna = 1 ]] && elementos[${#elementos[*]}]="'$(echo $columna | sed s/\"/\\\"/g)'"
+               eval $cmd
+
+            done
+            IFS="$DIFS"
+            shift 1
+            ;;
+
+      esac
+
+   done
+
+   echo -e "\n\n"
+   echo $titulo
+   echo $titulo | sed s/./-/g
+
+   # Presentar listado
+
+   for numLista in `seq 1 $conta_lista` ; do
+      format_linea="\n%3s) "
+      valores_linea=$numLista
+      for numCol in `seq 1 $conta_columna` ; do
+         if [ $numCol != 1 ] || [ "$ocultar" != 'si' ]; then
+            format_linea="$format_linea %-${lonMax[$numCol]}s"
+            valores_linea="$valores_linea \"\${lista_$numLista[$numCol]}\" "
+         fi
+      done
+      cmd="printf \"$format_linea\" $valores_linea"
+      #echo $cmd
+      eval $cmd
+   done
+
+   echo
+   if [ "$ocultar_ayuda" != 'si' ] ; then
+      listado_ayuda_usuario
+   fi
+   read -p "->" -a OPCION
+
+   ## La opción puede ser un único elemento, una lista o un rango
+
+   if [ "${OPCION[*]}" = "" ] ; then                                   # No se a seleccionado nada
+      echo Sin seleccion
+      return
+   fi
+
+   for op in ${OPCION[*]} ; do
+
+      if [ $(echo $op | grep - ) ] ; then                              # recibimos una serie
+
+         local i=${op%%-*}
+         local f=${op##*-}
+         local salida=`set -- ${elementos[*]} ; echo ${@:$i:$(($f-$i+1))}`
+         resultado_listado="$resultado_listado $salida"
+
+      else
+
+         resultado_listado="$resultado_listado ${elementos[$op]}"      # recibimos un numero
+
+      fi
+
+   done
+
+
+   }
+
+## A diferencia de generar_listado este método recoge el listado del archivo
+## ${DIR_TMP}listado en vez de recibirlo como parámetro
+##
+## @todo Evitar que sean interpretadas la variables en el contenido que recibimos
+
+function generar_listado_fichero() {
+
+   local cmd=''
+   local conta_lista=0
+   local conta_columna=0
+   local lonMax=()
+   local elementos=('')
+   local ocultar='no'     ##< Ocultar la primera columna que es la que hace de identificador
+   local ocultar_ayuda='no'
+   local format_linea=''
+   local valores_linea=''
+   local contenido=''
+   local i=''
+   local f=''
+   local salida=''
+   local -a elementos=''
+   local numCol
+
+   local -i conta_lista=0
+   local -i conta_columna=0
+
+   resultado_listado=''
+
+   while [ -n "$1" ] ; do
+
+      case $1 in
+
+         -h|-help|--help) listado_ayuda ; return ;;
+
+         -t) # Título a presentar
+            local titulo=$2 ; shift 2 
+            ;;
+         -o) # Ocultar la primera columna
+            ocultar='si' ; shift 1
+            ;;
+         --ocultar-ayuda)
+            ocultar_ayuda='si' ; shift 1
+            ;;
+         *) break;;
+      esac
+
+   done
+
+   # crear listado
+
+   if [ ! -e "${DIR_TMP}listado" ] ; then
+      echo Error sin listado a presentar
+      resultado_listado=''
+      tecla
+      return
+   fi
+
+   echo -e "\nFormateando salida...\n\n"
+
+   DIFS="$IFS" # separador con tabulador
+   IFS=$'\t'
+
+   exec 3<${DIR_TMP}listado
+   while read -u 3 -a LINEA ; do
+
+      [[ "$LINEA" = "" ]] && continue ;
+
+      conta_lista=$conta_lista+1
+      conta_columna=0
+
+      for columna in ${LINEA[*]} ; do
+
+         [[ "$columna" = '' ]] && break ;
+
+         conta_columna=$conta_columna+1
+         cmd="lista_${conta_lista}[$conta_columna]=\"$(echo $columna | sed s/\"/\\\\\"/g)\""
+         [[ ${#columna} -gt ${lonMax[$conta_columna]} ]] && lonMax[$conta_columna]=${#columna}
+         [[ $conta_columna = 1 ]] && elementos[${#elementos[*]}]="$(echo $columna | sed s/\"/\\\"/g)"
+         ## Falla si hay una comilla simple
+         # echo "$cmd"
+         eval "$cmd"
+         [[ $? != 0 ]] && echo -e "\n\nERROR:: con comando: \n$cmd\n\n"
+
+      done
+
+   done
+
+   if [ "$titulo" != "" ] ; then
+      echo
+      echo $titulo
+      echo $titulo | sed s/./-/g
+      echo
+   fi
+   echo Numero elementos: $conta_lista
+
+
+   # Presentar listado
+
+   IFS="$DIFS"
+   for numLista in `seq 1 $conta_lista` ; do
+      format_linea="\n%3s) "
+      valores_linea=$numLista
+      for numCol in `seq 1 ${#lista_1[*]}` ; do
+         if [ $numCol != 1 ] || [ "$ocultar" != 'si' ]; then
+            contenido=''
+            format_linea="$format_linea %-${lonMax[$numCol]}s"
+            valores_linea="$valores_linea \"\${lista_$numLista[$numCol]}\" "
+            contenido=$(eval "echo \${lista_$numLista[$numCol]}")
+            #[[ "$contenido" = '' ]] && break 2;
+         fi
+      done
+      cmd="printf \"$format_linea\" $valores_linea"
+      eval $cmd
+   done
+
+   echo
+   if [ "$ocultar_ayuda" != 'si' ] ; then
+      listado_ayuda_usuario
+   fi
+   read -p "->" -a OPCION
+
+   ## La opción puede ser un único elemento, una lista o un rango
+
+   if [ "${OPCION[*]}" = "" ] ; then                                   # No se a seleccionado nada
+      echo Sin seleccion
+      return
+   fi
+
+   for op in ${OPCION[*]} ; do
+
+      if [ $(echo $op | grep - ) ] ; then                              # recibimos una serie
+
+         local i=${op%%-*}
+         local f=${op##*-}
+         local salida=`set -- ${elementos[*]} ; echo ${@:$i:$(($f-$i+1))}`
+         resultado_listado="$resultado_listado $salida"
+
+      else
+
+         resultado_listado="$resultado_listado ${elementos[$op]}"      # recibimos un numero
+
+      fi
+
+   done
+
+   # Limpiar resultado de espacion en blanco
+
+   resultado_listado=$(echo $resultado_listado | sed 's/^[ t]*//')
+
+   [[ -e ${DIR_TMP}listado ]] && rm ${DIR_TMP}listado
+
+   }
