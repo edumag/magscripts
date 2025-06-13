@@ -4,7 +4,8 @@ function md2pdf() {
 
     [[ -d ~/tmp ]] || mkdir -p ~/tmp
     o=~/tmp/`basename "$1" '.md'`.pdf
-    pandoc -s "$1" -o "$o"
+    # pandoc -s "$1" -o "$o"
+    pandoc -s "$1" -o "$o" --template=$( dirname -- "${BASH_SOURCE[0]}" )/edumag.latex --pdf-engine=xelatex -V "mainfont:DejaVu Sans" -V "monofont:DejaVu Sans Mono"
     xdg-open "$o" &
 
 }
