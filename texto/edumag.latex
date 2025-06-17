@@ -5,7 +5,6 @@
 % * includes a photo.
 \documentclass[a4paper,11pt]{book}
 
-
 % package imports
 % ---------------
 
@@ -84,9 +83,20 @@
 \newcommand{\cvdurationstyle}[1]{{\small\cvdurationfont\textcolor{cvdurationcolor}{#1}}}
 \newcommand{\cvheadingstyle}[1]{{\normalsize\cvheadingfont\textcolor{cvheadingcolor}{#1}}}
 
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
 % Tamaño H1
 \titleformat{\section}  % which section command to format
   {\fontsize{18}{20}\bfseries} % format for whole line
+  {\thesection} % how to show number
+  {1em} % space between number and text
+  {} % formatting for just the text
+  [] % formatting for after the text
+
+% Tamaño H2
+\titleformat{\subsection}  % which subsection command to format
+  {\fontsize{16}{18}\bfseries} % format for whole line
   {\thesection} % how to show number
   {1em} % space between number and text
   {} % formatting for just the text
@@ -184,7 +194,7 @@
 % appropriate vertical space after
 % @param #1 left column content (should be the section name)
 \newcommand{\cvsection}[1]{
-    % left and right column
+    % lef and right column
     \begin{minipage}[t]{\cvleftcolumnwidth}
         \raggedleft\cvsectionstyle{#1}
     \end{minipage}% XXX necessary comment to avoid unwanted space
@@ -256,19 +266,19 @@
     \cvname{Eduardo Magrané}
 
     % address
-    \cvpersonalinfolinewithicon{height=4mm}{phone.png}{
+    \cvpersonalinfolinewithicon{height=4mm}{/home/edumag/desarrollo/magscripts/texto/phone.png}{
         +34 688 99 88 32
     }
-    \cvpersonalinfolinewithicon{height=4mm}{mail.png}{
+    \cvpersonalinfolinewithicon{height=4mm}{/home/edumag/desarrollo/magscripts/texto/mail.png}{
         edu@lesolivex.com
     }
-    \cvpersonalinfolinewithicon{height=4mm}{web.png}{
+    \cvpersonalinfolinewithicon{height=4mm}{/home/edumag/desarrollo/magscripts/texto/web.png}{
         https://lesolivex.com
     }
     % date of birth
     % Born 17 june 1993
 }{
-    \hfill\includegraphics[height=20mm]{logo.png}
+    \hfill\includegraphics[height=20mm]{/home/edumag/desarrollo/magscripts/texto/logo.png}
 }
 
 $body$
