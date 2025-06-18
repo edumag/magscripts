@@ -3,6 +3,7 @@
 CURRENT_DIR=`pwd`
 SCRIPT_DIR=$( dirname -- "${BASH_SOURCE[0]}")
 MARKDOWN_DIR=$( dirname -- "$1")
+MARKDOWN_NAME=$( basename -- "$1")
 
 function md2pdf() {
 
@@ -10,8 +11,10 @@ function md2pdf() {
     o=~/tmp/`basename "$1" '.md'`.pdf
     # pandoc -s "$1" -o "$o"
     cd $MARKDOWN_DIR
-    pandoc -s "$1" -o "$o" --template=$SCRIPT_DIR/edumag.latex --pdf-engine=xelatex -V "mainfont:DejaVu Sans" -V "monofont:DejaVu Sans Mono"
+    pandoc -s "$MARKDOWN_NAME" -o "$o" --template=$SCRIPT_DIR/edumag.latex --pdf-engine=xelatex -V "mainfont:DejaVu Sans" -V "monofont:DejaVu Sans Mono"
+    SALIDA=$?
     cd $CURRENT_DIR
+    [[ $SALIDA -eq 0 ]] || exit 1
     xdg-open "$o" &
 
 }
