@@ -19,6 +19,10 @@
 \usepackage{xcolor}         % for colours
 \usepackage{hyperref}
 \usepackage{titlesec}
+\usepackage {soul}          % For underline text
+\usepackage{xcolor}
+
+\definecolor{colorGreen}{HTML}{395d41}
 
 \setcounter{secnumdepth}{-\maxdimen} % remove section numbering
 
@@ -34,7 +38,7 @@
 
 % left column width
 \newlength{\cvleftcolumnwidth}
-\setlength{\cvleftcolumnwidth}{44.5mm}
+\setlength{\cvleftcolumnwidth}{54.5mm}
 
 % right column width
 \newlength{\cvrightcolumnwidth}
@@ -59,7 +63,7 @@
 \defaultfontfeatures{Ligatures=TeX} % reportedly a good idea, see https://tex.stackexchange.com/a/37251
 
 \newfontfamily{\cvnamefont}{Roboto Medium}
-\newfontfamily{\cvsectionfont}{Roboto Medium}
+% \newfontfamily{\cvsectionfont}{Roboto Medium}
 \newfontfamily{\cvtitlefont}{Roboto}
 \newfontfamily{\cvdurationfont}{Roboto Light Italic}
 \newfontfamily{\cvheadingfont}{Roboto}
@@ -88,7 +92,7 @@
 
 % Tamaño H1
 \titleformat{\section}  % which section command to format
-  {\fontsize{18}{20}\bfseries} % format for whole line
+  {\centering\Huge\color{colorGreen}} % format for whole line
   {\thesection} % how to show number
   {1em} % space between number and text
   {} % formatting for just the text
@@ -96,7 +100,7 @@
 
 % Tamaño H2
 \titleformat{\subsection}  % which subsection command to format
-  {\fontsize{16}{18}\bfseries} % format for whole line
+  {\Large\color{colorGreen}\bfseries} % format for whole line
   {\thesection} % how to show number
   {1em} % space between number and text
   {} % formatting for just the text
@@ -170,7 +174,9 @@
 % @param #1 name text
 \newcommand{\cvname}[1]{
     % name
-    \cvnamestyle{#1}
+    % \cvnamestyle{#1}
+    \setulcolor {colorGreen}
+    \textsf{{\huge\ul{#1}}}
 
     % space after
     \vspace{\cvafternameskipamount}
@@ -261,11 +267,16 @@
 
 % Header
 % ------
+
+% \begin{center}
+%     \includegraphics[width=100mm]{/home/edumag/desarrollo/magscripts/texto/logo.png}
+% \end{center}
+
 \cvpersonalinfo{
     % name
     \cvname{Eduardo Magrané}
 
-    % address
+    % logo
     \cvpersonalinfolinewithicon{height=4mm}{/home/edumag/desarrollo/magscripts/texto/phone.png}{
         +34 688 99 88 32
     }
