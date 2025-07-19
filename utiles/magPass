@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## @file contrasenya
+## @file magPass
 ## @brief Imprimir contraseña de comando
 ##
 ## Nos permite tener un modo simple de recuperar contraseñas a la hora de lanzar comandos
@@ -9,7 +9,7 @@
 ## El mecanismo es muy simple, se tiene un archivo con los permisos adecuados ( solo lectura para
 ## el dueño, chmod 0400 $datos) en la carpeta de usuario con el nombre '.gcm_ctsrc' y con formato 'comando|contraseña'
 ##
-## Uso: contrasenya [NOMBRE]
+## Uso: magPass [NOMBRE]
 ##
 ## Devuelve el valor de la clave con nombre especificado.
 ##
@@ -22,7 +22,7 @@ help() { doxygen2help "$0" ; }
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
-datos="$HOME/.magtrabajos/dt"
+datos="$HOME/.magPass"
 
 if [ "$1" == '-s' ] ; then
 
