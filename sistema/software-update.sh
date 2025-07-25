@@ -1,11 +1,11 @@
 #!/bin/bash
 
+echo
+echo "pacman"
+echo "------"
+echo
 which pacman > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
-    echo
-    echo "pacman"
-    echo "------"
-    echo
     echo "Sincronizando repositorios"
     echo pacman -Sy
     sudo pacman -Sy #Sincroniza repositorios.
@@ -24,48 +24,60 @@ if [[ $? -eq 0 ]] ; then
     echo 'pacman -Rs $(pacman -Qtdq)'
     echo
     sudo pacman -Rs $(pacman -Qtdq) 2> /dev/null
+else
+    echo "Nada que hacer"
 fi
 
+echo
+echo "npm"
+echo "---"
+echo
 which npm -g outdated > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
     echo -e "\nnpm\n---"
     echo -e "npm -g outdated"
     echo "npm -g update"
     npm -g update
+else
+    echo "Nada que hacer"
 fi
 
+echo
+echo "flatpak"
+echo "-------"
+echo
 which flatpak > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
-    echo
-    echo "flatpak"
-    echo "-------"
-    echo
     echo "flatpak list"
     sudo flatpak list
     echo
     echo "flatpak update -y"
     sudo flatpak update -y
+else
+    echo "Nada que hacer"
 fi
 
+echo
+echo "snap"
+echo "----"
+echo
 which snap > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
-    echo
-    echo "snap"
-    echo "----"
-    echo
     echo "snap list"
     sudo snap list
     echo
     echo "snap refresh"
     sudo snap refresh
+else
+    echo "Nada que hacer"
 fi
 
+echo
+echo "apt-get"
+echo "-------"
+echo
 which apt-get > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
-    echo
-    echo "apt-get"
-    echo "-------"
-    echo
     echo 'apt-get update && apt-get upgrade && apt-get dist-upgrade && apt-get autoremove && apt-get autoclean'
     sudo apt-get update
     sudo apt-get upgrade -y
@@ -73,4 +85,6 @@ if [[ $? -eq 0 ]] ; then
     sudo apt-get autoremove -y
     sudo apt-get autoclean -y
     echo
+else
+    echo "Nada que hacer"
 fi
