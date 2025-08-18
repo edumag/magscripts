@@ -24,6 +24,18 @@ if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
 datos="$HOME/.magPass"
 
+if [ "$1" == '-l' ] ; then
+  echo
+  echo "Listado:"
+  echo
+  salida=`cat "$datos" | cut -d\| -f1`
+  for s in $salida ; do
+    echo "- $s"
+  done
+  exit
+
+fi
+
 if [ "$1" == '-s' ] ; then
 
   echo
