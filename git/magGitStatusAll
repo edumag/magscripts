@@ -8,7 +8,7 @@ help() { doxygen2help "$0" ; }
 if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
 # Listado de proyectos
-FILE_CONFIG=$HOME/.config/git_lista_proyectos
+FILE_CONFIG=$HOME/.config/magGitStatusAll
 
 if [ -f "$FILE_CONFIG" ] ; then
     LISTA_PROYECTOS=`cat $FILE_CONFIG`
