@@ -1,0 +1,14 @@
+#!/bin/bash
+
+## @file time2date
+## @brief Convierte fecha en formato unix a formato humano.
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
+if [[ -z "$1" ]] ; then
+    date +%s
+else
+    date --date="${1}" +%s
+fi

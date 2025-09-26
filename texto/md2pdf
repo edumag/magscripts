@@ -1,5 +1,12 @@
 #!/bin/bash
 
+if [[ "$1" == "--raw" ]]; then
+    RAW=1
+    shift 1
+else
+    RAW=0
+fi
+
 CURRENT_DIR=`pwd`
 SCRIPT_DIR=$( dirname -- "${BASH_SOURCE[0]}")
 MARKDOWN_DIR=$( dirname -- "$1")
@@ -18,5 +25,29 @@ function md2pdf() {
     xdg-open "$o" &
 
 }
+
+help() {
+
+    echo "Usage with custom template: $0 <markdown_file>"}
+    echo "Usage without custom template: $0 --raw <markdown_file>"}
+}
+
+if [[ -z "$1" ]] || [[ "$1" == "-h" ]]; then
+    help
+    exit 1
+fi
+
+if [[ "$RAW" == "1" ]]; then
+    [[ -d ~/tmp ]] || mkdir -p ~/tmp
+    o=~/tmp/`basename "$1" '.md'`.pdf
+    # pandoc -s "$1" -o "$o"
+    cd $MARKDOWN_DIR
+    pandoc -s "$MARKDOWN_NAME" -o "$o"
+    SALIDA=$?
+    cd $CURRENT_DIR
+    [[ $SALIDA -eq 0 ]] || exit 1
+    xdg-open "$o" &
+    exit 0
+fi
 
 md2pdf "$@"
