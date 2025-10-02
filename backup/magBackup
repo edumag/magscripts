@@ -1,101 +1,63 @@
 #!/bin/bash
 
-## @file magbackup
-## @brief magbackup es un script para generar copias de seguridad.
+## @file magBackup
+## @brief magBackup es un script para generar copias de seguridad.
 ##
 ## Con los ficheros creamos una copia por mes y a partir de esta vamos creando
 ## archivos por cada día de la semana con los cambios desde la copia por mes.
 ##
-## Para generar las copias se debe crear un fichero de perfil en la carpeta
-## ~/.config/magscripts/magbackup/ficheros/perfil el nombre de la copia que se
-## genera se basa en el nombre del archivo de perfil su formato es:
+## - Ficheros y carpetas
 ##
-## CS_DIR="/home/eduardo/"
+## A partir de la carpeta de configuración creamos la carpeta ficheros con los
+## diferentes perfiles. Ejemplo:
+##
+## Fichero: ~/.config/magscripts/magBackup/ficheros/perfil
+## Contenido:
+## CS_DIR="$HOME"
 ## CS_COPIAR="Scripts .bashrc"
 ##
 ## CS_DIR: Nos indica la carpeta donde situarnos
 ## CS_COPIAR: Las subcarpetas o archivos que deseamos copiar
 ##
-## En caso de una copia de mysql en CS_DIR debera añadirse mysql <user> <password> y en
-## CS_COPIAR los nombres de las bases de datos a copiar.
+## - Postgres en dokku
 ##
-## En el caso de las copias de mysql no hay la posibilidad de copias incrementales con lo
-## cual se generara una copia completa cada vez.
+## Fichero: ~/.config/magscripts/magBackup/dokku_postgres/gestion_db
+## Contenido:
+## DOKKU_APP=gestion
 ##
-## @todo Asistente de configuración.
+## - Mysql en dokku
 ##
-## @author   Eduardo Magrané
-## @internal
-##       web  http://www.lesolivex.com
-##
-##      mail  edu.lesolivex.com
-##
-##   Created  13/03/11
-##
-##  Revision  SVN $Id: $
-##
-## Copyright  Copyright (c) 2011, Eduardo Magrané
-##
-## This source code is released for free distribution under the terms of the
-## GNU General Public License as published by the Free Software Foundation.
+## Fichero: ~/.config/magscripts/magBackup/dokku_mysql/lesolivex
+## Contenido:
+## DOKKU_APP=lesolivex-db
 
-## @defgroup configuracion_magbackup Configuración magbackup
-##
-## Colocamos prefijo 'magbackup_' ha las variables para ser reconocibles
-##
 ## @{
 
    ## @var magbackup_dir
    ## Directorio donde guardar las copias realizadas
 
-   magbackup_dir="$HOME/backup/"
+   magBackup_dir="$HOME/backup/"
 
 ## @}
 
+help() { doxygen2help "$0" ; }
+
 # variables internas
 
-fichero_configuracion_magbackup="$HOME/.magtrabajos/configuracion/magbackup/config"  ##< Fichero configuración
-directorio__ficheros="$HOME/.magtrabajos/configuracion/magbackup/ficheros/"  ##< Fichero configuración
-directorio__mysql="$HOME/.magtrabajos/configuracion/magbackup/mysql/"  ##< Fichero configuración
-directorio__docker_postgres="$HOME/.magtrabajos/configuracion/magbackup/docker_postgres/"  ##< Fichero configuración
-directorio__dokku_postgres="$HOME/.magtrabajos/configuracion/magbackup/dokku_postgres/"  ##< Fichero configuración
-directorio__dokku_mysql="$HOME/.magtrabajos/configuracion/magbackup/dokku_mysql/"  ##< Fichero configuración
+DIR_CONFIG_MAGBACKUP="$HOME/.config/magscripts/magBackup"
+fichero_configuracion_magbackup="$DIR_CONFIG_MAGBACKUP/config"  ##< Fichero configuración
+directorio__ficheros="$DIR_CONFIG_MAGBACKUP/ficheros/"  ##< Fichero configuración
+directorio__mysql="$DIR_CONFIG_MAGBACKUP/mysql/"  ##< Fichero configuración
+directorio__docker_postgres="$DIR_CONFIG_MAGBACKUP/docker_postgres/"  ##< Fichero configuración
+directorio__dokku_postgres="$DIR_CONFIG_MAGBACKUP/dokku_postgres/"  ##< Fichero configuración
+directorio__dokku_mysql="$DIR_CONFIG_MAGBACKUP/dokku_mysql/"  ##< Fichero configuración
 
 MES=`date +%B`
 DIA=`date +%A`
 
-## Recoger configuración de magtrabajos
+## Recoger configuración de magscripts
 LIBS="$LIBS listado configuracion"
-source "`dirname "$BASH_SOURCE"`/../../config"
-
-
-# Si no encontramos fichero de configuración hay que generarlo
-if [ ! -e "$fichero_configuracion_magbackup" ] ; then
-   echo
-   echo "No se encontró fichero de configuración"
-   echo
-   read -p "Configurar ahora (s/n): " OPCION
-   if [ "$OPCION" = "s" ] ; then
-      configuracion_menu magbackup_ "$fichero_configuracion_magbackup" "`dirname "$BASH_SOURCE"`/config.default"
-   else
-      exit
-   fi
-fi
-
-# Recogemos archivo de configuracion
-# @todo Crear carpetas si no las hay.
-DIR_CONFIG=`dirname $fichero_configuracion_magbackup`
-
-if [[ ! -d "$DIR_CONFIG" ]] ; then
-       mkdir -p "$DIR_CONFIG"
-       mkdir $directorio__ficheros
-       mkdir $directorio__mysql
-       mkdir $directorio__docker_postgres
-       mkdir $directorio__dokku_postgres
-       configuracion_guardar "magbackup_" "$fichero_configuracion_magbackup" "`dirname "$BASH_SOURCE"`/config.default"
-fi
-. "$fichero_configuracion_magbackup"
-
+[[ -e "$HOME/.config/magscripts/config" ]] && source "$HOME/.config/magscripts/config"
 
 function magbackup_crear_copia_ficheros_perfil() {
 
@@ -175,7 +137,7 @@ function magbackup_crear_copia_ficheros_perfil() {
       fi
 
       # Hacer la copia sobre directorio temporal y solo
-      # en caso de exito pasarla al directorio final.
+      # en caso de éxito pasarla al directorio final.
 
       echo
       echo Comando: $CMD
@@ -292,6 +254,12 @@ function magbackup_crear_copia_dokku_mysql_perfil() {
 
 }
 
+function config() {
+   source `dirname "$BASH_SOURCE"`/../lib/configuracion
+   configuracion_editar magBackup_ "$fichero_configuracion_magbackup"
+
+}
+
 while [ -n "$1" ] ; do
 
    case "$1" in
@@ -299,10 +267,39 @@ while [ -n "$1" ] ; do
       -h|-help|--help) help ; exit ;;
       -info) info ; help ; exit ;;
       --dependencias|-d) comprobar_dependencias ; exit ;;
+      --config|-c) config ; exit ;;
 
    esac
 
 done
+
+# Si no encontramos fichero de configuración hay que generarlo
+if [ ! -e "$fichero_configuracion_magbackup" ] ; then
+   echo
+   echo "No se encontró fichero de configuración"
+   echo
+   read -p "Configurar ahora (s/n): " OPCION
+   if [ "$OPCION" = "s" ] ; then
+      configuracion_menu magbackup_ "$fichero_configuracion_magbackup" "`dirname "$BASH_SOURCE"`/config.default"
+   else
+      exit
+   fi
+fi
+
+# Recogemos archivo de configuracion
+# @todo Crear carpetas si no las hay.
+DIR_CONFIG=`dirname $fichero_configuracion_magbackup`
+
+if [[ ! -d "$DIR_CONFIG" ]] ; then
+       mkdir -p "$DIR_CONFIG"
+       mkdir $directorio__ficheros
+       mkdir $directorio__mysql
+       mkdir $directorio__docker_postgres
+       mkdir $directorio__dokku_postgres
+       configuracion_guardar "magbackup_" "$fichero_configuracion_magbackup" "`dirname "$BASH_SOURCE"`/config.default"
+fi
+. "$fichero_configuracion_magbackup"
+
 
 magbackup_crear_copia_ficheros_perfil
 magbackup_crear_copia_mysql_perfil
