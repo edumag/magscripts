@@ -1,4 +1,6 @@
 ## Sincronizar dos directorios en remoto.
+##
+## Uso: magRsync <origen> <destino>
 
 ## @file sincronizar
 ## @brief Sincronizamos directorios de un ordenador a otro
@@ -7,7 +9,7 @@ help() { doxygen2help "$0" ; }
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
-SERVIDOR_REMOTO="user@ejemplo.com:/var/backups/ejemplo"
-CARPETA_LOCAL="/var/backups/ejemplo"
+$ORIGEN="$1"
+$DESTINO="$2"
 
-rsync -rvzt "$SERVIDOR_REMOTO" "$CARPETA_LOCAL"
+rsync -aPz --exclude=node_modules --exclude=dist --exclude=vendor --exclude=env "$ORIGEN" "$DESTINO"
