@@ -26,7 +26,7 @@ file=${2:-/tmp/enlaces_rotos.txt}
 
 [[ -z $url ]] && error_enlaces "Debe definirse la url de destino"
 
-cmd="wget --spider --no-check-certificate --no-parent -r -o $file $url"
+cmd="wget --spider --no-check-certificate --no-parent -r  $url"
 
 echo
 echo url: $url
@@ -34,7 +34,7 @@ echo
 echo comando: $cmd
 echo
 
-$cmd
+$cmd | tee -a $file
 
 echo
 echo Archivo final: $file
