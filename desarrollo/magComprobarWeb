@@ -11,34 +11,23 @@ help() { doxygen2help "$0" ; }
 if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
 if [ -z "$1" ] ; then
-   # miramos si el directorio actual es un proyecto con su configuración
-   source "`dirname "$BASH_SOURCE"`/../config"
-   if [ -z "$mt_url_servidor" ] ; then
-      echo
-      echo Es necesario la url para poder ser analizada
-      echo
-      tecla
-      exit 1
-   else
-      url="$mt_url_servidor"
-   fi
+    echo
+    echo Es necesario la url para poder ser analizada
+    echo
+    tecla
+    exit 1
 else
    url="$1"
 fi
 
-response=$(curl -s -I -L $url | grep HTTP); 
+response=$(curl -s -I -L $url | grep HTTP);
 
 status=${response#* };
 status=${status:0:3};
 
-if [ "$status" != "200" ] 
+if [ "$status" != "200" ]
 then
    # acciones a efectuar
-   echo "ERROR: ($status) $url"
-   exit $status
+   echo "ERROR: $url"
+   exit 1
 fi
-
-echo
-echo Verificada: $url 
-echo
-tecla
