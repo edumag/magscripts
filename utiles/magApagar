@@ -36,22 +36,22 @@ echo -n "Comprobando sesiones de trabajo..."
 
 $MT_PATH -sa > /dev/null
 
-if [ $? = 1 ] ; then 
+if [ $? = 1 ] ; then
    tput setf 4
    echo -e "Sessión abierta en magtrabajos"
    tput sgr0
    SALIR=1
 else
    echo "Ok"
-fi 
+fi
 
 ## Mirar que no tengamos alguna sesión de vim abierta
 
 echo -n "Comprobando sesiones de vim..."
 
-if [ "$(ps aux | grep vim | grep -v grep)" = "" ] ; then 
+if [ "$(ps aux | grep vim | grep -v grep)" = "" ] ; then
    echo "Ok"
-else 
+else
    echo "OjO"
    tput setf 4
    echo -e "Sessiones de vim abiertas"

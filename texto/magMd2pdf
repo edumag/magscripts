@@ -18,7 +18,7 @@ function md2pdf() {
     o=~/tmp/`basename "$1" '.md'`.pdf
     # pandoc -s "$1" -o "$o"
     cd $MARKDOWN_DIR
-    pandoc -s "$MARKDOWN_NAME" -o "$o" --template=$SCRIPT_DIR/edumag.latex --pdf-engine=xelatex -V "mainfont:DejaVu Sans" -V "monofont:DejaVu Sans Mono"
+    pandoc -s "$MARKDOWN_NAME" -o "$o" --template=$SCRIPT_DIR/templates/edumag/edumag.latex --pdf-engine=xelatex -V "mainfont:DejaVu Sans" -V "monofont:DejaVu Sans Mono"
     SALIDA=$?
     cd $CURRENT_DIR
     [[ $SALIDA -eq 0 ]] || exit 1
@@ -28,8 +28,8 @@ function md2pdf() {
 
 help() {
 
-    echo "Usage with custom template: $0 <markdown_file>"}
-    echo "Usage without custom template: $0 --raw <markdown_file>"}
+    echo "Usage with custom template: `basename $0` <markdown_file>"}
+    echo "Usage without custom template: `basename $0` --raw <markdown_file>"}
 }
 
 if [[ -z "$1" ]] || [[ "$1" == "-h" ]]; then

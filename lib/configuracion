@@ -28,23 +28,6 @@
 ## configuración ya no mostrara esta variable, manteniendo limpios los ficheros de configuración.
 ##
 ## @ingroup libash, configuracion
-##
-## @author   Eduardo Magrané
-##
-## @internal
-##
-##       web  http://www.lesolivex.com
-##
-##      mail  edu.lesolivex.com
-##
-##   Created  13/03/11
-##
-##  Revision  SVN $Id: $
-##
-## Copyright  Copyright (c) 2011, Eduardo Magrané
-##
-## This source code is released for free distribution under the terms of the
-## GNU General Public License as published by the Free Software Foundation.
 
 ## Si no hemos incluido librería general la incluimos
 
@@ -77,7 +60,7 @@ function configuracion_editar() {
    fi
 
    if [ "$3" = "" ] ; then
-      local archivo_default="$2"
+      local archivo_default=
    else
       local archivo_default="$3"
    fi
@@ -118,7 +101,7 @@ function configuracion_editar() {
    generar_listado_fichero --ocultar-ayuda
    [[ "$resultado_listado" == "" ]] && return
    local a=${!resultado_listado}  # valor anterior
-   local d="`configuracion_descripcion "$archivo_descripciones" default_${resultado_listado}`"
+   local d="`configuracion_descripcion "$archivo_descripciones" ${resultado_listado}`"
    echo
    echo -e "`color colComentario`$d`color`"
    echo

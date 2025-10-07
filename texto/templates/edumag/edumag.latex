@@ -277,19 +277,19 @@
     \cvname{Eduardo Magrané}
 
     % logo
-    \cvpersonalinfolinewithicon{height=4mm}{/home/edumag/desarrollo/magscripts/texto/phone.png}{
+    \cvpersonalinfolinewithicon{height=4mm}{/home/edumag/desarrollo/magscripts/texto/templates/edumag/phone.png}{
         +34 688 99 88 32
     }
-    \cvpersonalinfolinewithicon{height=4mm}{/home/edumag/desarrollo/magscripts/texto/mail.png}{
+    \cvpersonalinfolinewithicon{height=4mm}{/home/edumag/desarrollo/magscripts/texto/templates/edumag/mail.png}{
         edu@lesolivex.com
     }
-    \cvpersonalinfolinewithicon{height=4mm}{/home/edumag/desarrollo/magscripts/texto/web.png}{
+    \cvpersonalinfolinewithicon{height=4mm}{/home/edumag/desarrollo/magscripts/texto/templates/edumag/web.png}{
         https://lesolivex.com
     }
     % date of birth
     % Born 17 june 1993
 }{
-    \hfill\includegraphics[height=20mm]{/home/edumag/desarrollo/magscripts/texto/logo.png}
+    \hfill\includegraphics[height=20mm]{/home/edumag/desarrollo/magscripts/texto/templates/edumag/logo.png}
 }
 
 $body$

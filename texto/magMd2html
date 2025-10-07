@@ -1,0 +1,43 @@
+#!/bin/bash
+
+if [[ "$1" == "--raw" ]]; then
+    RAW=1
+    shift 1
+else
+    RAW=0
+fi
+
+function md2html() {
+
+    [[ -d ~/tmp ]] || mkdir -p ~/tmp
+    o=~/tmp/`basename "$1" '.md'`.html
+    echo "- $1 -> $o"
+    pandoc -s "$1" -o "${o}" --template=$( dirname -- "${BASH_SOURCE[0]}" )/templates/edumag/edumag.html5
+    xdg-open "${o}" &
+}
+
+function md2htmlRaw() {
+
+    [[ -d ~/tmp ]] || mkdir -p ~/tmp
+    o=~/tmp/`basename "$1" '.md'`.html
+    echo "- $1 -> $o"
+    pandoc -s "$1" -o "${o}"
+    xdg-open "${o}" &
+}
+
+help() {
+
+    echo "Usage with custom template: `basename $0` <markdown_file>"}
+    echo "Usage without custom template: `basename $0` --raw <markdown_file>"}
+}
+
+if [[ -z "$1" ]] || [[ "$1" == "-h" ]]; then
+    help
+    exit 1
+fi
+
+if [[ "$RAW" == "1" ]]; then
+    md2htmlRaw "$1"
+else
+    md2html "$1"
+fi
