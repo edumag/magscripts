@@ -1,170 +1,231 @@
-# MagScripts
+# magscripts
 
 ## backup
 
 ### magBackup
-magBackup es un script para generar copias de seguridad de diferentes orígenes. Con los ficheros creamos una copia por mes y a partir de esta vamos creando archivos por cada día de la semana con los cambios desde la copia por mes.
+magBackup es un script para generar copias de seguridad de diferentes orígenes.
+
+*Dependencias*: tar, bzip2, mysqldump, docker, dokku, nice, sudo, date, hostname
 
 ### magRsync
-Sincronizamos directorios de un ordenador a otro.
+Sincronizamos directorios de un ordenador a otro
+
+*Dependencias*: rsync
 
 ## desarrollo
 
 ### magBuscarEnlacesRotos
-Comprobar enlaces rotos.
+Comprobar enlaces rotos
+
+*Dependencias*: wget
 
 ### magComprobarWeb
-Hacer una comprobación para ver si la pagina esta funcionando.
+Hacer una comprobación para ver si la pagina esta funcionando
 
-### magDate2time
-Convierte fecha en formato humano a formato unix.
+*Dependencias*: curl
 
 ### magLastModifiedFiles
-Listamos los últimos archivos que han sido modificados.
+listamos los últimos archivos que han sido modificados
+
+*Dependencias*: find, grep, sed
 
 ### magText2json
 Convert text to JSON using jq.
 
-### magTime2date
-Convierte fecha en formato unix a formato humano.
+*Dependencias*: xclip, jq, vim
 
-### magUrldecode
-URL decode.
+### magUrlDecode
+URL decode input.
 
-### magUrlencode
-URL encode.
+*Dependencias*:
+
+### magUrlEncode
+URL encode input.
+
+*Dependencias*:
 
 ### magVimBrokenSessions
-Find broken vim sessions.
+Find and optionally delete vim swap files.
+
+*Dependencias*: find
 
 ### magVimRemote
-Send command to vim server.
+Send file to vim server.
+
+*Dependencias*: xclip, vim
 
 ### magVimServer
-Start vim server.
+Start vim server with session if exists.
+
+*Dependencias*: vim
 
 ## git
 
 ### magGitAddedOrModifiedFiles
 Script para listar los ficheros añadidos o modificados en un repositorio Git.
 
+*Dependencias*: git
+
 ### magGitCambiosRealizados
 Muestra los cambios realizados desde git.
+
+*Dependencias*: git
 
 ### magGitStatusAll
 Verificar estado de proyectos con git.
 
+*Dependencias*: git
+
 ## imagenes
 
-### logoAimagen
-Insertar logo en una imagen.
+### magLogoAimagen
+Insertar logo en una imagen
 
-### transformar_imagenes
-Transformar una imagen a formato jpg con la anchura o altura especificada.
+*Dependencias*: composite, zenity
+
+### magTransformarImagenes
+Transformar una imagen a formato jpg con la anchura o altura especificada
+
+*Dependencias*: convert, zenity
 
 ## internet
 
-### comprobar_conexion
+### magComprobarConexion
 Testeamos conexión a internet hasta tener resultado positivo.
 
-### verip
+*Dependencias*: ping, notify-send
+
+### magVerIp
 Muestra nuestra ip actual.
 
-## lib
-
-### configuracion
-Librería para gestionar la configuración de los scripts de bash.
-
-### doxygen2help
-Extraer de la documentación en la cabecera de los scripts la ayuda a presentar en consola.
-
-### elegirArchivo
-Librería para seleccionar archivos.
-
-### general
-Funciones genericas para los scripts en bash.
-
-### listado
-Listado es una librería que podemos insertar en nuestros scripts que nos permite generar menús de listas donde podremos seleccionar diferentes elementos.
-
-### mysql2rst
-Librería para bash para transformar una consulta a mysql a una tabla valida para rst.
-
-### pantalla
-Librería para mejorar la salida por pantalla.
+*Dependencias*: curl
 
 ## servidor
+
+### tunel.sh
+Script para hacer tunel ssh inverso
+
+*Dependencias*: ssh, dpkg, apt-get, sudo
 
 ### reportServer.sh
 Pequeños scripts para saber el estado del servidor.
 
-### tunel.sh
-Script para hacer tunel ssh inverso.
+*Dependencias*:
 
 ### chkrootkit
 Lanzador para chkrootkit.
 
+*Dependencias*: chkrootkit
+
 ### clamscan
 Lanzador para clamscan.
+
+*Dependencias*: freshclam, clamscan
 
 ### docker
 Estado de docker.
 
+*Dependencias*: docker
+
 ### dokku
 Mostrar estado de dokku.
+
+*Dependencias*: dokku
 
 ### fail2ban
 Mostar estado de fail2ban.
 
+*Dependencias*: fail2ban-client, zgrep, awk, sort, uniq, tee, whois
+
 ### firewall
 Mostrar estado del firewall.
+
+*Dependencias*: iptables
 
 ### logcheck
 Mostrar estado de logcheck.
 
+*Dependencias*: sudo, logcheck
+
 ### lynis
 Auditoria con lynis.
+
+*Dependencias*: lynis
 
 ### system.sh
 Mostrar estado del sistema.
 
+*Dependencias*: ps, free
+
 ### whois_list
 Mostar info de IPs.
+
+*Dependencias*: whois, grep, cut, colrm, tee
 
 ## sistema
 
 ### magDockerCleanAll
-Stop all containers and prune system.
+Script para limpiar todos los contenedores, imágenes y volúmenes de Docker.
+
+*Dependencias*: docker
 
 ### magLiberarMemoria
 Liberar memoria del sistema.
 
+*Dependencias*: sync, sysctl
+
 ### magSoftwareSearch
-Search for software packages using apt, pacman, snap.
+Buscar software disponible en el sistema.
+
+*Dependencias*: apt-get, pacman, snap, flatpak
 
 ### magSoftwareUpdate
-Update software using apt, pacman, snap.
+Actualizar software en el sistema.
+
+*Dependencias*: pacman, npm, flatpak, snap, apt-get
 
 ## texto
 
 ### magMd2html
-Convert markdown to HTML.
+Convert markdown to HTML using pandoc.
+
+*Dependencias*: pandoc, xdg-open
 
 ### magMd2pdf
-Convert markdown to PDF.
+Convert markdown to PDF using pandoc.
+
+*Dependencias*: pandoc, xelatex, xdg-open
 
 ## utiles
 
 ### magApagar
 Revisar estado de trabajo antes de cerrar.
 
+*Dependencias*: ddev, magtrabajos, gitmag_status, magbackup, poweroff, ps, grep, tput
+
 ### magCopyTextCapture
-Extract text from screenshot and copy to clipboard.
+Take screenshot and extract text to clipboard.
+
+*Dependencias*: zenity, ksnip, tesseract, xclip
+
+### magDate2time
+Convierte fecha en formato unix a formato humano.
+
+*Dependencias*: date
 
 ### magPass
-Imprimir contraseña de comando.
+Imprimir contraseña de comando
+
+*Dependencias*:
+
+### magTime2date
+Convierte fecha en formato unix a formato humano.
+
+*Dependencias*: date
 
 ## video
 
 ### magVideo2web
 Convertir vídeo a formato web.
+
+*Dependencias*: mencoder, ffmpeg
