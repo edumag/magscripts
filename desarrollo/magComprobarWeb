@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## @file comprobar_web
-## @brief Hacer una comprobación para ver si la pagina esta funcionando
+## @brief Hacer una comprobación para ver si la página está funcionando.
 ##
 ## Referencia:
 ## http://www.linuxhispano.net/2013/02/19/monitorizar-servidor-web-para-ver-si-esta-caido-o-no-de-forma-automatica/

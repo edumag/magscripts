@@ -1,5 +1,10 @@
 #!/bin/bash
 
+## Abrir vim en modo servidor y en caso de que exista Session.vim, cargarla.
+
+help() { doxygen2help "$0"; }
+[[ "$1" == "-h" || "$1" == "--help" ]] && { help ; exit ; }
+
 if [ -f Session.vim ] ; then
     vim --servername vimserver -S Session.vim $@
 else

@@ -1,49 +1,27 @@
 #!/bin/bash
 
-## @file apagarOrdenador
-## @brief Revisar estado de trabajo antes de cerrar.
+## Revisar estado de trabajo antes de cerrar.
 ##
 ## Apagar ordenador comprobando antes las cosas que nos interesa
-## Mirar que no tengamos ningun proyecto con los tiempos abiertos en magtrabajos
-##
-## Podemos personalizar un atajo de teclado con la siguiente orden.
-##
-## terminator -e /home/edu/desarrollo/magscripts/utiles/apagarOrdenador
 
 help() { doxygen2help "$0" ; }
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
-
-## Configuración:
-MT_PATH=/home/edumag/desarrollo/magtrabajos/magtrabajos
 
 SALIR=0
 
 echo
 echo "Mostramos estado de trabajos"
 echo
-/home/edumag/desarrollo/magscripts/git/gitmag_status
+magGitStatusAll
 echo
 
-echo -n "Proyectos abirtos con ddev los cerramos..."
-
-if [[ `whereis ddev` ]] ; then
-    ddev poweroff
-   echo "Ok"
-fi
-
-echo -n "Comprobando sesiones de trabajo..."
-
-$MT_PATH -sa > /dev/null
-
-if [ $? = 1 ] ; then
-   tput setf 4
-   echo -e "Sessión abierta en magtrabajos"
-   tput sgr0
-   SALIR=1
-else
-   echo "Ok"
-fi
+# echo -n "Proyectos abiertos con ddev los cerramos..."
+#
+# if [[ `whereis ddev` ]] ; then
+#     ddev poweroff
+#    echo "Ok"
+# fi
 
 ## Mirar que no tengamos alguna sesión de vim abierta
 
@@ -59,17 +37,14 @@ else
    SALIR=1
 fi
 
-## backups
-magbackup
-
 ## Apagamos ordenador si todo fue bien
 if [ $SALIR = 0 ] ; then
 
    echo
-   echo "Se han encontrado incidencias, pero si no candelas el"
+   echo "Se han encontrado incidencias, pero si no cancelas el"
    echo "apagado, continuara en 60s"
    echo
-   read -t 60 -p '[ENTER] apaga ordenador / CTRL-c Cancela' OPCION
+   read -t 60 -p '[ENTER] apaga ordenador / CTRL-c Cancelar' OPCION
    sudo poweroff
    # gksudo 'poweroff'
 

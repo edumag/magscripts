@@ -1,16 +1,17 @@
 #!/bin/bash
 
-help() { doxygen2help "$0" ; }
+## Buscar sesiones de vim abiertas y borrarlas.
 
-if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+help() { doxygen2help "$0"; }
+[[ "$1" == "-h" || "$1" == "--help" ]] && { help ; exit ; }
 
-salida="`find -name '*swp'`"
+salida="$(find . -name '*swp')"
 
-if [ "$salida" == "" ] ; then
+if [ "$salida" == "" ]; then
 
-   echo
-   echo 'No se encontraron sesiones de vim abiertas'
-   exit
+	echo
+	echo 'No se encontraron sesiones de vim abiertas'
+	exit
 
 fi
 
@@ -20,8 +21,8 @@ echo
 
 read -p 'Borrar las sesiones (s/n): ' OPCION
 
-if [ "$OPCION" == 's' ] ; then
+if [ "$OPCION" == 's' ]; then
 
-   find -name '*swp' -delete
+	find . -name '*swp' -delete
 
 fi

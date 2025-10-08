@@ -1,89 +1,69 @@
 #!/bin/bash
 
-## @file gitmag_status
-## @brief Verificar estado de proyectos con git.
+## Verificar estado de proyectos con git.
+##
+## Útil para verificar si tenemos algún cambio sin commitear en alguno de nuestros proyectos.
 
-help() { doxygen2help "$0" ; }
-
-if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+help() { doxygen2help "$0"; }
+[[ "$1" == "-h" || "$1" == "--help" ]] && { help ; exit ; }
 
 # Listado de proyectos
-FILE_CONFIG=$HOME/.config/magGitStatusAll
+FILE_CONFIG=$HOME/.config/magscripts/magGitStatusAll
 
-if [ -f "$FILE_CONFIG" ] ; then
-    LISTA_PROYECTOS=`cat $FILE_CONFIG`
+if [ -f "$FILE_CONFIG" ]; then
+	LISTA_PROYECTOS=$(cat "$FILE_CONFIG")
 else
-    echo
-    echo `basename $0`
-    echo
-    echo "Gestionar repositorios git"
-    echo
-    echo "Esnecesario definir una lista de proyectos o carpetas de proyectos en el fichero: "
-    echo "$FILE_CONFIG"
-    echo
-    echo "Un proyecto por linea"
-    exit
+	echo
+	echo "$(basename "$0")"
+	echo
+	echo "Gestionar repositorios git"
+	echo
+	echo "Es necesario definir una lista de proyectos o carpetas de proyectos en el fichero: "
+	echo "$FILE_CONFIG"
+	echo
+	echo "Un proyecto por linea"
+	exit
 fi
 
 gitStatusShow() {
 
-    echo $* | grep '"git push' > /dev/null
-    if [ $? == 0 ] ; then
-        # echo -en "$*"
-        return 1
-    fi
-    echo $* | grep '"git add' > /dev/null
-    if [ $? == 0 ] ; then
-        # echo -en "$*"
-        return 2
-    fi
-    return 0
+	if echo $* | grep '"git push' >/dev/null; then
+		return 1
+	fi
+	if echo $* | grep '"git add' >/dev/null; then
+		# echo -en "$*"
+		return 2
+	fi
+	return 0
 
 }
 
 gitCheckStatus() {
-    gitStatusShow "`git status`"
-    if [ $? != 0 ] ; then
-        echo
-        pwd
-        pwd | sed 's/./-/g'
-        echo
-        git status
-    fi
+	if gitStatusShow "$(git status)"; then
+		echo
+		pwd
+		pwd | sed 's/./-/g'
+		echo
+		git status
+	fi
 }
 
 gitstatusall() {
 
-  for x in $* ; do
-    echo "- $x"
-    if [[ -d "$x" ]] ; then
-      cd "$x"
-      if [ -e .git ] ; then
-        gitCheckStatus "$x"
-        cd ../
-      else
-        echo "$x no es un repositorio git"
-        cd ../
-      # else
-      #   for s in .* ; do
-      #     if [[ -d "$s" ]] ; then
-      #       cd "$s"
-      #       if [ -e .git ] ; then
-      #           gitCheckStatus "$s"
-      #       fi
-      #       cd ../
-      #     else
-      #       echo "$x/$s no es un directorio"
-      #     fi
-      #   done
-      #   cd ../
-      fi
-    else
-      echo "$x no es un directorio"
-    fi
-  done
+	for x in $*; do
+		if [[ -d "$x" ]]; then
+			cd "$x"
+			if [ -e .git ]; then
+				gitCheckStatus "$x"
+				cd ../
+			else
+				echo "$x no es un repositorio git"
+				cd ../
+			fi
+		else
+			echo "$x no es un directorio"
+		fi
+	done
 }
 
-
 gitstatusall $LISTA_PROYECTOS
-

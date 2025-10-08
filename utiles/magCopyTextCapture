@@ -1,6 +1,11 @@
 #!/bin/bash
 
+## Script para tomar una captura de pantalla de una porción de la pantalla y extraer el texto de ella.
+## El texto extraído se copia al portapapeles.
+##
 ## Basado en https://github.com/SantosRojas/text-extractor/blob/main/gstxt
+##
+## Dependencias: tesseract, xclip, ksnip
 
 function show_error_dialog {
     zenity --error --text "$1"

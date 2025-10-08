@@ -1,74 +1,17 @@
 #!/bin/bash
 
-## @file transformar_imágenes
-##
-## @brief Transformar una imagen a formato jpg con la anchura o altura especificada
-##
-## Transformar una imagen a formato jpg con la anchura o altura especificada por el usuario.
-##
-## Practico para una conversión rápida de imágenes para por ejemplo enviar por email.
-##
-## Ejemplo de utilización de zenity.
+## Transformar una imagen a formato jpg con la anchura o altura especificada
 ##
 ## @todo Las imágenes transformadas se guardan en el mismo directorio que las originales, estaría bien poder elegir un directorio diferente"
 ##
 ## dependencias: convert zenity
-##
-## Opciones:
-## <pre>
-## --help | -h              Pantalla de ayuda
-## </pre>
 
-## Mostrar ayuda
-
-function help() {
-
-   local -i count=0
-   while read linea ; do
-      let count++
-      if [ $count -gt 2 ] ; then
-         [ "$linea" = "" ] && return
-         echo "$linea" | sed 's/^##//' | sed 's/@brief //' | sed 's/@file //'
-      fi
-   done < "$0"
-   echo
-
-   }
+help() { doxygen2help "$0"; }
+[[ "$1" == "-h" || "$1" == "--help" ]] && { help ; exit ; }
 
 # Si se lanza el programa para saber si debe publicarse en la web
 # contestamos y salimos
 [[ "$1" = "--publico" ]] &&  echo 'SI' && exit 0
-
-autor='Eduardo Magrané'
-mail='edu.lesolivex.com'
-licencia='GNU/GPL 3.0'
-web='http://www.lesolivex.com'
-prog=`basename $0`
-version='0.1'
-
-# colores
-
-cnormal="\033[0m"
-cerror="\033[1;31m"
-caviso="\033[1;37m"
-ccomentario="\033[47m\033[1;30m"
-cafirmativo="\033[1;32m"
-
-color() { if [ "$var_color" = 'si' ] ; then local c=${1:-$cnormal} ; echo -e "${!c}" ; fi }
-
-# Variables configurables
-
-var_fich_conf="$HOME/.${prog}rc"
-desc_var_fich_conf="Archivo de configuración"
-var_color=si
-desc_var_color='Presentar colores'
-
-var_anchura=450
-desc_var_anchura='Anchura por defecto'
-var_altura=600
-desc_var_altura='Altura por defecto'
-var_sufijo='_m'
-desc_var_sufijo='Sufijo para imagen transformada'
 
 quality="70%"
 

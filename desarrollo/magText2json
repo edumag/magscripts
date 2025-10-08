@@ -1,5 +1,14 @@
 #!/bin/bash
 
+## convert text to json
+##
+## If no text is provided, the text is read from the clipboard
+##
+## Usage: magText2json [text]
+
+help() { doxygen2help "$0" ; }
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
 DATE=`date +%Y%m%d%H%M%S`
 FILE=/tmp/${DATE}-text.json
 if [ -z $1 ]; then

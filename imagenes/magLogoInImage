@@ -1,10 +1,8 @@
 #!/bin/bash
 
-## @file logoAimagen
+## @brief Añadir un logo a una imagen
 ##
-## @brief Insertar logo en una imagen
-##
-## logoAimagen -l <logo> <imágenes a transformar>"
+## uso: magLogoInImage -l <logo> <imágenes a transformar>"
 ##
 ## Opciones:
 ## <pre>
@@ -17,19 +15,7 @@
 
 ## Mostrar ayuda
 
-function help() {
-
-   local -i count=0
-   while read linea ; do
-      let count++
-      if [ $count -gt 2 ] ; then
-         [ "$linea" = "" ] && return
-         echo "$linea" | sed 's/^##//' | sed 's/@brief //' | sed 's/@file //'
-      fi
-   done < "$0"
-   echo
-
-   }
+help() { doxygen2help "$0" ; }
 
 prog=`basename $0`
 
@@ -60,18 +46,6 @@ desc_var_color='Presentar colores'
 
 # Si tenemos fichero de configuración recogemos lo insertamos
 [[ -e "$var_fich_conf" ]] && source $var_fich_conf
-
-function help() {
-
-   echo
-   echo "uso"
-   echo "uso" | sed s/./-/g
-   echo
-   echo
-   echo "$prog -info, Para más información"
-   echo
-
-}
 
 function error() {
 

@@ -1,6 +1,6 @@
 #!/bin/bash
-## @file video2web
-## @brief Convertir vídeo a formato web.
+
+## Convertir vídeo a formato web.
 
 help() { doxygen2help "$0" ; }
 

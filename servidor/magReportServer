@@ -1,0 +1,22 @@
+#!/bin/bash
+
+## Pequeños scripts para saber el estado del servidor.
+
+help() { doxygen2help "$0"; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
+	help
+	exit
+fi
+
+echo
+echo "# Report system"
+echo
+
+cd "$(dirname $0)"
+
+for x in ./launchers/*; do
+	$x
+done
+
+cd -

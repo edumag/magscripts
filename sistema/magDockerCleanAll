@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## Stop all containers
+## Stop all containers, delete and purge.
 
 docker stop $(docker ps -a -q)
 

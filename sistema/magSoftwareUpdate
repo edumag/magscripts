@@ -1,5 +1,10 @@
 #!/bin/bash
 
+## Actualización de software en todos los formatos de paquetes.
+
+help() { doxygen2help "$0"; }
+[[ "$1" == "-h" || "$1" == "--help" ]] && { help ; exit ; }
+
 echo
 echo "pacman"
 echo "------"

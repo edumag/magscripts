@@ -1,9 +1,10 @@
 #!/bin/bash
 
-## @file comprobar_conexion
-## @brief Testeamos conexión a internet hasta tener resultado positivo.
+## Testeamos conexión a internet hasta tener resultado positivo.
 ##
-## Una vez detectada la vuelta de internet se lanzara reproductor.
+## Una vez detectada la vuelta de internet se lanzara notificación.
+##
+## dependencias: notify-send
 
 help() { doxygen2help "$0" ; }
 

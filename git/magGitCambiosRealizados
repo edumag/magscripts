@@ -1,7 +1,6 @@
 #!/bin/bash
 
-## @file git-cambios-realizados
-## @brief Muestra los cambios realizados desde git.
+## @brief Lista de los commits de git.
 
 help() { doxygen2help "$0" ; }
 

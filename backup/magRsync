@@ -1,9 +1,17 @@
-## Sincronizar dos directorios en remoto.
+## @brief Sincronizamos directorios de un ordenador a otro
+##
+## Utilizamos rsync con los siguientes parametros:
+##
+## -a: Archivos y directorios
+## -P: Preservar permisos
+## -z: Comprimir
+## --exclude: Excluir directorios
 ##
 ## Uso: magRsync <origen> <destino>
-
-## @file sincronizar
-## @brief Sincronizamos directorios de un ordenador a otro
+##
+## Ejemplo:
+##
+## magRsync lesolivex:backups /home/edumag/backups
 
 help() { doxygen2help "$0" ; }
 

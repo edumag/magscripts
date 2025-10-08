@@ -1,7 +1,6 @@
 #!/bin/bash
 
-## @file verip
-## @brief Muestra nuestra ip actual.
+## Muestra nuestra ip actual.
 
 help() { doxygen2help "$0" ; }
 

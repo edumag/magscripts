@@ -1,5 +1,15 @@
 #!/bin/bash
 
+## Abrir archivo en sesión de vim abierta.
+##
+## Usar: magVimRemote [archivo]
+##
+## En caso de no recibir el fichero a editar lo coge del porta papeles.
+
+
+help() { doxygen2help "$0"; }
+[[ "$1" == "-h" || "$1" == "--help" ]] && { help ; exit ; }
+
 if [ -z "$1" ]; then
     input=`xclip -o -f`
     if [ -z "$input" ]; then

@@ -1,6 +1,6 @@
 #!/bin/bash
-## @file leberar_memoria
-## @brief Liberar memoria del sistema.
+
+## Liberar memoria del sistema.
 
 help() { doxygen2help "$0" ; }
 
