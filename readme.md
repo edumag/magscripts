@@ -1,84 +1,170 @@
-# magscripts
+# MagScripts
 
-Scripts para linux que nos facilitan la vida.
+## backup
 
-## Instalación
+### magBackup
+magBackup es un script para generar copias de seguridad de diferentes orígenes. Con los ficheros creamos una copia por mes y a partir de esta vamos creando archivos por cada día de la semana con los cambios desde la copia por mes.
 
-- Bajar los scripts desde: https://codeload.github.com/edumag/magscripts/zip/master
+### magRsync
+Sincronizamos directorios de un ordenador a otro.
 
-- Renombrar la carpeta a "scripts" por ejemplo.
+## desarrollo
 
-- Añadir a PATH los scripts desde $HOME/.bashrc
+### magBuscarEnlacesRotos
+Comprobar enlaces rotos.
 
-  ```
-  for x in $HOME/magscripts/* ; do if [ -d $x ] ; then PATH="$PATH:$x" ; fi ; done
-  export PATH
-  ```
+### magComprobarWeb
+Hacer una comprobación para ver si la pagina esta funcionando.
 
-### En nautilus
+### magDate2time
+Convierte fecha en formato humano a formato unix.
 
-```
-cd .local/share/nautilus/scripts
-ln -s $HOME/scripts ./
-```
+### magLastModifiedFiles
+Listamos los últimos archivos que han sido modificados.
 
-## Listado
+### magText2json
+Convert text to JSON using jq.
 
-```
-.
-├── backup
-│   ├── backup.sh: Realizar un respaldo general del sistema.
-│   ├── magbackup: Muestra información sobre el uso de almacenamiento en disco.
-│   ├── magbackup_sync: Sincroniza los backups realizados con `magbackup`.
-│   └── sincronizar.sh: Script para realizar la sincronización de archivos y directorios.
-├── desarrollo
-│   ├── buscar_enlaces_rotos: Buscar enlaces rotos en un sitio web.
-│   ├── buscar_sesiones_vim_interrumpidas: Continuar sesiones Vim interrumpidas.
-│   ├── comprobar_web: Comprobar el estado de una o varias páginas web.
-│   ├── text2json: Convertir texto a formato JSON.
-│   ├── time2date: Convertir tiempo en segundos a fecha y hora legible.
-│   ├── ultimos_archivos_modificados: Listar los últimos archivos modificados en un directorio.
-│   ├── urldecode.sh: Decodificar caracteres urlencoded.
-│   ├── urlencode.sh: Codificar caracteres para usarlos en una URL.
-│   ├── vimremote: Interactuar con Vim a través de redes.
-│   └── vimserver: Servidor remoto para interactuar con Vim.
-├── git
-│   ├── git-cambios-realizados: Mostrar los cambios realizados en el repositorio Git.
-│   ├── gitmag_status: Obtener el estado del repositorio Git.
-│   └── magGitAddedOrModifiedFiles: Listar archivos añadidos o modificados en el último commit.
-├── hardware
-│   └── informacion_ordenador: Mostrar información detallada sobre el ordenador, como CPU, memoria RAM y disco duro.
-├── imagenes
-│   ├── logoAimagen: Convertir una imagen a formato de texto para su visualización en la terminal.
-│   └── transformar_imagenes: Script para procesar y transformar imágenes.
-├── internet
-│   ├── buscarEnBlog: Buscar publicaciones en un blog.
-│   ├── comprobar_conexion: Comprobar la conexión a internet.
-│   └── verip: Mostrar la dirección IP pública o privada.
-├── lib
-│   ├── configuracion: Contenido de configuración específico del proyecto.
-│   ├── doxygen2help: Generar documentación en formato HTML usando Doxygen.
-│   ├── elegirArchivo: Seleccionar un archivo desde el sistema de archivos.
-│   ├── general: Archivos misceláneos sin categoría específica.
-│   ├── libash.conf: Configuración personalizada para el shell Bash.
-│   ├── listado: Listado de elementos en un directorio o repositorio.
-│   ├── mysql2rst: Convertir bases de datos MySQL a formato reStructuredText.
-│   ├── pantalla: Mostrar información gráfica sobre la terminal.
-│   └── readme.md: Documentación básica del proyecto.
-├── servidor
-│   ├── ReportServer
-│   │   ├── launchers
-│   │   │   ├── chkrootkit: Ejecutar verificación de rootkit con ChkRootKit.
-│   │   │   ├── clamscan: Ejecutar escaneo antivirus con ClamScan.
-│   │   │   ├── docker: Administrar contenedores Docker.
-│   │   │   ├── dokku: Administrar la plataforma PaaS Dokku.
-│   │   │   ├── fail2ban: Prevenir ataques de fuerza bruta con Fail2Ban.
-│   │   │   ├── firewall: Configurar el firewall del sistema.
-│   │   │   ├── logcheck: Verificar y gestionar logs del sistema.
-│   │   │   ├── lynis: Realizar auditoría de seguridad con Lynis.
-│   │   │   ├── system.sh: Script para obtener información detallada del sistema.
-│   │   │   └── whois_list: Listar dominios WHOIS.
-│   │   ├── Readme.md: Documentación general del servidor.
-│   │   └── reportServer.sh: Generar informes de estado del servidor.
-│   └── tunel.sh: Crear
-```
+### magTime2date
+Convierte fecha en formato unix a formato humano.
+
+### magUrldecode
+URL decode.
+
+### magUrlencode
+URL encode.
+
+### magVimBrokenSessions
+Find broken vim sessions.
+
+### magVimRemote
+Send command to vim server.
+
+### magVimServer
+Start vim server.
+
+## git
+
+### magGitAddedOrModifiedFiles
+Script para listar los ficheros añadidos o modificados en un repositorio Git.
+
+### magGitCambiosRealizados
+Muestra los cambios realizados desde git.
+
+### magGitStatusAll
+Verificar estado de proyectos con git.
+
+## imagenes
+
+### logoAimagen
+Insertar logo en una imagen.
+
+### transformar_imagenes
+Transformar una imagen a formato jpg con la anchura o altura especificada.
+
+## internet
+
+### comprobar_conexion
+Testeamos conexión a internet hasta tener resultado positivo.
+
+### verip
+Muestra nuestra ip actual.
+
+## lib
+
+### configuracion
+Librería para gestionar la configuración de los scripts de bash.
+
+### doxygen2help
+Extraer de la documentación en la cabecera de los scripts la ayuda a presentar en consola.
+
+### elegirArchivo
+Librería para seleccionar archivos.
+
+### general
+Funciones genericas para los scripts en bash.
+
+### listado
+Listado es una librería que podemos insertar en nuestros scripts que nos permite generar menús de listas donde podremos seleccionar diferentes elementos.
+
+### mysql2rst
+Librería para bash para transformar una consulta a mysql a una tabla valida para rst.
+
+### pantalla
+Librería para mejorar la salida por pantalla.
+
+## servidor
+
+### reportServer.sh
+Pequeños scripts para saber el estado del servidor.
+
+### tunel.sh
+Script para hacer tunel ssh inverso.
+
+### chkrootkit
+Lanzador para chkrootkit.
+
+### clamscan
+Lanzador para clamscan.
+
+### docker
+Estado de docker.
+
+### dokku
+Mostrar estado de dokku.
+
+### fail2ban
+Mostar estado de fail2ban.
+
+### firewall
+Mostrar estado del firewall.
+
+### logcheck
+Mostrar estado de logcheck.
+
+### lynis
+Auditoria con lynis.
+
+### system.sh
+Mostrar estado del sistema.
+
+### whois_list
+Mostar info de IPs.
+
+## sistema
+
+### magDockerCleanAll
+Stop all containers and prune system.
+
+### magLiberarMemoria
+Liberar memoria del sistema.
+
+### magSoftwareSearch
+Search for software packages using apt, pacman, snap.
+
+### magSoftwareUpdate
+Update software using apt, pacman, snap.
+
+## texto
+
+### magMd2html
+Convert markdown to HTML.
+
+### magMd2pdf
+Convert markdown to PDF.
+
+## utiles
+
+### magApagar
+Revisar estado de trabajo antes de cerrar.
+
+### magCopyTextCapture
+Extract text from screenshot and copy to clipboard.
+
+### magPass
+Imprimir contraseña de comando.
+
+## video
+
+### magVideo2web
+Convertir vídeo a formato web.
