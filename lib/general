@@ -1,77 +1,13 @@
 #!/bin/bash
 
-## @file general
-##
-## @brief Funciones genericas para los scripts en bash
-##
-## @defgroup libash Librerías para bash
-## @{
-##
-## @author   Eduardo Magrané
-##
-## @internal
-##
-##       web  http://www.lesolivex.com
-##
-##      mail  edu.lesolivex.com
-##
-##   Created  13/03/11
-##
-##  Revision  SVN $Id: $
-##
-## Copyright  Copyright (c) 2011, Eduardo Magrané
-## 
-## This source code is released for free distribution under the terms of the
-## GNU General Public License as published by the Free Software Foundation.
-
-libash_general_incluida=1 ##< Para saber si ya la tenemos incluida
+## Funciones genericas para los scripts en bash
 
 ## Si no hemos incluido pantalla lo hacemos
 
-[[ -z "$pantalla_incluida" ]] && source "$(dirname "${BASH_SOURCE}")/pantalla"
-
-## @defgroup configuracion_libash Configuración para libash
-## @{
-
-conf_proyecto=".magtrabajos/configuracion/libash.conf"    ##< Con proyecto
-conf_magtrabajos="$HOME/.magtrabajos/configuracion/libash.conf"                     ##< Sin proyecto
-conf="`dirname $BASH_SOURCE`/libash.conf"                                           ##< Por defecto
-
-## @brief Enviar mensaje de log a fichero
-##
-## Generamos registro del programa.
-##
-## 1 Función de la que viene, $FUNCNAME
-## 2 Texto
-
-function log() {
-
-   local archivo_log=${archivo_log:-$HOME/`basename "$0"`.log}
-
-   [[ -e "$archivo_log" ]] || touch "$archivo_log"
-
-   if [ -z "$2" ] ; then
-      echo "` date +'%Y-%m-%d %H:%M'` $1" >> $archivo_log
-   else
-      echo "` date +'%Y-%m-%d %H:%M'` $1 :: $*" >> $archivo_log
-   fi
-
-   }
-
-if [ -e "$conf_proyecto" ] ; then
-   log $FUNCNAME "libash configuración: $conf_proyecto"
-   source "$conf_proyecto"
-elif [ -e "$conf_magtrabajos" ] ; then
-   log $FUNCNAME "libash configuración: $conf_magtrabajos"
-   source "$conf_magtrabajos"
-else
-   log $FUNCNAME "libash configuración: $conf"
-   source "$conf"
-fi
-## @}
+source "$(dirname "${BASH_SOURCE}")/pantalla"
 
 ## Añadimos color
-## 
+##
 ## Uso:
 ## @code
 ## echo -e "`color colError`Error en la aplicación`color`"
@@ -85,11 +21,11 @@ fi
 ##
 ## @todo Detectar si la terminal actual permite colores
 
-function color() { 
+function color() {
 
    if [ "$1" = "lista" ] ; then
       echo
-      echo Tema actual: 
+      echo Tema actual:
       local c='${!'col'*}'
       for variable in `eval echo "$c"` ; do
          echo -e "\n- ${!variable} $variable `color`"
@@ -152,80 +88,17 @@ function color() {
       return
    fi
 
-   if [ "$var_color" = 'si' ] ; then 
-      local c=${1:-colNormal} ; 
-      echo -e "${!c}" ; 
-   fi 
+   if [ "$var_color" = 'si' ] ; then
+      local c=${1:-colNormal} ;
+      echo -e "${!c}" ;
+   fi
    }
-
-## Recopilar, registrar o presentar mensajes de la aplicación
-
-function mensajes() {
-
-   [[ "$menConta" == "" ]] && menConta=0
-
-   case "$1" in
-
-      -log)
-      # Enviamos mensajes a log y ponemos a cero
-         if [  $menConta -lt 1 ] ; then return 1 ; fi
-         FIN=$((${#MEN[*]}-1))
-         for x in `seq 0 $FIN` ; do
-            if [ $x = $FIN ] ; then
-               log "$FUNCNAME" "${MEN[$x]}"
-            fi
-         done
-         MEN=()
-         menConta=0
-         ;;
-      -crudo)
-         # imprimimos mensaje y ponemos a cero
-         if [  $menConta -lt 1 ] ; then return 1 ; fi
-         FIN=$((${#MEN[*]}-1))
-         for x in `seq 0 $FIN` ; do
-            echo "- ${MEN[$x]}"
-         done
-         MEN=()
-         ;;
-      -get)
-         # imprimimos mensaje y ponemos a cero
-         if [  $menConta -lt 1 ] ; then return 1 ; fi
-         FIN=$((${#MEN[*]}-1))
-         #echo -n $linea
-         #echo -n ' ESTADO: '
-         SALIDA=''
-         for x in `seq 0 $FIN` ; do
-            if [ $x = $FIN ] ; then
-               #tput bold ; echo -n "${MEN[$x]} " ; tput sgr0
-               SALIDA="$SALIDA ${MEN[$x]}"
-            else
-               #tput bold ; echo -n "${MEN[$x]} " ; tput sgr0
-               #echo -n "${MEN[$x]} | "
-               SALIDA="$SALIDA ${MEN[$x]} |"
-            fi
-         done
-         caja "$SALIDA" 'Mensajes' "$cAviso" 0
-         #echo 
-         MEN=()
-         menConta=0
-         ;;
-      *)
-         # Recibimos un nuevo mensaje y lo añadimos a la pila
-         # Por defecto ingresamos nuevo mensaje a la pila
-         MEN[$menConta]="$1"
-         let menConta++
-         # Enviamos mensaje a log
-         log "$FUNCNAME" "$1"
-         [[ $consulta != 1 ]] && echo "$1"
-         ;;
-   esac
-}
 
 ## Pedir la pulsación de una tecla para continuar
 
 function tecla() {
 
-   echo 
+   echo
    read -n 1 -s -p '[Presione una tecla para continuar]'
 
    }
@@ -268,8 +141,8 @@ function comandoExterno(){
 
    }
 
-## Ejecutar comando nos permite ver el comando que estamos ejecutando, 
-## si da error en la salida, nos permite hacer una pausa para verla, 
+## Ejecutar comando nos permite ver el comando que estamos ejecutando,
+## si da error en la salida, nos permite hacer una pausa para verla,
 ## etc...
 ##
 ## @param $1 Comando a ejecutar

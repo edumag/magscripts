@@ -1,70 +1,54 @@
-#!/bin/bash 
+#!/bin/bash
 
 ## @file listado
 ##
-## @brief listado es una librería que podemos insertar en nuestros scripts que nos permite generar menús 
+## @brief listado es una librería que podemos insertar en nuestros scripts que nos permite generar menús
 ## de listas donde podremos seleccionar diferentes elementos.
-## 
+##
 ## Recibe una lista de elementos en la cual podremos especificar columnas en formato:
 ## @code
 ## 126\tnombre\tdescripción de la linea, los campos son separados por "\t".
 ## @endcode
 ## la primera columna sera el identificador único que diferenciara una linea de otra.
-## 
-## Almacenaremos en la variable global resultado_listado el contenido separando un item 
+##
+## Almacenaremos en la variable global resultado_listado el contenido separando un item
 ## de otro por un espacio.
-## 
+##
 ## Se puede pasar el argumento -o para que se oculte los identificadores, (primera columna)
 ## @code
-## uso: 
+## uso:
 ##    source listado
 ##    generar_listado [opciones] lineas a mostrar con sus campos separados por \t
-##    echo Seleccionado: \$resultado_listado 
-## 
+##    echo Seleccionado: \$resultado_listado
+##
 ## opciones:
-## 
+##
 ## -h                   Ayuda
 ## -o                   Ocultar el primer campo
 ## --ocultar-ayuda      Ocultar la nota explicativa al usuario
-## -t  [titulo]         Titulo a mostrar en el listado 
+## -t  [titulo]         Titulo a mostrar en el listado
 ## @endcode
-## 
+##
 ## ejemplo de uso:
-## 
+##
 ## source listado
 ## @code
 ## generar_listado -t 'Titulo listado de ejemplo' -o '127\tprimer ejemplo\tCon su descripción' \
 ## '208\tSegundo ejemplo\tSefunda descripción' \
 ## '2\tTercer ejemplo\tTercera descripción'
-## 
+##
 ## echo "Resultado: \$resultado_listado"
-## 
+##
 ## cd \$HOME
 ## generar_listado -t \$HOME/*
-## 
+##
 ## echo "Resultado: \$resultado_listado"
 ## @endcode
 ##
-## @ingroup libash
-##
-## @author   Eduardo Magrané
-## @namespace componentes\libash
-##
 ## @todo Unir en una misma función generar_listado y generar_listado_fichero
 ## @bug Se presenta segunda columna de listados anteriores, hay que hacer limpieza
-##
-## @internal
-##
-##       web  http://www.lesolivex.com
-##
-##      mail  edu.lesolivex.com
-##
-##  Revision  SVN $Id: $
-##
-## Copyright  Copyright (c) 2011, Eduardo Magrané
-## 
-## This source code is released for free distribution under the terms of the
-## GNU General Public License as published by the Free Software Foundation.
+
+source `dirname "$BASH_SOURCE"`/../lib/general
 
 libash_listado_incluida=1 ##< Para saber si ya la tenemos incluida
 
@@ -108,7 +92,7 @@ function generar_listado() {
          -h|-help|--help) listado_ayuda ; return ;;
 
          -t) # Título a presentar
-            titulo=$2 ; shift 2 
+            titulo=$2 ; shift 2
             ;;
          -o) # Ocultar la primera columna
             ocultar='si' ; shift 1
@@ -228,7 +212,7 @@ function generar_listado_fichero() {
          -h|-help|--help) listado_ayuda ; return ;;
 
          -t) # Título a presentar
-            local titulo=$2 ; shift 2 
+            local titulo=$2 ; shift 2
             ;;
          -o) # Ocultar la primera columna
             ocultar='si' ; shift 1

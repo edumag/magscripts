@@ -26,13 +26,11 @@
 ## Si tenemos un archivo con variables por defecto, este sera el que manda sobre los otros, la idea es
 ## que si el archivo por defecto a variado y ahora una variable deja de usarse, al editarse la
 ## configuración ya no mostrara esta variable, manteniendo limpios los ficheros de configuración.
-##
-## @ingroup libash, configuracion
 
 ## Si no hemos incluido librería general la incluimos
 
-[[ -z "$libash_general_incluida" ]] && source "$(dirname "${BASH_SOURCE}")/general"
-[[ -z "$libash_listado_incluida" ]] && source "$(dirname "${BASH_SOURCE}")/listado"
+source "$(dirname "${BASH_SOURCE}")/general"
+source "$(dirname "${BASH_SOURCE}")/listado"
 
 
 ## Editamos las variables que coincidan con el prefijo
