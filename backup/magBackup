@@ -57,9 +57,9 @@ source `dirname "$BASH_SOURCE"`/../lib/configuracion
 
 function magbackup_crear_copia_ficheros_perfil() {
 
-    echo
-    echo ## Ficheros
-    echo
+    echo --------
+    echo Ficheros
+    echo --------
 
    for file in "$directorio__ficheros"* ; do
 
@@ -74,8 +74,6 @@ function magbackup_crear_copia_ficheros_perfil() {
       NOMBRE_DIA="${NOMBRE}-`hostname`-${DIA}.tar.bz2"
 
       echo
-      echo ### $file
-      echo
       echo $NOMBRE
       echo $NOMBRE | sed 's/./-/g'
       echo
@@ -86,7 +84,7 @@ function magbackup_crear_copia_ficheros_perfil() {
 
       cd $CS_DIR
 
-      if [ ! -d $DIR ] ; then echo Directorio de inicio $CS_DIR no existe! ; exit ; fi
+      if [ ! -d $DIR ] ; then echo Directorio de inicio $CS_DIR no existe! ; exit 1 ; fi
 
       for origenes in $CS_COPIAR ; do
          if [ -e $origenes ] ; then
@@ -101,7 +99,7 @@ function magbackup_crear_copia_ficheros_perfil() {
          echo Hay ubicaciones por copiar que no existen
          echo
          echo $errores | tr ' ' "\n"
-         exit
+         exit 1
       fi
 
       # Si encontramos la copia del mes actual realizada
@@ -280,7 +278,7 @@ if [ ! -e "$fichero_configuracion_magbackup" ] ; then
    if [ "$OPCION" = "s" ] ; then
       configuracion_menu magBackup_ "$fichero_configuracion_magbackup"
    else
-      exit
+      exit 2
    fi
 fi
 
