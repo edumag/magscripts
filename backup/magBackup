@@ -108,11 +108,11 @@ function magbackup_crear_copia_ficheros_perfil() {
 
       ANYO_ACTUAL=`date +%Y`
 
-      if [ -e "${magbackup_dir}$NOMBRE_MES" ] && [ "$ANYO_ACTUAL" = "`date +%Y -r "${magbackup_dir}$NOMBRE_MES"`" ]; then
+      if [ -e "${magBackup_dir}$NOMBRE_MES" ] && [ "$ANYO_ACTUAL" = "`date +%Y -r "${magBackup_dir}$NOMBRE_MES"`" ]; then
 
          # generamos copia diaria incremental
-         DESTINO="${magbackup_dir}$NOMBRE_DIA"
-         FECHA_INCREMENTAL="`date \"+%Y-%m-%d %H:%M\" -r "${magbackup_dir}$NOMBRE_MES"`"
+         DESTINO="${magBackup_dir}$NOMBRE_DIA"
+         FECHA_INCREMENTAL="`date \"+%Y-%m-%d %H:%M\" -r "${magBackup_dir}$NOMBRE_MES"`"
          CMD="$CMD $DESTINO --newer-mtime \"$FECHA_INCREMENTAL\" $CS_COPIAR"
 
          echo
@@ -123,7 +123,7 @@ function magbackup_crear_copia_ficheros_perfil() {
       else
 
          # Generamos copia mensual
-         DESTINO="${magbackup_dir}$NOMBRE_MES"
+         DESTINO="${magBackup_dir}$NOMBRE_MES"
          CMD="$CMD $DESTINO $CS_COPIAR"
 
          echo
@@ -167,7 +167,7 @@ function magbackup_crear_copia_mysql_perfil() {
       source "$file"
 
       for BD in $BASES_DATOS ; do
-         cmd="nice -10 mysqldump -u$USUARIO -p$PASS $BD | nice -10 bzip2 --best -c > ${magbackup_dir}mysql-${BD}-`hostname`-${DIA}.dump.bz2"
+         cmd="nice -10 mysqldump -u$USUARIO -p$PASS $BD | nice -10 bzip2 --best -c > ${magBackup_dir}mysql-${BD}-`hostname`-${DIA}.dump.bz2"
          echo
          echo Comando: $cmd
          eval "$cmd"
@@ -192,7 +192,7 @@ function magbackup_crear_copia_docker_postgres_perfil() {
       source "$file"
 
       for BD in $BASES_DATOS ; do
-         cmd="nice -10 docker exec -i -e PGPASSWORD=${DOCKER_PASSWORD} ${DOCKER_IMAGE} /usr/bin/pg_dump -U ${DOCKER_USER} ${DOCKER_DATABASE} > ${magbackup_dir}docker_postgres-${DOCKER_DATABASE}-`hostname`-${DIA}.dump"
+         cmd="nice -10 docker exec -i -e PGPASSWORD=${DOCKER_PASSWORD} ${DOCKER_IMAGE} /usr/bin/pg_dump -U ${DOCKER_USER} ${DOCKER_DATABASE} > ${magBackup_dir}docker_postgres-${DOCKER_DATABASE}-`hostname`-${DIA}.dump"
          echo
          echo Comando: $cmd
          eval "$cmd"
@@ -217,7 +217,7 @@ function magbackup_crear_copia_dokku_postgres_perfil() {
 
       source "$file"
 
-      cmd="nice -10 dokku postgres:export $DOKKU_APP > ${magbackup_dir}dokku_postgres-${DOKKU_APP}-`hostname`-${DIA}.dump"
+      cmd="nice -10 dokku postgres:export $DOKKU_APP > ${magBackup_dir}dokku_postgres-${DOKKU_APP}-`hostname`-${DIA}.dump"
       echo
       echo Comando: $cmd
       eval "$cmd"
@@ -241,7 +241,7 @@ function magbackup_crear_copia_dokku_mysql_perfil() {
 
       source "$file"
 
-      cmd="nice -10 dokku mysql:export $DOKKU_APP > ${magbackup_dir}dokku_postgres-${DOKKU_APP}-`hostname`-${DIA}.dump"
+      cmd="nice -10 dokku mysql:export $DOKKU_APP > ${magBackup_dir}dokku_postgres-${DOKKU_APP}-`hostname`-${DIA}.dump"
       echo
       echo Comando: $cmd
       eval "$cmd"
