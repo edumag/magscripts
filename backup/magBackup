@@ -57,6 +57,10 @@ source `dirname "$BASH_SOURCE"`/../lib/configuracion
 
 function magbackup_crear_copia_ficheros_perfil() {
 
+    echo
+    echo ## Ficheros
+    echo
+
    for file in "$directorio__ficheros"* ; do
 
       [[ ${file:0-1} == '*' ]] && break
@@ -70,9 +74,7 @@ function magbackup_crear_copia_ficheros_perfil() {
       NOMBRE_DIA="${NOMBRE}-`hostname`-${DIA}.tar.bz2"
 
       echo
-      echo ----------------
-      echo copias_seguridad
-      echo ----------------
+      echo ### $file
       echo
       echo $NOMBRE
       echo $NOMBRE | sed 's/./-/g'
