@@ -1,0 +1,18 @@
+#!/bin/bash
+
+## - Lanzar goaccess en server
+## - Recoger reporte en html.
+## - Mostrar reporte.
+
+config_file="$HOME/.config/magscripts/magGoAccessInServer"
+[[ -e $config_file ]] && source "$config_file"
+
+magGoAccessInServer_dirTemp="${magGoAccessInServer_dirTemp:-$HOME/tmp/}"
+magGoAccessInServer_server="${magGoAccessInServer_server:-lesolivex}"
+magGoAccessInServer_logs=${magGoAccessInServer_logs:-'/var/log/nginx/lesolivex*'}
+
+ssh $magGoAccessInServer_server "sudo cat ${magGoAccessInServer_logs} | docker run -p 7890:7890 --rm -i -e LANG=$LANG allinurl/goaccess --log-format COMBINED - > report.html"
+
+scp ${magGoAccessInServer_server}:report.html "${magGoAccessInServer_dirTemp}report.html"
+
+xdg-open "${magGoAccessInServer_dirTemp}report.html"
