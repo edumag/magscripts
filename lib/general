@@ -2,6 +2,8 @@
 
 ## Funciones genericas para los scripts en bash
 
+libash_general_incluida=1
+
 ## Si no hemos incluido pantalla lo hacemos
 
 source "$(dirname "${BASH_SOURCE}")/pantalla"

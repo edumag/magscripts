@@ -50,6 +50,8 @@ directorio__dokku_mysql="$DIR_CONFIG_MAGBACKUP/dokku_mysql/"  ##< Fichero config
 MES=`date +%B`
 DIA=`date +%A`
 
+source `dirname "$BASH_SOURCE"`/../lib/configuracion
+
 ## Recoger configuración de magBackup
 [[ -e $fichero_configuracion_magbackup ]] && source "$fichero_configuracion_magbackup"
 
@@ -249,7 +251,6 @@ function magbackup_crear_copia_dokku_mysql_perfil() {
 }
 
 function config() {
-   source `dirname "$BASH_SOURCE"`/../lib/configuracion
    configuracion_editar magBackup_ $BASH_SOURCE
    configuracion_guardar "magBackup_" "$fichero_configuracion_magbackup"
 
@@ -291,6 +292,8 @@ if [[ ! -d "$DIR_CONFIG" ]] ; then
        mkdir $directorio__mysql
        mkdir $directorio__docker_postgres
        mkdir $directorio__dokku_postgres
+       mkdir $directorio__dokku_mysql
+
        configuracion_guardar "magBackup_" "$fichero_configuracion_magbackup"
 fi
 . "$fichero_configuracion_magbackup"
