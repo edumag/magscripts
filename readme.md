@@ -128,6 +128,12 @@ Pequeños scripts para saber el estado del servidor.
 
 *Dependencias*:
 
+### magGoAccessInServer
+
+Automatiza la generación y visualización de un informe de análisis de logs de acceso web utilizando goaccess.
+
+*Dependencias*: ssh, scp, docker, xdg-open
+
 ### chkrootkit
 
 Lanzador para chkrootkit.
