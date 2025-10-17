@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## Verificar estado de proyectos con git.
+## magGitStatusAll verifica el estado de múltiples proyectos Git de una vez,
+## alertándote sobre cambios sin commitear o repositorios que necesitan atención.
 ##
 ## Útil para verificar si tenemos algún cambio sin commitear en alguno de nuestros proyectos.
 

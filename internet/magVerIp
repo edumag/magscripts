@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## Muestra nuestra ip actual.
+## magVerIp muestra tu dirección IP actual de manera rápida, útil para
+## configuraciones de red o conexiones remotas.
 
 help() { doxygen2help "$0" ; }
 

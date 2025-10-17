@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## Convierte fecha en formato unix a formato humano.
+## magTime2date transforma timestamps Unix en fechas legibles, facilitando la
+## interpretación de tiempos en logs y bases de datos.
 
 help() { doxygen2help "$0" ; }
 

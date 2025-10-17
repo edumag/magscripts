@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## Convertir URI a URL, usando el esquema RFC 3986.
+## magUrlEncode codifica URLs, convirtiendo caracteres especiales en su
+## representación segura para web, asegurando que tus enlaces funcionen
+## correctamente en navegadores y servidores.
 LANG=C
 
 urlencode() {

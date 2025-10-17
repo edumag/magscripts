@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## Hacer una comprobación para ver si la página está funcionando.
+## magComprobarWeb verifica rápidamente si tu sitio web está operativo,
+## realizando comprobaciones básicas de conectividad para asegurarte de que tus
+## visitantes puedan acceder sin problemas.
 ##
 ## Referencia:
 ## http://www.linuxhispano.net/2013/02/19/monitorizar-servidor-web-para-ver-si-esta-caido-o-no-de-forma-automatica/

@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## @brief Auditoria con lynis.
+## lynis ejecuta una auditoría completa de seguridad del sistema usando Lynis,
+## proporcionando recomendaciones para mejorar la protección.
 
 help() {
     echo

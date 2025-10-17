@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## Convertir URL a URI, usando el esquema RFC 3986.
+## magUrlDecode decodifica URLs codificadas, convirtiendo caracteres especiales
+## de vuelta a su forma legible, útil para trabajar con enlaces web y parámetros
+## de consulta.
 
 LANG=C
 

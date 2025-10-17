@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## Actualización de software en todos los formatos de paquetes.
+## magSoftwareUpdate actualiza todos los paquetes del sistema a través de
+## diferentes gestores, manteniendo tu Linux al día con las últimas versiones.
 
 help() { doxygen2help "$0"; }
 [[ "$1" == "-h" || "$1" == "--help" ]] && { help ; exit ; }

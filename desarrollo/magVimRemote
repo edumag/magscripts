@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## Abrir archivo en sesión de vim abierta.
+## magVimRemote te permite abrir archivos en una sesión existente de Vim desde
+## cualquier lugar, facilitando la edición remota y colaborativa de código.
 ##
 ## Usar: magVimRemote [archivo]
 ##

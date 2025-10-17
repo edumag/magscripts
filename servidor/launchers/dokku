@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## @brief Mostrar estado de dokku.
+## dokku muestra el estado de las aplicaciones desplegadas con Dokku,
+## ofreciendo una visión general de tus despliegues en la nube.
 
 help() {
     echo
@@ -19,7 +20,7 @@ dokku logs:failed
 # echo
 # echo dokku
 # echo
-# 
+#
 # echo "### dokku docker-options:report"
 # dokku docker-options:report
 

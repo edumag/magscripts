@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## @brief Mostrar estado de logcheck.
+## logcheck analiza los logs del sistema en busca de eventos inusuales,
+## enviando reportes por email para alertas de seguridad.
 
 help() {
     echo

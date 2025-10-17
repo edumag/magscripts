@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## Stop all containers, delete and purge.
+## magDockerCleanAll detiene todos los contenedores Docker, elimina imágenes no
+## utilizadas y limpia el sistema para liberar espacio y recursos.
 
 docker stop $(docker ps -a -q)
 

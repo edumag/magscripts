@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## listamos los últimos archivos que han sido modificados
+## magLastModifiedFiles te muestra una lista de los archivos modificados
+## recientemente en un directorio, ideal para rastrear cambios en proyectos de
+## desarrollo o mantener un registro de actividades recientes.
 ##
 ## Por defecto se muestran los archivos modificados en las últimas 24 horas
 ## del directorio actual.

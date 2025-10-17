@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## Imprimir contraseña de comando
+## magPass imprime contraseñas de comandos de manera segura, gestionando credenciales para scripts automatizados.
 ##
 ## Nos permite tener un modo simple de recuperar contraseñas a la hora de lanzar comandos
 ## sin la necesidad de añadirlas en el mismo código, ganando en seguridad.

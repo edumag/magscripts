@@ -1,5 +1,8 @@
 #!/bin/bash
 
+## magMd2pdf transforma documentos Markdown en PDFs de alta calidad, perfectos
+## para compartir o imprimir documentación técnica.
+
 if [[ "$1" == "--raw" ]]; then
     RAW=1
     shift 1

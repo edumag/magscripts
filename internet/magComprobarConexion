@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## Testeamos conexión a internet hasta tener resultado positivo.
+## magComprobarConexion monitorea continuamente la conexión a internet,
+## notificándote cuando se restablece después de una interrupción para mantenerte
+## informado.
 ##
 ## Una vez detectada la vuelta de internet se lanzara notificación.
 ##

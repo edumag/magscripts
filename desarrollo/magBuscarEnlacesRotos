@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## Comprobar enlaces rotos de una web.
+## magBuscarEnlacesRotos escanea tu sitio web para detectar enlaces rotos,
+## generando un reporte detallado que te ayuda a mantener la integridad y
+## usabilidad de tu página web.
 ##
 ## Uso: magBuscarEnlacesRotos [url] [report file]
 

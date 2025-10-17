@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## @brief Mostrar estado del firewall.
+## firewall muestra el estado actual del firewall iptables, permitiéndote
+## verificar las reglas de seguridad activas en el sistema.
 
 help() {
     echo
@@ -22,5 +23,5 @@ iptables -L -n --line-numbers | grep REJECT
 #  echo
 #  echo "### Reglas del cortafuegos"
 #  echo
-#  
+#
 #  sudo iptables -L -n --line-numbers

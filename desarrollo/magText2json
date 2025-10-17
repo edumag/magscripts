@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## convert text to json
+## magText2json transforma archivos de texto plano en formato JSON, facilitando
+## la integración de datos textuales en aplicaciones que requieren estructuras de
+## datos más organizadas.
 ##
 ## If no text is provided, the text is read from the clipboard
 ##

@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## Transformar una imagen a formato jpg con la anchura o altura especificada
+## magTransformarImagenes convierte imágenes al formato JPG con dimensiones
+## específicas, optimizando tus archivos para web o presentaciones sin perder
+## calidad.
 ##
 ## @todo Las imágenes transformadas se guardan en el mismo directorio que las originales, estaría bien poder elegir un directorio diferente"
 ##

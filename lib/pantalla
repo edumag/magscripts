@@ -1,8 +1,6 @@
 #!/bin/bash
 
-## @file pantalla
-##
-## @brief Librería para mejorar la salida por pantalla
+## Librería para mejorar la salida por pantalla
 ##
 ## @ingroup libash
 ##
@@ -19,7 +17,7 @@
 ##  Revision  SVN $Id: $
 ##
 ## Copyright  Copyright (c) 2011, Eduardo Magrané
-## 
+##
 ## This source code is released for free distribution under the terms of the
 ## GNU General Public License as published by the Free Software Foundation.
 
@@ -75,7 +73,7 @@ function pantalla(){
    #linea3="$(echo -n '├' ; for x in `seq 1 $(($COL-2))` ; do echo -n "⎼" ; done ; echo -n '┤')"
    linea3="$(echo -n "$crt_linea_ver" ; for x in `seq 1 $(($COL-2))` ; do echo -n " " ; done ; echo -n "$crt_linea_ver")"
 
-	# entradaMenu='printf " %2s%-$((${COL}-4))s \n" " "' 
+	# entradaMenu='printf " %2s%-$((${COL}-4))s \n" " "'
 
 }
 
@@ -109,17 +107,17 @@ function caja()	{
    DIFS="$IFS" # separador fin de linea para que salga linea por linea
    IFS=$'\n'
    local conta=0
-   for x in $mensaje ; do 
+   for x in $mensaje ; do
       conta=$(($conta+1))
       # [[ $conta -gt 1 ]] && echo -n $linea3                    # División de la caja entre lineas
       [[ $conta -gt 1 ]] && printf "$crt_linea_ver$color%-$((${COL}-2))s`color`$crt_linea_ver\n" ""   # División de la caja entre lineas
       POS_CAD=$((($COL/2)-(${#x}/2)))
-      if [ "$4" = "0" ] ; then 
-         printf "$crt_linea_ver$color%-$((${COL}-2))s`color`$crt_linea_ver\n" "$x" 
-      elif [ "$4" = "2" ] ; then 
-         printf "$crt_linea_ver$color%$((${COL}-2))s`color`$crt_linea_ver\n" "$x" 
+      if [ "$4" = "0" ] ; then
+         printf "$crt_linea_ver$color%-$((${COL}-2))s`color`$crt_linea_ver\n" "$x"
+      elif [ "$4" = "2" ] ; then
+         printf "$crt_linea_ver$color%$((${COL}-2))s`color`$crt_linea_ver\n" "$x"
       else
-         printf "$crt_linea_ver$color%${POS_CAD}s%-$((${COL}-${POS_CAD}-2))s`color`$crt_linea_ver\n" "" "$x" 
+         printf "$crt_linea_ver$color%${POS_CAD}s%-$((${COL}-${POS_CAD}-2))s`color`$crt_linea_ver\n" "" "$x"
       fi
    done
    IFS="$DIFS"
@@ -190,19 +188,19 @@ function linea_caja() {
       dobleLinea=si
    fi
 
-   #echo COL: $COL cols: $cols dif: $dif nc1: $numCol1 nc2: $numCol2 ncv1: $numColVar1 ncv2: $numColVar2 
+   #echo COL: $COL cols: $cols dif: $dif nc1: $numCol1 nc2: $numCol2 ncv1: $numColVar1 ncv2: $numColVar2
 
    if [ "$dobleLinea" == 'si' ] ; then
 
       declare -i columnas=${COL}-4
 
-      printf "│ $color%-${columnas}s`color` │\n" "`echo $1 | uni2ascii -qB`" 
-      printf "│ $color%-${columnas}s`color` │\n" "`echo $2 | uni2ascii -qB`" 
+      printf "│ $color%-${columnas}s`color` │\n" "`echo $1 | uni2ascii -qB`"
+      printf "│ $color%-${columnas}s`color` │\n" "`echo $2 | uni2ascii -qB`"
 
    else
 
-      printf "│ $color%-${numCol1}s" "`echo $1 | uni2ascii -qB`" 
-      printf "%${numCol2}s`color` │\n" "`echo $2 | uni2ascii -qB`" 
+      printf "│ $color%-${numCol1}s" "`echo $1 | uni2ascii -qB`"
+      printf "%${numCol2}s`color` │\n" "`echo $2 | uni2ascii -qB`"
 
    fi
 

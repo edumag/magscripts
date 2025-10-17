@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## @brief Mostrar estado del sistema.
+## system.sh muestra información detallada sobre el estado del sistema,
+## incluyendo procesos en ejecución y uso de memoria.
 
 help() {
     echo

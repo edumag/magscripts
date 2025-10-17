@@ -1,5 +1,8 @@
 #!/bin/bash
 
+## magMd2html convierte archivos Markdown a HTML usando plantillas
+## personalizadas, generando páginas web atractivas desde texto plano.
+
 if [[ "$1" == "--raw" ]]; then
     RAW=1
     shift 1

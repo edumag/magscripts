@@ -1,4 +1,6 @@
-## @brief Sincronizamos directorios de un ordenador a otro
+## magRsync permite sincronizar directorios entre diferentes ordenadores de
+## manera eficiente, utilizando rsync para transferir solo los cambios y mantener
+## tus archivos actualizados en múltiples ubicaciones.
 ##
 ## Utilizamos rsync con los siguientes parámetros:
 ##

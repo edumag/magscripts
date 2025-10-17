@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## @brief Lista de los commits de git.
+## magGitCambiosRealizados lista todos los commits realizados en un repositorio
+## Git, proporcionando un historial completo de los cambios para seguimiento y
+## auditoría.
 
 help() { doxygen2help "$0" ; }
 

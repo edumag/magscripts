@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## Liberar memoria del sistema.
+## magLiberarMemoria optimiza el uso de memoria del sistema, liberando caché y
+## buffers para mejorar el rendimiento cuando es necesario.
 
 help() { doxygen2help "$0" ; }
 

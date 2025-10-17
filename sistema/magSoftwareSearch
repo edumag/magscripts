@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## Buscar software disponible en los diferentes sistemas de paquetes.
+## magSoftwareSearch busca software disponible en múltiples gestores de
+## paquetes (apt, pacman, snap, flatpak), facilitando la instalación de
+## programas.
 
 help() { doxygen2help "$0"; }
 [[ "$1" == "-h" || "$1" == "--help" ]] && { help ; exit ; }

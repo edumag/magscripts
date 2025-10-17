@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## @brief Añadir un logo a una imagen
+## magLogoInImage añade automáticamente un logo a tus imágenes, permitiéndote
+## personalizar la posición y crear versiones marcadas de tus fotos de manera
+## eficiente.
 ##
 ## uso: magLogoInImage -l <logo> <imágenes a transformar>"
 ##

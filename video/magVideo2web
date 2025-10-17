@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## Convertir vídeo a formato web.
+## magVideo2web convierte vídeos a formatos optimizados para web, reduciendo el
+## tamaño y mejorando la compatibilidad para streaming online.
 
 help() { doxygen2help "$0" ; }
 

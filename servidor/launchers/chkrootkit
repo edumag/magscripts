@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## @brief Lanzador para chkrootkit.
+## chkrootkit es un lanzador para el escáner de rootkits chkrootkit, ayudando a
+## detectar posibles compromisos de seguridad en el sistema.
 
 help() {
     echo

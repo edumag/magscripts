@@ -1,7 +1,8 @@
 #!/bin/bash
 
-## @file
-## @brief Mostrar lista de los ficheros añadidos o modificados en un repositorio Git.
+## magGitAddedOrModifiedFiles muestra una lista clara de los archivos añadidos
+## o modificados en tus repositorios Git, ayudándote a revisar cambios antes de
+## hacer commits.
 
 listAddOrModifiedFiles() {
     git status --porcelain | grep -E '^[AM?]' | awk '{print $2}'

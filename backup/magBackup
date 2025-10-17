@@ -1,7 +1,6 @@
 #!/bin/bash
 
-## @file magBackup
-## @brief magBackup es un script para generar copias de seguridad de diferentes orígenes.
+## magBackup facilita la creación de copias de seguridad automáticas para tus archivos, bases de datos MySQL y PostgreSQL, tanto locales como en contenedores Docker o Dokku. Organiza las copias en archivos mensuales completos y diarios incrementales para optimizar el espacio y la recuperación.
 ##
 ## Posibles orígenes: Carpetas de ficheros, mysql, mysql en dokku, postgres en docker, postgres en dokku.
 ##

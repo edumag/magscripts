@@ -1,8 +1,6 @@
 #!/bin/bash
 
-## @file configuracion
-##
-## @brief Librería para gestionar la configuración de los scripts de bash
+## Librería para gestionar la configuración de los scripts de bash
 ##
 ## Para trabajar con esta librería es necesario que tengamos un archivo de configuración definido,
 ## y sus variables deben tener un prefijo que las identifique.

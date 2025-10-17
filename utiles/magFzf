@@ -1,3 +1,6 @@
 #!/bin/bash
 
+## magFzf integra fzf con previsualización personalizada para una
+## búsqueda interactiva mejorada de archivos.
+
 fzf --preview 'magFzfPreview {}' "$@"

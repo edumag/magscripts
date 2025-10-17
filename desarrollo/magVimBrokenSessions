@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## Buscar sesiones de vim abiertas y borrarlas.
+## magVimBrokenSessions identifica y elimina sesiones rotas de Vim que pueden
+## quedar abiertas, liberando recursos del sistema y evitando conflictos al
+## editar archivos.
 
 help() { doxygen2help "$0"; }
 [[ "$1" == "-h" || "$1" == "--help" ]] && { help ; exit ; }

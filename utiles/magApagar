@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## Revisar estado de trabajo antes de cerrar.
+## magApagar verifica el estado de tus trabajos y sesiones antes de apagar el
+## ordenador, asegurándose de que no pierdas trabajo sin guardar.
 ##
 ## Apagar ordenador comprobando antes las cosas que nos interesa
 

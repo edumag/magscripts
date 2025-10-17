@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## Script para tomar una captura de pantalla de una porción de la pantalla y extraer el texto de ella.
+## magCopyTextCapture toma una captura de pantalla de una porción seleccionada y extrae el texto usando OCR, convirtiendo imágenes en texto editable.
 ## El texto extraído se copia al portapapeles.
 ##
 ## Basado en https://github.com/SantosRojas/text-extractor/blob/main/gstxt

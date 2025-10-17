@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## @brief Mostar info de IPs.
+## whois_list obtiene información detallada sobre listas de IPs usando whois,
+## útil para investigar direcciones sospechosas.
 
 help() {
     echo

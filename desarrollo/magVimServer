@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## Abrir vim en modo servidor y en caso de que exista Session.vim, cargarla.
+## magVimServer inicia Vim en modo servidor, cargando automáticamente sesiones
+## guardadas para retomar tu trabajo exactamente donde lo dejaste.
 
 help() { doxygen2help "$0"; }
 [[ "$1" == "-h" || "$1" == "--help" ]] && { help ; exit ; }

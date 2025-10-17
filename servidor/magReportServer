@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## Pequeños scripts para saber el estado del servidor.
+## magReportServer ejecuta una serie de scripts para generar un reporte
+## completo del estado del servidor, incluyendo seguridad, servicios y
+## rendimiento.
 
 help() { doxygen2help "$0"; }
 

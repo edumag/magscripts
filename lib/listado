@@ -1,11 +1,10 @@
 #!/bin/bash
 
-## @file listado
-##
-## @brief listado es una librería que podemos insertar en nuestros scripts que nos permite generar menús
+## Listado es una librería que podemos insertar en nuestros scripts que nos permite generar menús
 ## de listas donde podremos seleccionar diferentes elementos.
 ##
 ## Recibe una lista de elementos en la cual podremos especificar columnas en formato:
+##
 ## @code
 ## 126\tnombre\tdescripción de la linea, los campos son separados por "\t".
 ## @endcode
@@ -32,6 +31,7 @@
 ## ejemplo de uso:
 ##
 ## source listado
+##
 ## @code
 ## generar_listado -t 'Titulo listado de ejemplo' -o '127\tprimer ejemplo\tCon su descripción' \
 ## '208\tSegundo ejemplo\tSefunda descripción' \

@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## @brief Mostar estado de fail2ban.
+## fail2ban reporta el estado del servicio fail2ban, incluyendo IPs bloqueadas
+## por intentos de intrusión, para mantener la seguridad del servidor.
 
 help() {
     echo

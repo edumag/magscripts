@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## @brief Lanzador para clamscan.
+## clamscan es un lanzador para el antivirus ClamAV, permitiendo escanear
+## archivos en busca de malware de manera programada.
 
 help() {
     echo

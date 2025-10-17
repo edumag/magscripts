@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## @brief Estado de docker.
+## docker proporciona un estado rápido de los contenedores Docker en ejecución,
+## facilitando la gestión y monitoreo de entornos contenerizados.
 
 help() {
     echo

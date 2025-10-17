@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+## magFzfPreview proporciona previsualización avanzada de archivos e imágenes en fzf, mejorando la navegación interactiva.
 #
 # The purpose of this script is to demonstrate how to preview a file or an
 # image in the preview window of fzf.
