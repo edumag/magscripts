@@ -1,0 +1,3 @@
+magGoAccessInServer_dirTemp	/home/edumag/tmp/
+magGoAccessInServer_logs	/var/log/nginx/lesolivex*
+magGoAccessInServer_server	lesolivex

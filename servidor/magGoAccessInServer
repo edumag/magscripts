@@ -7,13 +7,57 @@
 ## - Lanzar goaccess en server
 ## - Recoger reporte en html.
 ## - Mostrar reporte.
+##
+## Uso: magGoAccessInServer [-h]
+##
+## Opciones:
+## <pre>
+## --help | -h              Pantalla de ayuda
+## --dir | -d               Directorio temporal para reporte.
+## --server | -s            Servidor.
+## --logs | -l              Logs, ejemplo: /var/log/nginx/*.
+## --config | -c            Configuración de valores por defecto.
+## </pre>
+
+help() { doxygen2help "$0"; }
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
 config_file="$HOME/.config/magscripts/magGoAccessInServer"
 [[ -e $config_file ]] && source "$config_file"
 
+source `dirname "$BASH_SOURCE"`/../lib/configuracion
+
+function config() {
+   configuracion_editar magGoAccessInServer_ $BASH_SOURCE
+   configuracion_guardar "magGoAccessInServer_" "$config_file" "$BASH_SOURCE"
+}
+
+## @var magGoAccessInServer_dirTemp
+## Directorio temporal para reporte.
 magGoAccessInServer_dirTemp="${magGoAccessInServer_dirTemp:-$HOME/tmp/}"
+
+## @var magGoAccessInServer_server
+## Servidor.
 magGoAccessInServer_server="${magGoAccessInServer_server:-lesolivex}"
+
+## @var magGoAccessInServer_logs
+## Ficheros logs de nginx o apache.
 magGoAccessInServer_logs=${magGoAccessInServer_logs:-'/var/log/nginx/lesolivex*'}
+
+while [ -n "$1" ] ; do
+    case "$1" in
+        -d|--dir) magGoAccessInServer_dirTemp="$2" ; shift 2 ;;
+        -s|--server) magGoAccessInServer_server="$2" ; shift 2 ;;
+        -l|--logs) magGoAccessInServer_logs="$2" ; shift 2 ;;
+        -c|--config) config ; exit ;;
+        *) help ; exit ;;
+    esac
+done
+
+echo
+echo Servidor: $magGoAccessInServer_server
+echo Logs: $magGoAccessInServer_logs
+echo
 
 ssh $magGoAccessInServer_server "sudo cat ${magGoAccessInServer_logs} | docker run -p 7890:7890 --rm -i -e LANG=$LANG allinurl/goaccess --log-format COMBINED - > report.html"
 
