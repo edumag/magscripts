@@ -3,8 +3,10 @@
 ## @file magBackup
 ## @brief magBackup es un script para generar copias de seguridad de diferentes orígenes.
 ##
+## Posibles orígenes: Carpetas de ficheros, mysql, mysql en dokku, postgres en docker, postgres en dokku.
+##
 ## Con los ficheros creamos una copia por mes y a partir de esta vamos creando
-## archivos por cada día de la semana con los cambios desde la copia por mes.
+## archivos por cada día de la semana con los cambios desde la copia original.
 ##
 ## - Ficheros y carpetas
 ##

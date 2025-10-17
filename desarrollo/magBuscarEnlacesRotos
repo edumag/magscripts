@@ -1,41 +1,33 @@
 #!/bin/bash
 
 ## @file buscar_enlaces_rotos
-## @brief Comprobar enlaces rotos
+## @brief Comprobar enlaces rotos de una web.
+##
+## Uso: magBuscarEnlacesRotos [url] [report file]
 
 help() { doxygen2help "$0" ; }
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
-## Error
-function  error_enlaces() {
-   echo
-   echo uso: `basename $0` [url] [archivo final]
-   echo
-   if [ ! -z "$1" ] ; then
-     echo
-     echo -e "$1"
-     echo
-   fi
-   exit 1
-}
-
 url=${1:-$mt_url_servidor}
-terminal=${mt_miniterminal:-$TERM}
 file=${2:-/tmp/enlaces_rotos.txt}
 
-[[ -z $url ]] && error_enlaces "Debe definirse la url de destino"
+if [[ -z $url ]] ; then
+   echo "Error: Debe definirse la url."
+   exit 1
+fi
 
-cmd="wget --spider --no-check-certificate --no-parent -r  $url"
-
-echo
-echo url: $url
-echo
-echo comando: $cmd
-echo
-
-$cmd | tee -a $file
+cmd="wget --spider -r -l 1 -nd -w 0 --progress=bar:force:noscroll --show-progress -o $file $url"
 
 echo
-echo Archivo final: $file
+echo url: "$url"
 echo
+echo comando: "$cmd"
+echo
+
+$cmd
+
+echo
+echo Archivo final: "$file"
+echo
+xdg-open "$file"

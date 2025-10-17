@@ -1,6 +1,6 @@
 ## @brief Sincronizamos directorios de un ordenador a otro
 ##
-## Utilizamos rsync con los siguientes parametros:
+## Utilizamos rsync con los siguientes parámetros:
 ##
 ## -a: Archivos y directorios
 ## -P: Preservar permisos

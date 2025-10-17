@@ -1,6 +1,7 @@
 # magscripts
 
-Colección de scripts de Bash para automatizar diversas tareas en sistemas Linux.
+Colección de scripts de Bash para automatizar diversas tareas en sistemas Linux
+y ayudarnos en tareas de desarrollo de software.
 
 ## backup
 
