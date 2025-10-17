@@ -1,5 +1,7 @@
 #!/bin/bash
 
+## Convertir URL a URI, usando el esquema RFC 3986.
+
 LANG=C
 
 urldecode() {

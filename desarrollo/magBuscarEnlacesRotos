@@ -1,7 +1,6 @@
 #!/bin/bash
 
-## @file buscar_enlaces_rotos
-## @brief Comprobar enlaces rotos de una web.
+## Comprobar enlaces rotos de una web.
 ##
 ## Uso: magBuscarEnlacesRotos [url] [report file]
 

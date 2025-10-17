@@ -1,8 +1,6 @@
 #!/bin/bash
 
-## @file magLastModifiedFiles
-##
-## @brief listamos los últimos archivos que han sido modificados
+## listamos los últimos archivos que han sido modificados
 ##
 ## Por defecto se muestran los archivos modificados en las últimas 24 horas
 ## del directorio actual.
