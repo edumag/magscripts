@@ -7,9 +7,11 @@
 ## Por defecto se muestran los archivos modificados en las últimas 24 horas
 ## del directorio actual.
 ##
+## Uso: magLastModifiedFiles [-t 30min | 1w | 1m | 24h] [directorio]
 ## Opciones:
 ## <pre>
 ## --help | -h              Pantalla de ayuda
+## --time | -t 30min | 1w | 1m | 24h
 ## </pre>
 
 help() { doxygen2help "$0" ; }
@@ -18,6 +20,8 @@ if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
 ## Directorio a consultar.
 dir="./"
+time="24h"
+find_time="-mtime 0"
 
 ## Mostrar ayuda
 
@@ -25,8 +29,7 @@ while [ -n "$1" ] ; do
 
    case "$1" in
 
-      -h|-help|--help) help ; exit ;;
-      --dependencias|-d) comprobar_dependencias ; exit ;;
+      -t|--time) time="$2" ; shift 2 ;;
       *) dir="$1" ; break ;;
 
    esac
@@ -35,11 +38,21 @@ done
 
 ## Comando
 ## 24h
-comando_ultimos_modificados="find '$dir' -type f -mtime 0 | grep -v '.swp' | grep -v 'log/' | grep -v '.git' | sed 's/\.\///' | sed 's/^\.//'"
+# comando_ultimos_modificados="find '$dir' -type f -mtime 0 | grep -v '.swp' | grep -v 'log/' | grep -v '.git' | sed 's/\.\///' | sed 's/^\.//'"
 ## 30min
 # comando_ultimos_modificados="find '$dir' -type f -mmin -30 | grep -v '.swp' | grep -v 'log/' | grep -v '.git' | sed 's/\.\///' | sed 's/^\.//'"
 
-echo Buscar las últimas 24 horas
+case "$time" in
+   30min) find_time="-mmin -30" ;;
+   1w) find_time="-mtime -7" ;;
+   1m) find_time="-mtime -30" ;;
+   24h) find_time="-mtime 0" ;; # 24h
+   *) help ; exit ;;
+esac
+
+comando_ultimos_modificados="find '$dir' -type f $find_time | grep -v '.swp' | grep -v 'log/' | grep -v '.git' | sed 's/\.\///' | sed 's/^\.//'"
+
+echo Buscar en $dir con $time - $find_time
 echo $comando_ultimos_modificados
 echo
 eval "$comando_ultimos_modificados"

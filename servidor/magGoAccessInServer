@@ -2,8 +2,7 @@
 
 ## Este script automatiza la generación y visualización de un informe de
 ## análisis de logs de acceso web utilizando `goaccess`.  El script está diseñado
-## para ejecutarse en un entorno Linux/Unix y requiere acceso a `ssh`, `scp`,
-## `docker` y `xdg-open`.
+## para ejecutarse en un entorno Linux/Unix y requiere acceso a `ssh`, `scp`.
 ##
 ## - Lanzar goaccess en server
 ## - Recoger reporte en html.
