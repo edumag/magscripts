@@ -1,0 +1,10 @@
+#/bin/bash
+
+localip="$(hostname -I | cut -d" " -f1)"
+baseNet=$(echo $localip | cut -d"." -f1-3)
+cmd="sudo nmap -sP ${baseNet}.0/24"
+
+echo cmd: $cmd
+echo
+
+eval $cmd
