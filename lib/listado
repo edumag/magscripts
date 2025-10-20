@@ -178,7 +178,7 @@ function generar_listado() {
    }
 
 ## A diferencia de generar_listado este método recoge el listado del archivo
-## ${DIR_TMP}listado en vez de recibirlo como parámetro
+## ${MAGSCRIPTS_DIR_TMP}listado en vez de recibirlo como parámetro
 ##
 ## @todo Evitar que sean interpretadas la variables en el contenido que recibimos
 
@@ -227,7 +227,7 @@ function generar_listado_fichero() {
 
    # crear listado
 
-   if [ ! -e "${DIR_TMP}listado" ] ; then
+   if [ ! -e "${MAGSCRIPTS_DIR_TMP}listado" ] ; then
       echo Error sin listado a presentar
       resultado_listado=''
       tecla
@@ -239,7 +239,7 @@ function generar_listado_fichero() {
    DIFS="$IFS" # separador con tabulador
    IFS=$'\t'
 
-   exec 3<${DIR_TMP}listado
+   exec 3<${MAGSCRIPTS_DIR_TMP}listado
    while read -u 3 -a LINEA ; do
 
       [[ "$LINEA" = "" ]] && continue ;
@@ -326,6 +326,6 @@ function generar_listado_fichero() {
 
    resultado_listado=$(echo $resultado_listado | sed 's/^[ t]*//')
 
-   [[ -e ${DIR_TMP}listado ]] && rm ${DIR_TMP}listado
+   [[ -e ${MAGSCRIPTS_DIR_TMP}listado ]] && rm ${MAGSCRIPTS_DIR_TMP}listado
 
    }

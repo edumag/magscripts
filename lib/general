@@ -1,6 +1,11 @@
 #!/bin/bash
 
-## Funciones genericas para los scripts en bash
+## Funciones genéricas para los scripts en bash
+
+config_file_magscripts="$HOME/.config/magscripts/config"
+[[ -e "$config_file_magscripts" ]] && source "$config_file_magscripts"
+
+MAGSCRIPTS_DIR_TMP="${MAGSCRIPTS_DIR_TMP:-/tmp/}"
 
 libash_general_incluida=1
 

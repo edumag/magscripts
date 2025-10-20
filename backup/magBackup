@@ -56,6 +56,14 @@ source `dirname "$BASH_SOURCE"`/../lib/configuracion
 ## Recoger configuración de magBackup
 [[ -e $fichero_configuracion_magbackup ]] && source "$fichero_configuracion_magbackup"
 
+function magLogger() {
+    if [ "$1" = "error" ] ; then
+        logger -p local0.err -it magBackup "$@"
+    else
+        logger -p local0.info -it magBackup "$@"
+    fi
+}
+
 function magbackup_crear_copia_ficheros_perfil() {
 
     echo --------
@@ -66,7 +74,8 @@ function magbackup_crear_copia_ficheros_perfil() {
 
       [[ ${file:0-1} == '*' ]] && break
 
-      CMD='nice -10 sudo tar -Pcjpf '
+      # CMD='nice -10 sudo tar -Pcjpf '
+      CMD='nice -10 tar -Pcjpf '
 
       source "$file"
 
@@ -92,6 +101,7 @@ function magbackup_crear_copia_ficheros_perfil() {
             echo -e "$origenes OK"
          else
             errores="$errores $origenes"
+            magLogger error "No se encuentra $origenes"
          fi
       done
 
@@ -143,8 +153,10 @@ function magbackup_crear_copia_ficheros_perfil() {
 
       if [ $? = 0 ] ; then
          echo Copia generada correctamente
+         magLogger "Copia generada correctamente [${DESTINO}]"
       else
          echo Error al generar copia
+         magLogger error "Error al generar copia [${DESTINO}]"
          exit 1
       fi
 
@@ -172,6 +184,15 @@ function magbackup_crear_copia_mysql_perfil() {
          echo
          echo Comando: $cmd
          eval "$cmd"
+
+          if [ $? = 0 ] ; then
+             echo Copia generada correctamente
+             magLogger "Copia mysql generada correctamente [${DB}]"
+          else
+             echo Error al generar copia
+             magLogger error "Error al generar copia de mysql [${DB}]"
+             exit 1
+          fi
       done
 
    done
@@ -197,6 +218,14 @@ function magbackup_crear_copia_docker_postgres_perfil() {
          echo
          echo Comando: $cmd
          eval "$cmd"
+          if [ $? = 0 ] ; then
+             echo Copia generada correctamente
+             magLogger "Copia mysql generada correctamente [${DB}]"
+          else
+             echo Error al generar copia
+             magLogger error "Error al generar copia de mysql [${DB}]"
+             exit 1
+          fi
       done
 
    done
@@ -222,6 +251,14 @@ function magbackup_crear_copia_dokku_postgres_perfil() {
       echo
       echo Comando: $cmd
       eval "$cmd"
+      if [ $? = 0 ] ; then
+          echo Copia generada correctamente
+          magLogger "Copia postgres en dokku generada correctamente [${DOKKU_APP}]"
+      else
+          echo Error al generar copia
+          magLogger error "Error al generar copia postgres en dokku [${DOKKU_APP}]"
+          exit 1
+      fi
 
    done
 
@@ -246,6 +283,14 @@ function magbackup_crear_copia_dokku_mysql_perfil() {
       echo
       echo Comando: $cmd
       eval "$cmd"
+      if [ $? = 0 ] ; then
+          echo Copia generada correctamente
+          magLogger "Copia mysql en dokku generada correctamente [${DOKKU_APP}]"
+      else
+          echo Error al generar copia
+          magLogger error "Error al generar copia mysql en dokku [${DOKKU_APP}]"
+          exit 1
+      fi
 
    done
 

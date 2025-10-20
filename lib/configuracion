@@ -73,22 +73,22 @@ function configuracion_editar() {
       echo
       echo Valores por defecto:
       echo
-      [[ -e ${DIR_TMP}listado ]] && rm ${DIR_TMP}listado
+      [[ -e ${MAGSCRIPTS_DIR_TMP}listado ]] && rm ${MAGSCRIPTS_DIR_TMP}listado
       for variable in `eval echo "$default"` ; do
          local a=${!variable}  # valor anterior
          echo -e "`color colAviso`$variable`color` = `color colAfirmativo`${a:-NULL}`color`"
          local var="`echo $variable | sed 's/default_//'`"
-         echo -e "$var\t${!var}" >> ${DIR_TMP}listado
+         echo -e "$var\t${!var}" >> ${MAGSCRIPTS_DIR_TMP}listado
       done
 
    else
 
       local c='${!'$configuracion_prefijo'*}'
-      [[ -e ${DIR_TMP}listado ]] && rm ${DIR_TMP}listado
+      [[ -e ${MAGSCRIPTS_DIR_TMP}listado ]] && rm ${MAGSCRIPTS_DIR_TMP}listado
       for variable in `eval echo "$c"` ; do
          #if [ "$variable" != "" ] ; then
             local a=${!variable}  # valor anterior
-            echo -e "$variable\t${a:-NULL}" >> ${DIR_TMP}listado
+            echo -e "$variable\t${a:-NULL}" >> ${MAGSCRIPTS_DIR_TMP}listado
          #fi
       done
 
