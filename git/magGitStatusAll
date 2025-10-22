@@ -11,6 +11,10 @@ help() { doxygen2help "$0"; }
 # Listado de proyectos
 FILE_CONFIG=$HOME/.config/magscripts/magGitStatusAll
 
+echo "Config: $FILE_CONFIG"
+cat "$FILE_CONFIG"
+
+
 if [ -f "$FILE_CONFIG" ]; then
 	LISTA_PROYECTOS=$(cat "$FILE_CONFIG")
 else
@@ -40,13 +44,13 @@ gitStatusShow() {
 }
 
 gitCheckStatus() {
-	if gitStatusShow "$(git status)"; then
+	# if gitStatusShow "$(git status)"; then
 		echo
 		pwd
 		pwd | sed 's/./-/g'
 		echo
 		git status
-	fi
+	# fi
 }
 
 gitstatusall() {
