@@ -114,6 +114,18 @@ magComprobarConexion monitorea continuamente la conexión a internet, notificán
 
 *Dependencias*: ping, notify-send
 
+### magDeviceListLocal
+
+magDeviceListLocal lista los dispositivos conectados en la red local utilizando nmap para escanear la red.
+
+*Dependencias*: nmap, hostname, cut, sudo
+
+### magLocapIp
+
+magLocapIp muestra la dirección IP local del sistema.
+
+*Dependencias*: hostname, cut
+
 ### magVerIp
 
 magVerIp muestra tu dirección IP actual de manera rápida, útil para configuraciones de red o conexiones remotas.
@@ -234,6 +246,12 @@ magMd2pdf transforma documentos Markdown en PDFs de alta calidad, perfectos para
 
 *Dependencias*: pandoc, xelatex, xdg-open
 
+### magTranslate
+
+magTranslate traduce texto utilizando la API de Google Translate, convirtiendo texto entre idiomas.
+
+*Dependencias*: curl
+
 ## utiles
 
 ### magApagar
@@ -254,11 +272,35 @@ magDate2time convierte fechas en formato humano a timestamps Unix, útil para sc
 
 *Dependencias*: date
 
+### magFzf
+
+magFzf integra fzf con previsualización personalizada para una búsqueda interactiva mejorada de archivos.
+
+*Dependencias*: fzf, magFzfPreview
+
+### magFzfPreview
+
+magFzfPreview proporciona previsualización avanzada de archivos e imágenes en fzf, mejorando la navegación interactiva.
+
+*Dependencias*: bat, chafa, imgcat, file
+
+### magHelp
+
+magHelp consulta cheatsheets desde cheat.sh para obtener ayuda rápida sobre comandos y lenguajes de programación.
+
+*Dependencias*: curl
+
 ### magPass
 
 magPass imprime contraseñas de comandos de manera segura, gestionando credenciales para scripts automatizados.
 
 *Dependencias*:
+
+### magText2Filename
+
+magText2Filename convierte frases en nombres de archivos válidos, transliterando caracteres especiales a ASCII.
+
+*Dependencias*: xclip, sed, iconv
 
 ### magTime2date
 

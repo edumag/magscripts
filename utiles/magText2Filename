@@ -1,3 +1,18 @@
 #!/bin/bash
+## Convertir frases en nombres de archivos
+##
+## En caso de no recibir argumentos, usa el portapapeles y el reultado
+## es copiado al portapapeles.
+##
+## Uso: magText2Filename "frase"
 
-echo $@ | sed 's/[^a-zA-Z0-9]/_/g'
+
+if [ -z $1 ]; then
+    TEXT="$(xclip -f -o -sel clip)"
+else
+    TEXT="$*"
+fi
+
+SALIDA="`echo $TEXT | sed 's/[^a-zA-Z0-9]/_/g' | iconv -f utf-8 -t ascii//TRANSLIT`"
+echo $SALIDA | xclip -selection clipboard
+echo $SALIDA
