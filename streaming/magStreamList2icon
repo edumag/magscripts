@@ -1,0 +1,156 @@
+#!/bin/bash
+
+## @file m3u2icons.sh
+##
+## @brief Generación de iconos con las imágenes de los streaminsgs de una lista.
+##
+## Creando un directorio que lance directamente los juegos.
+##
+## Si se necesitam imágenes de los juegos en internet se pueden encontrar en por
+## ejemplo: http://www.progettosnaps.net/snaps_en.html.
+##
+##
+## Opciones:
+## <pre>
+## --help | -h              Pantalla de ayuda
+## </pre>
+##
+## @author   Eduardo Magrané
+##
+## @internal
+##
+##       web  http://www.lesolivex.com
+##
+##      mail  edu.lesolivex.com
+##
+##  Revision  SVN $Id: $
+##
+## Copyright  Copyright (c) 2011, Eduardo Magrané
+##
+## This source code is released for free distribution under the terms of the
+## GNU General Public License as published by the Free Software Foundation.
+
+## Mostrar ayuda
+
+function help() {
+
+   local -i count=0
+   while read linea ; do
+      let count++
+      if [ $count -gt 2 ] ; then
+         [ "$linea" = "" ] && return
+         echo "$linea" | sed 's/^##//' | sed 's/@brief //' | sed 's/@file //'
+      fi
+   done < "$0"
+   echo
+
+   }
+
+colores=1
+
+ICONOS_DIR='m3u2icons'
+IMAGES_DIR="`pwd`/${ICONOS_DIR}/img"
+
+if [ ! -d "$ICONOS_DIR" ] ; then
+  mkdir "$ICONOS_DIR"
+fi
+
+if [ ! -d "$IMAGES_DIR" ] ; then
+  mkdir "$IMAGES_DIR"
+fi
+
+verde() {
+
+   if [ $colores != 0 ] ; then
+     echo -e "\033[32m${@}\033[0m"
+  fi
+}
+
+rojo() {
+
+   if [ $colores != 0 ] ; then
+      echo -e "\033[31m${@}\033[0m"
+   fi
+}
+
+generar_icono() {
+
+   # echo generar icono: "$1"
+
+   cd "$ICONOS_DIR"
+
+   NAME="$1"
+   URL_STREAM="$2"
+   ICONO_NAME="${1}.desktop"
+
+   echo -e "[Desktop Entry]" > $ICONO_NAME
+   echo -e "Version=1.0" >> $ICONO_NAME
+   echo -e "Name=$NAME" >> $ICONO_NAME
+   echo -e "Type=Application" >> $ICONO_NAME
+   echo -e "Terminal=true" >> $ICONO_NAME
+   echo -e "Name[es_ES]=$NAME" >> $ICONO_NAME
+   echo -e "Exec=vlc ${URL_STREAM}" >> $ICONO_NAME
+   # echo -e "Icon=${IMAGES_DIR}/${NAME}.png" >> $ICONO_NAME
+   echo -e "Icon=${IMAGES_DIR}/${NAME}.png" >> $ICONO_NAME
+   echo -e "GenericName=$NAME" >> $ICONO_NAME
+   echo -e "MimeType=text/plain;" >> $ICONO_NAME
+   echo -e "X-Ubuntu-Touch=true" >> $ICONO_NAME
+
+   chmod +x "$ICONO_NAME"
+   cd ../
+   echo "Icono generado: $ICONO_NAME"
+
+   }
+
+while [ -n "$1" ] ; do
+
+   case "$1" in
+
+      -h|-help|--help) help ; exit ;;
+      *) break ;;
+
+   esac
+
+done
+
+if grep -q 'http' <<< "$1" ; then
+  wget "$1" -O /tmp/lista.m3u
+  lista="/tmp/lista.m3u"
+else
+  lista="$1"
+fi
+
+echo "lista: $lista"
+
+# Obtener url de la m3u
+while read linea ; do
+  url=''
+  filter=''
+  echo "linea: $linea"
+  if grep -q "$2" <<< "$linea" ; then
+     echo -e "filter: $line\n"
+     filter='true'
+  fi
+  if grep -q 'tvg-id' <<< "$linea" ; then
+     name=`echo "$linea" | cut -d '=' -f2 | cut -d '"' -f2 | sed 's/\./-/g'`
+     echo -e "name: $name\n"
+  fi
+  if [ "${linea:0:4}" = 'http' ] ; then
+    url="$(echo $linea | sed 's/\^M//g')"
+  fi
+  if [ "$url" != '' ] && [ "$filter" = 'true' ] ; then
+    echo url: $url
+    # read -p '[ENTER] para continuar' tecla </dev/tty
+    # Obtener imagen del stream.
+    # ffmpeg -i "$url" -ss 00:00:01 -vframes 1 "${IMAGES_DIR}/${name}.png" >/dev/null 2>/dev/null
+    # mpv --network-timeout=8000 --vo=image --vo-image-format=png --o="${IMAGES_DIR}/${name}.png" --frames=1 "$url" >/dev/null 2>/dev/null
+    mpv --vo=image --vo-image-format=png --o="${IMAGES_DIR}/${name}.png" --frames=1 "$url" >/dev/null 2>/dev/null
+    if [ $? != 0 ] ; then
+      echo -e "No se pudo generar el icono para $name"
+    else
+      generar_icono "$name" "$url"
+    fi
+    filter=''
+  fi
+done < "$lista"
+
