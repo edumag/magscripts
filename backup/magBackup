@@ -279,7 +279,7 @@ function magbackup_crear_copia_dokku_mysql_perfil() {
 
       source "$file"
 
-      cmd="nice -10 dokku mysql:export $DOKKU_APP > ${magBackup_dir}dokku_postgres-${DOKKU_APP}-`hostname`-${DIA}.dump"
+      cmd="nice -10 dokku mysql:export $DOKKU_APP > ${magBackup_dir}dokku_mysql-${DOKKU_APP}-`hostname`-${DIA}.dump"
       echo
       echo Comando: $cmd
       eval "$cmd"
