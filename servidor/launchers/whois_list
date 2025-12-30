@@ -19,7 +19,7 @@ echo
 echo "## WhoisList"
 
 echo
-echo "Mostramosinformación de las 10 primeras."
+echo "Mostramos información de las 10 primeras."
 echo
 echo -e "IP\tN.\tCOUNTRY\tNAME\tORG.\tSERVICE\tADDRESS"
 c=0 ; while read line ; do

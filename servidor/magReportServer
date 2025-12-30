@@ -18,7 +18,10 @@ echo
 cd "$(dirname $0)"
 
 for x in ./launchers/*; do
-	$x
+  if [ "$x" != "./launchers/whois_list" ]; then
+    # echo "## $x"
+    $x
+  fi
 done
 
 cd -
