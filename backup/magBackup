@@ -40,6 +40,7 @@ help() { doxygen2help "$0" ; }
 
 # variables internas
 
+DAYS_TO_DELETE=90
 DIR_CONFIG_MAGBACKUP="$HOME/.config/magscripts/magBackup"
 fichero_configuracion_magbackup="$DIR_CONFIG_MAGBACKUP/config"  ##< Fichero configuración
 directorio__ficheros="$DIR_CONFIG_MAGBACKUP/ficheros/"  ##< Fichero configuración
@@ -302,6 +303,15 @@ function config() {
 
 }
 
+function delete_old_files() {
+
+    cd "$magBackup_dir"
+    echo "Eliminando copias antiguas..."
+    find . -mtime +$DAYS_TO_DELETE -type f \( -name '*tar*' -o -name '*dump' \)
+    find . -mtime +$DAYS_TO_DELETE -type f \( -name '*tar*' -o -name '*dump' \) -exec rm -f {} \;
+    cd -
+}
+
 while [ -n "$1" ] ; do
 
    case "$1" in
@@ -328,7 +338,7 @@ if [ ! -e "$fichero_configuracion_magbackup" ] ; then
    fi
 fi
 
-# Recogemos archivo de configuracion
+# Recogemos archivo de configuración
 # @todo Crear carpetas si no las hay.
 DIR_CONFIG=`dirname $fichero_configuracion_magbackup`
 
@@ -342,6 +352,7 @@ if [[ ! -d "$DIR_CONFIG" ]] ; then
 
        configuracion_guardar "magBackup_" "$fichero_configuracion_magbackup"
 fi
+
 . "$fichero_configuracion_magbackup"
 
 
@@ -350,3 +361,5 @@ magbackup_crear_copia_mysql_perfil
 magbackup_crear_copia_docker_postgres_perfil
 magbackup_crear_copia_dokku_postgres_perfil
 magbackup_crear_copia_dokku_mysql_perfil
+
+delete_old_files
