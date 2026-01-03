@@ -255,7 +255,7 @@ function magbackup_crear_copia_ficheros_perfil() {
         echo Comando: $cmd
         eval "$cmd"
         if [ $? = 0 ] ; then
-          bzip2 "$DESTINO"
+          bzip2 -f "$DESTINO"
           if [ $? = 0 ] ; then
             echo Copia generada correctamente
             magLogger "Copia postgres en dokku generada correctamente [${DOKKU_APP}]"
@@ -297,7 +297,7 @@ function magbackup_crear_copia_ficheros_perfil() {
       echo Comando: $cmd
       eval "$cmd"
       if [ $? = 0 ] ; then
-        bzip2 "$DESTINO"
+        bzip2 -f "$DESTINO"
         if [ $? = 0 ] ; then
           echo Copia generada correctamente
           magLogger "Copia mysql en dokku generada correctamente [${DOKKU_APP}]"
