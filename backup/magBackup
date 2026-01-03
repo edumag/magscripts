@@ -255,6 +255,15 @@ function magbackup_crear_copia_ficheros_perfil() {
         echo Comando: $cmd
         eval "$cmd"
         if [ $? = 0 ] ; then
+          bzip2 "$DESTINO"
+          if [ $? = 0 ] ; then
+            echo Copia generada correctamente
+            magLogger "Copia postgres en dokku generada correctamente [${DOKKU_APP}]"
+          else
+            echo Error al comprimir copia.
+          magLogger error "Error al comprimir copia postgres en dokku [${DOKKU_APP}]"
+            exit 1
+          fi
           echo Copia generada correctamente
           magLogger "Copia postgres en dokku generada correctamente [${DOKKU_APP}]"
         else
