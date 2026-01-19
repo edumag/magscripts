@@ -59,134 +59,167 @@ source `dirname "$BASH_SOURCE"`/../lib/configuracion
 [[ -e $fichero_configuracion_magbackup ]] && source "$fichero_configuracion_magbackup"
 
 function magLogger() {
-  if [ "$1" = "error" ] ; then
-    logger -p local0.err -it magBackup "$@"
-  else
-    logger -p local0.info -it magBackup "$@"
-  fi
+if [ "$1" = "error" ] ; then
+  logger -p local0.err -it magBackup "$@"
+else
+  logger -p local0.info -it magBackup "$@"
+fi
 }
 
 function magbackup_crear_copia_ficheros_perfil() {
 
-  echo --------
-  echo Ficheros
-  echo --------
+echo --------
+echo Ficheros
+echo --------
 
-  for file in "$directorio__ficheros"* ; do
+for file in "$directorio__ficheros"* ; do
+
+  [[ ${file:0-1} == '*' ]] && break
+
+    # CMD='nice -10 sudo tar -Pcjpf '
+    CMD='nice -10 tar -Pcjpf '
+
+    source "$file"
+
+    NOMBRE="$(basename $file)"
+    NOMBRE_MES="${NOMBRE}-`hostname`-${MES}.tar.bz2"
+    NOMBRE_DIA="${NOMBRE}-`hostname`-${DIA}.tar.bz2"
+
+    echo
+    echo $NOMBRE
+    echo $NOMBRE | sed 's/./-/g'
+    echo
+    echo Inicio:  $CS_DIR
+    echo Mensual: $NOMBRE_MES
+    echo Diario:  $NOMBRE_DIA
+    echo
+
+    cd $CS_DIR
+
+    if [ ! -d $DIR ] ; then echo Directorio de inicio $CS_DIR no existe! ; exit 1 ; fi
+
+    for origenes in $CS_COPIAR ; do
+      if [ -e $origenes ] ; then
+        echo -e "$origenes OK"
+      else
+        errores="$errores $origenes"
+        magLogger error "No se encuentra $origenes"
+      fi
+    done
+
+    if [ "$errores" != "" ] ; then
+      echo
+      echo Hay ubicaciones por copiar que no existen
+      echo
+      echo $errores | tr ' ' "\n"
+      exit 1
+    fi
+
+    # Si encontramos la copia del mes actual realizada
+    # hacemos una copia solo de los ficheros que se han
+    # modificado desde entonces
+
+    ANYO_ACTUAL=`date +%Y`
+
+    if [ -e "${magBackup_dir}$NOMBRE_MES" ] && [ "$ANYO_ACTUAL" = "`date +%Y -r "${magBackup_dir}$NOMBRE_MES"`" ]; then
+
+       # generamos copia diaria incremental
+       DESTINO="${magBackup_dir}$NOMBRE_DIA"
+       FECHA_INCREMENTAL="`date \"+%Y-%m-%d %H:%M\" -r "${magBackup_dir}$NOMBRE_MES"`"
+       CMD="$CMD $DESTINO --newer-mtime \"$FECHA_INCREMENTAL\" $CS_COPIAR"
+
+       echo
+       echo Realizamos copia incremental: $DESTINO
+       echo
+       echo Fecha ultima copia completa $FECHA_INCREMENTAL
+
+     else
+
+       # Generamos copia mensual
+       DESTINO="${magBackup_dir}$NOMBRE_MES"
+       CMD="$CMD $DESTINO $CS_COPIAR"
+
+       echo
+       echo Realizamos copia mensual: $DESTINO
+       echo
+
+    fi
+
+    # Hacer la copia sobre directorio temporal y solo
+    # en caso de éxito pasarla al directorio final.
+
+    echo
+    echo Comando: $CMD
+    echo
+    eval "$CMD"
+
+    if [ $? = 0 ] ; then
+      echo Copia generada correctamente
+      magLogger "Copia generada correctamente [${DESTINO}]"
+    else
+      echo Error al generar copia
+      magLogger error "Error al generar copia [${DESTINO}]"
+      exit 1
+    fi
+
+
+  done
+
+}
+
+function magbackup_crear_copia_mysql_perfil() {
+
+  for file in "$directorio__mysql"* ; do
 
     [[ ${file:0-1} == '*' ]] && break
 
-      # CMD='nice -10 sudo tar -Pcjpf '
-      CMD='nice -10 tar -Pcjpf '
+    echo
+    echo -----
+    echo Mysql
+    echo -----
+    echo
 
-      source "$file"
+    source "$file"
 
-      NOMBRE="$(basename $file)"
-      NOMBRE_MES="${NOMBRE}-`hostname`-${MES}.tar.bz2"
-      NOMBRE_DIA="${NOMBRE}-`hostname`-${DIA}.tar.bz2"
-
+    for BD in $BASES_DATOS ; do
+      cmd="nice -10 mysqldump -u$USUARIO -p$PASS $BD | nice -10 bzip2 --best -c > ${magBackup_dir}mysql-${BD}-`hostname`-${DIA}.dump.bz2"
       echo
-      echo $NOMBRE
-      echo $NOMBRE | sed 's/./-/g'
-      echo
-      echo Inicio:  $CS_DIR
-      echo Mensual: $NOMBRE_MES
-      echo Diario:  $NOMBRE_DIA
-      echo
-
-      cd $CS_DIR
-
-      if [ ! -d $DIR ] ; then echo Directorio de inicio $CS_DIR no existe! ; exit 1 ; fi
-
-      for origenes in $CS_COPIAR ; do
-        if [ -e $origenes ] ; then
-          echo -e "$origenes OK"
-        else
-          errores="$errores $origenes"
-          magLogger error "No se encuentra $origenes"
-        fi
-      done
-
-      if [ "$errores" != "" ] ; then
-        echo
-        echo Hay ubicaciones por copiar que no existen
-        echo
-        echo $errores | tr ' ' "\n"
-        exit 1
-      fi
-
-      # Si encontramos la copia del mes actual realizada
-      # hacemos una copia solo de los ficheros que se han
-      # modificado desde entonces
-
-      ANYO_ACTUAL=`date +%Y`
-
-      if [ -e "${magBackup_dir}$NOMBRE_MES" ] && [ "$ANYO_ACTUAL" = "`date +%Y -r "${magBackup_dir}$NOMBRE_MES"`" ]; then
-
-         # generamos copia diaria incremental
-         DESTINO="${magBackup_dir}$NOMBRE_DIA"
-         FECHA_INCREMENTAL="`date \"+%Y-%m-%d %H:%M\" -r "${magBackup_dir}$NOMBRE_MES"`"
-         CMD="$CMD $DESTINO --newer-mtime \"$FECHA_INCREMENTAL\" $CS_COPIAR"
-
-         echo
-         echo Realizamos copia incremental: $DESTINO
-         echo
-         echo Fecha ultima copia completa $FECHA_INCREMENTAL
-
-       else
-
-         # Generamos copia mensual
-         DESTINO="${magBackup_dir}$NOMBRE_MES"
-         CMD="$CMD $DESTINO $CS_COPIAR"
-
-         echo
-         echo Realizamos copia mensual: $DESTINO
-         echo
-
-      fi
-
-      # Hacer la copia sobre directorio temporal y solo
-      # en caso de éxito pasarla al directorio final.
-
-      echo
-      echo Comando: $CMD
-      echo
-      eval "$CMD"
+      echo Comando: $cmd
+      eval "$cmd"
 
       if [ $? = 0 ] ; then
         echo Copia generada correctamente
-        magLogger "Copia generada correctamente [${DESTINO}]"
+        magLogger "Copia mysql generada correctamente [${DB}]"
       else
         echo Error al generar copia
-        magLogger error "Error al generar copia [${DESTINO}]"
+        magLogger error "Error al generar copia de mysql [${DB}]"
         exit 1
-      fi
-
+        fi
+      done
 
     done
 
   }
 
-  function magbackup_crear_copia_mysql_perfil() {
+  function magbackup_crear_copia_docker_postgres_perfil() {
 
-    for file in "$directorio__mysql"* ; do
+    for file in "$directorio__docker_postgres"* ; do
 
       [[ ${file:0-1} == '*' ]] && break
 
       echo
-      echo -----
-      echo Mysql
-      echo -----
+      echo ---------------
+      echo Docker Postgres
+      echo ---------------
       echo
 
       source "$file"
 
       for BD in $BASES_DATOS ; do
-        cmd="nice -10 mysqldump -u$USUARIO -p$PASS $BD | nice -10 bzip2 --best -c > ${magBackup_dir}mysql-${BD}-`hostname`-${DIA}.dump.bz2"
+        cmd="nice -10 docker exec -i -e PGPASSWORD=${DOCKER_PASSWORD} ${DOCKER_IMAGE} /usr/bin/pg_dump -U ${DOCKER_USER} ${DOCKER_DATABASE} > ${magBackup_dir}docker_postgres-${DOCKER_DATABASE}-`hostname`-${DIA}.dump"
         echo
         echo Comando: $cmd
         eval "$cmd"
-
         if [ $? = 0 ] ; then
           echo Copia generada correctamente
           magLogger "Copia mysql generada correctamente [${DB}]"
@@ -194,105 +227,34 @@ function magbackup_crear_copia_ficheros_perfil() {
           echo Error al generar copia
           magLogger error "Error al generar copia de mysql [${DB}]"
           exit 1
-          fi
-        done
-
+        fi
       done
-
-    }
-
-    function magbackup_crear_copia_docker_postgres_perfil() {
-
-      for file in "$directorio__docker_postgres"* ; do
-
-        [[ ${file:0-1} == '*' ]] && break
-
-        echo
-        echo ---------------
-        echo Docker Postgres
-        echo ---------------
-        echo
-
-        source "$file"
-
-        for BD in $BASES_DATOS ; do
-          cmd="nice -10 docker exec -i -e PGPASSWORD=${DOCKER_PASSWORD} ${DOCKER_IMAGE} /usr/bin/pg_dump -U ${DOCKER_USER} ${DOCKER_DATABASE} > ${magBackup_dir}docker_postgres-${DOCKER_DATABASE}-`hostname`-${DIA}.dump"
-          echo
-          echo Comando: $cmd
-          eval "$cmd"
-          if [ $? = 0 ] ; then
-            echo Copia generada correctamente
-            magLogger "Copia mysql generada correctamente [${DB}]"
-          else
-            echo Error al generar copia
-            magLogger error "Error al generar copia de mysql [${DB}]"
-            exit 1
-          fi
-        done
-
-      done
-
-    }
-
-    function magbackup_crear_copia_dokku_postgres_perfil() {
-
-      for file in "$directorio__dokku_postgres"* ; do
-
-        [[ ${file:0-1} == '*' ]] && break
-
-        echo
-        echo --------------
-        echo Dokku Postgres
-        echo --------------
-        echo
-        echo "$file"
-
-        source "$file"
-        DESTINO="${magBackup_dir}dokku_postgres-${DOKKU_APP}-`hostname`-${DATE}.dump"
-
-        cmd="nice -10 dokku postgres:export $DOKKU_APP > $DESTINO"
-        echo
-        echo Comando: $cmd
-        eval "$cmd"
-        if [ $? = 0 ] ; then
-          bzip2 -f "$DESTINO"
-          if [ $? = 0 ] ; then
-            echo Copia generada correctamente
-            magLogger "Copia postgres en dokku generada correctamente [${DOKKU_APP}]"
-          else
-            echo Error al comprimir copia.
-          magLogger error "Error al comprimir copia postgres en dokku [${DOKKU_APP}]"
-            exit 1
-          fi
-          echo Copia generada correctamente
-          magLogger "Copia postgres en dokku generada correctamente [${DOKKU_APP}]"
-        else
-          echo Error al generar copia
-          magLogger error "Error al generar copia postgres en dokku [${DOKKU_APP}]"
-          exit 1
-      fi
 
     done
 
   }
 
-  function magbackup_crear_copia_dokku_mysql_perfil() {
+  function magbackup_crear_copia_dokku_postgres_perfil() {
 
-    for file in "$directorio__dokku_mysql"* ; do
+    for file in "$directorio__dokku_postgres"* ; do
 
       [[ ${file:0-1} == '*' ]] && break
 
       echo
-      echo -----------
-      echo Dokku MySQl
-      echo -----------
+      echo --------------
+      echo Dokku Postgres
+      echo --------------
       echo
       echo "$file"
 
       source "$file"
+      DESTINO="${magBackup_dir}dokku_postgres-${DOKKU_APP}-`hostname`-${DATE}.sql"
 
-      DESTINO="${magBackup_dir}dokku_mysql-${DOKKU_APP}-`hostname`-${DATE}.sql"
-      cmd="nice -10 dokku mysql:export $DOKKU_APP > $DESTINO"
+      # cmd="nice -10 dokku postgres:export $DOKKU_APP > $DESTINO"
+      # Dokku postgres solo hace la exportación de la base de datos con el mismo nombre que la app.
+      # Utilizamos docker directamente para tener una copia total de la base de datos.
+      TAG=$(docker ps --format table | grep socialdb | awk -F " " '{print $NF}')
+      cmd="nice -10 docker exec -t $TAG pg_dumpall -c -U postgres > $DESTINO"
       echo
       echo Comando: $cmd
       eval "$cmd"
@@ -300,49 +262,91 @@ function magbackup_crear_copia_ficheros_perfil() {
         bzip2 -f "$DESTINO"
         if [ $? = 0 ] ; then
           echo Copia generada correctamente
-          magLogger "Copia mysql en dokku generada correctamente [${DOKKU_APP}]"
+          magLogger "Copia postgres en dokku generada correctamente [${DOKKU_APP}]"
         else
           echo Error al comprimir copia.
-          magLogger error "Error al comprimir copia mysql en dokku [${DOKKU_APP}]"
+          magLogger error "Error al comprimir copia postgres en dokku [${DOKKU_APP}]"
           exit 1
         fi
+        echo Copia generada correctamente
+        magLogger "Copia postgres en dokku generada correctamente [${DOKKU_APP}]"
       else
         echo Error al generar copia
-        magLogger error "Error al generar copia mysql en dokku [${DOKKU_APP}]"
+        magLogger error "Error al generar copia postgres en dokku [${DOKKU_APP}]"
         exit 1
-      fi
-
-    done
-
-  }
-
-  function config() {
-    configuracion_editar magBackup_ $BASH_SOURCE
-    configuracion_guardar "magBackup_" "$fichero_configuracion_magbackup"
-
-  }
-
-  function delete_old_files() {
-
-    cd "$magBackup_dir"
-    echo "Eliminando copias antiguas..."
-    find . -mtime +$DAYS_TO_DELETE -type f \( -name '*tar*' -o -name '*dump' \)
-    find . -mtime +$DAYS_TO_DELETE -type f \( -name '*tar*' -o -name '*dump' \) -exec rm -f {} \;
-    cd -
-  }
-
-  while [ -n "$1" ] ; do
-
-    case "$1" in
-
-      -h|-help|--help) help ; exit ;;
-      -info) info ; help ; exit ;;
-      --dependencias|-d) comprobar_dependencias ; exit ;;
-      --config|-c) config ; exit ;;
-
-    esac
+    fi
 
   done
+
+}
+
+function magbackup_crear_copia_dokku_mysql_perfil() {
+
+  for file in "$directorio__dokku_mysql"* ; do
+
+    [[ ${file:0-1} == '*' ]] && break
+
+    echo
+    echo -----------
+    echo Dokku MySQl
+    echo -----------
+    echo
+    echo "$file"
+
+    source "$file"
+
+    DESTINO="${magBackup_dir}dokku_mysql-${DOKKU_APP}-`hostname`-${DATE}.sql"
+    cmd="nice -10 dokku mysql:export $DOKKU_APP > $DESTINO"
+    echo
+    echo Comando: $cmd
+    eval "$cmd"
+    if [ $? = 0 ] ; then
+      bzip2 -f "$DESTINO"
+      if [ $? = 0 ] ; then
+        echo Copia generada correctamente
+        magLogger "Copia mysql en dokku generada correctamente [${DOKKU_APP}]"
+      else
+        echo Error al comprimir copia.
+        magLogger error "Error al comprimir copia mysql en dokku [${DOKKU_APP}]"
+        exit 1
+      fi
+    else
+      echo Error al generar copia
+      magLogger error "Error al generar copia mysql en dokku [${DOKKU_APP}]"
+      exit 1
+    fi
+
+  done
+
+}
+
+function config() {
+  configuracion_editar magBackup_ $BASH_SOURCE
+  configuracion_guardar "magBackup_" "$fichero_configuracion_magbackup"
+
+}
+
+function delete_old_files() {
+
+  cd "$magBackup_dir"
+  echo "Eliminando copias antiguas..."
+  find . -mtime +$DAYS_TO_DELETE -type f \( -name '*tar*' -o -name '*dump' \)
+  find . -mtime +$DAYS_TO_DELETE -type f \( -name '*tar*' -o -name '*dump' \) -exec rm -f {} \;
+  cd -
+}
+
+while [ -n "$1" ] ; do
+
+  case "$1" in
+
+    -h|-help|--help) help ; exit ;;
+    -info) info ; help ; exit ;;
+    --dependencias|-d) comprobar_dependencias ; exit ;;
+    --config|-c) config ; exit ;;
+
+  esac
+
+done
 
 # Si no encontramos fichero de configuración hay que generarlo
 if [ ! -e "$fichero_configuracion_magbackup" ] ; then

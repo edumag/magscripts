@@ -3,6 +3,8 @@
 ## magReportServer ejecuta una serie de scripts para generar un reporte
 ## completo del estado del servidor, incluyendo seguridad, servicios y
 ## rendimiento.
+##
+## @todo Sustituir chkrootkit por rkhunter.
 
 help() { doxygen2help "$0"; }
 
