@@ -254,6 +254,11 @@ function magbackup_crear_copia_mysql_perfil() {
       # Dokku postgres solo hace la exportación de la base de datos con el mismo nombre que la app.
       # Utilizamos docker directamente para tener una copia total de la base de datos.
       TAG=$(docker ps --format table | grep socialdb | awk -F " " '{print $NF}')
+      if [ -z "$TAG" ] ; then
+        echo "No se encuentra contenedor postgres en dokku"
+        magLogger error "No se encuentra contenedor postgres en dokku [${DOKKU_APP}]"
+        exit 1
+      fi
       cmd="nice -10 docker exec -t $TAG pg_dumpall -c -U postgres > $DESTINO"
       echo
       echo Comando: $cmd
