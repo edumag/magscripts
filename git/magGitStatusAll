@@ -30,27 +30,15 @@ else
 	exit
 fi
 
-gitStatusShow() {
-
-	if echo $* | grep '"git push' >/dev/null; then
-		return 1
-	fi
-	if echo $* | grep '"git add' >/dev/null; then
-		# echo -en "$*"
-		return 2
-	fi
-	return 0
-
-}
-
 gitCheckStatus() {
-	# if gitStatusShow "$(git status)"; then
+  CHANGES="$(git status --porcelain | wc -l)"
+	if [ $CHANGES -gt 0 ]; then
 		echo
 		pwd
 		pwd | sed 's/./-/g'
 		echo
 		git status
-	# fi
+	fi
 }
 
 gitstatusall() {
