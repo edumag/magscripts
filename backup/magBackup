@@ -23,12 +23,14 @@
 ##   -h, --help              Muestra esta ayuda
 ##   --config, -c            Configurar directorio de backups y retención
 ##   --listar, -l            Listar todos los perfiles y sus backups
-##   --recuperar, -r         Recuperar un backup existente
+##   --recuperar, -r         Recuperar un backup completo
 ##                           Uso: --recuperar <perfil> [fecha] [destino]
+##                           Sin fecha: recupera mensual + todos los incrementales
+##                           Con fecha: recupera mensual + incrementales hasta esa fecha
 ##                           Ejemplos:
 ##                             --recuperar documentos
-##                             --recuperar documentos 20260210
-##                             --recuperar documentos 20260210 /tmp/destino
+##                             --recuperar documentos 20260212
+##                             --recuperar documentos 20260212 /tmp/destino
 ##   --dependencias, -d      Comprobar dependencias instaladas
 ##
 ## CONFIGURACIÓN DE PERFILES:
@@ -62,14 +64,15 @@
 ##   # Ver perfiles y backups disponibles
 ##   magBackup --listar
 ##
-##   # Recuperar el último backup mensual de 'documentos'
+##   # Recuperar estado más reciente (mensual + todos los incrementales)
 ##   magBackup --recuperar documentos
 ##
-##   # Recuperar el incremental del 10 de febrero de 2026
-##   magBackup --recuperar documentos 20260210
+##   # Recuperar estado hasta una fecha específica
+##   # (mensual base + incrementales hasta el 12/02/2026)
+##   magBackup --recuperar documentos 20260212
 ##
 ##   # Recuperar en un directorio específico
-##   magBackup --recuperar documentos 20260210 /tmp/recuperado
+##   magBackup --recuperar documentos 20260212 /tmp/recuperado
 ##
 ## CONFIGURACIÓN AVANZADA (variables en ~/.config/magscripts/magBackup/config):
 ##   magBackup_dir="$HOME/backup/"      # Directorio de destino
@@ -107,11 +110,6 @@ RETENTION_WEEKLY=4
 ## Número de copias mensuales a mantener (default: 12)
 RETENTION_MONTHLY=12
 
-## @var DIR_SNAPSHOTS
-## Directorio para almacenar los archivos de snapshot de tar
-## Se guardan en el directorio de backups para mantenerlos junto a las copias
-DIR_SNAPSHOTS="${magBackup_dir}.snapshots/"
-
 MES=$(date +%B)
 DIA=$(date +%A)
 DATE=$(date +%Y-%m-%d)
@@ -120,6 +118,12 @@ source "$(dirname "$BASH_SOURCE")/../lib/configuracion"
 
 ## Recoger configuración de magBackup
 [[ -e $fichero_configuracion_magbackup ]] && source "$fichero_configuracion_magbackup"
+
+## @var DIR_SNAPSHOTS
+## Directorio para almacenar los archivos de snapshot de tar
+## Se guardan en el directorio de backups para mantenerlos junto a las copias
+## Se define DESPUÉS de leer la configuración para usar el magBackup_dir correcto
+DIR_SNAPSHOTS="${magBackup_dir}.snapshots/"
 
 function magLogger() {
 if [ "$1" = "error" ] ; then
@@ -557,146 +561,312 @@ function delete_old_files() {
 }
 
 ## @function magbackup_recuperar_backup
-## @brief Recupera un backup (mensual completo o incremental) de un perfil
+## @brief Recupera un backup completo (mensual + incrementales hasta la fecha especificada)
 ## @param $1 Nombre del perfil a recuperar
-## @param $2 Fecha del backup incremental en formato YYYYMMDD (opcional, si no se especifica recupera el mensual)
-## @param $3 Directorio destino donde restaurar (opcional, por defecto directorio original)
+## @param $2 Fecha hasta la que recuperar en formato YYYYMMDD (opcional)
+##                   Si se especifica, recupera el mensual base + todos los incrementales hasta esa fecha
+##                   Si no se especifica, muestra lista y permite seleccionar
+## @param $3 Directorio destino donde restaurar (opcional, por defecto carpeta actual)
 function magbackup_recuperar_backup() {
-    local perfil="$1"
-    local fecha_incremental="${2:-}"
-    local destino="${3:-}"
-    local hostname_suffix
-    hostname_suffix=$(hostname)
+	local perfil="$1"
+	local fecha_hasta="${2:-}"
+	local destino="${3:-}"
+	local hostname_suffix
+	hostname_suffix=$(hostname)
 
-    if [ -z "$perfil" ]; then
-        echo "Error: Debes especificar el nombre del perfil a recuperar"
-        echo "Uso: magBackup --recuperar <perfil> [fecha] [directorio_destino]"
-        echo ""
-        echo "Ejemplos:"
-        echo "  magBackup --recuperar documentos                  # Recupera el backup mensual más reciente"
-        echo "  magBackup --recuperar documentos 20260210         # Recupera el incremental del 10/02/2026"
-        echo "  magBackup --recuperar documentos 20260210 /tmp    # Recupera en /tmp"
-        return 1
-    fi
+	if [ -z "$perfil" ]; then
+		echo "Error: Debes especificar el nombre del perfil a recuperar"
+		echo "Uso: magBackup --recuperar <perfil> [fecha] [directorio_destino]"
+		echo ""
+		echo "Ejemplos:"
+		echo "  magBackup --recuperar documentos                  # Muestra lista de backups disponibles"
+		echo "  magBackup --recuperar documentos 20260210         # Recupera mensual + incrementales hasta 10/02/2026"
+		echo "  magBackup --recuperar documentos 20260210 /tmp    # Recupera en /tmp"
+		return 1
+	fi
 
-    local backup_a_recuperar=""
-    local tipo_backup=""
+	echo "=========================================="
+	echo "Recuperando backup del perfil: $perfil"
+	echo "=========================================="
+	echo
 
-    if [ -n "$fecha_incremental" ]; then
-        # Validar formato de fecha (YYYYMMDD)
-        if [[ ! "$fecha_incremental" =~ ^[0-9]{8}$ ]]; then
-            echo "Error: La fecha debe tener formato YYYYMMDD (ejemplo: 20260210)"
-            return 1
-        fi
+	# Buscar TODOS los backups disponibles
+	local -a mensuales
+	local -a incrementales
+	local -a todos_backups
 
-        echo "Buscando backup incremental del $fecha_incremental para el perfil: $perfil"
-        tipo_backup="incremental"
+	# Mensuales (patrón: perfil-host-mes.tar.bz2)
+	for backup in "${magBackup_dir}${perfil}-${hostname_suffix}"-*.tar.bz2; do
+		[ -e "$backup" ] || continue
+		if [[ "$(basename "$backup")" =~ -[A-Za-z]+\.tar\.bz2$ ]]; then
+			mensuales+=("$backup")
+			todos_backups+=("$backup")
+		fi
+	done
 
-        # Buscar backup incremental con esa fecha (puede haber varios con diferente hora, tomamos el primero)
-        # Primero intentar con patrón nuevo (con hostname)
-        local backup_incremental
-        backup_incremental=$(ls -1t "${magBackup_dir}${perfil}-${hostname_suffix}"-${fecha_incremental}_*.tar.bz2 2>/dev/null | head -1)
+	# Incrementales con hostname (patrón: perfil-host-YYYYMMDD_HHMMSS.tar.bz2)
+	for backup in "${magBackup_dir}${perfil}-${hostname_suffix}"-[0-9]*_*.tar.bz2; do
+		[ -e "$backup" ] || continue
+		if [[ "$(basename "$backup")" =~ -[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
+			incrementales+=("$backup")
+			todos_backups+=("$backup")
+		fi
+	done
 
-        # Si no se encuentra, intentar con patrón antiguo (sin hostname)
-        if [ -z "$backup_incremental" ]; then
-            backup_incremental=$(ls -1t "${magBackup_dir}${perfil}"-${fecha_incremental}_*.tar.bz2 2>/dev/null | head -1)
-        fi
+	# Incrementales antiguos sin hostname (patrón: perfil-YYYYMMDD_HHMMSS.tar.bz2)
+	for backup in "${magBackup_dir}${perfil}"-[0-9]*_*.tar.bz2; do
+		[ -e "$backup" ] || continue
+		local basename_backup
+		basename_backup=$(basename "$backup")
+		local duplicado=false
+		for existing in "${todos_backups[@]}"; do
+			if [ "$(basename "$existing")" = "$basename_backup" ]; then
+				duplicado=true
+				break
+			fi
+		done
+		if [ "$duplicado" = false ] && [[ "$basename_backup" =~ ^${perfil}-[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
+			incrementales+=("$backup")
+			todos_backups+=("$backup")
+		fi
+	done
 
-        if [ -z "$backup_incremental" ]; then
-            echo "Error: No se encontró ningún backup incremental para el perfil '$perfil' en la fecha $fecha_incremental"
-            echo "Backups incrementales disponibles:"
-            ls -1 "${magBackup_dir}${perfil}-${hostname_suffix}"-[0-9]*_*.tar.bz2 "${magBackup_dir}${perfil}"-[0-9]*_*.tar.bz2 2>/dev/null | while read -r f; do
-                echo "  $(basename "$f")"
-            done || echo "  (ninguno)"
-            return 1
-        fi
+	# Mostrar lista de backups disponibles
+	echo "Backups disponibles:"
+	echo "--------------------"
+	echo
 
-        backup_a_recuperar="$backup_incremental"
-    else
-        echo "Buscando último backup mensual completo para el perfil: $perfil"
-        tipo_backup="mensual"
+	# Mostrar mensuales
+	echo "1. Copias mensuales completas:"
+	if [ ${#mensuales[@]} -gt 0 ]; then
+		IFS=$'\n' sorted_mensuales=($(printf '%s\n' "${mensuales[@]}" | sort -k1,1))
+		unset IFS
+		local i=1
+		for backup in "${sorted_mensuales[@]}"; do
+			local size fecha
+			size=$(du -h "$backup" 2>/dev/null | cut -f1)
+			fecha=$(stat -c %y "$backup" 2>/dev/null | cut -d' ' -f1)
+			echo "   [$i] $(basename "$backup") ($size) - $fecha"
+			i=$((i+1))
+		done
+	else
+		echo "   (ninguna)"
+	fi
+	echo
 
-        # Buscar la copia mensual más reciente
-        backup_a_recuperar=$(ls -1t "${magBackup_dir}${perfil}-${hostname_suffix}"-*.tar.bz2 2>/dev/null | grep -E '\-[A-Za-z]+\.tar\.bz2$' | head -1)
+	# Mostrar incrementales
+	echo "2. Copias incrementales:"
+	if [ ${#incrementales[@]} -gt 0 ]; then
+		IFS=$'\n' sorted_incrementales=($(printf '%s\n' "${incrementales[@]}" | sort -k1,1))
+		unset IFS
+		local i=1
+		for backup in "${sorted_incrementales[@]}"; do
+			local size fecha_hora fecha_formateada
+			size=$(du -h "$backup" 2>/dev/null | cut -f1)
+			fecha_hora=$(basename "$backup" | grep -oE '[0-9]{8}_[0-9]{6}')
+			fecha_formateada=$(echo "$fecha_hora" | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)_\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1-\2-\3 \4:\5:\6/')
+			echo "   [$i] $(basename "$backup") ($size) - $fecha_formateada"
+			i=$((i+1))
+		done
+	else
+		echo "   (ninguna)"
+	fi
+	echo
 
-        if [ -z "$backup_a_recuperar" ]; then
-            echo "Error: No se encontró ningún backup mensual para el perfil '$perfil'"
-            echo "Backups disponibles:"
-            ls -1 "${magBackup_dir}${perfil}"* 2>/dev/null || echo "  (ninguno)"
-            return 1
-        fi
-    fi
+	if [ ${#todos_backups[@]} -eq 0 ]; then
+		echo "Error: No se encontró ningún backup para el perfil '$perfil'"
+		return 1
+	fi
 
-    echo "Backup encontrado: $(basename "$backup_a_recuperar")"
+	# Determinar qué recuperar
+	declare -a backups_a_recuperar
+	local tipo_recuperacion=""
 
-    # Verificar integridad si existe checksum
-    local checksum_file="${backup_a_recuperar}.sha256"
-    if [ -f "$checksum_file" ]; then
-        echo "Verificando integridad del backup..."
-        if ! verificar_backup "$backup_a_recuperar"; then
-            echo "Error: El backup está corrupto. No se puede recuperar."
-            return 1
-        fi
-    else
-        echo "Advertencia: No se encontró archivo de checksum para verificación"
-    fi
+	if [ -n "$fecha_hasta" ]; then
+		# Usar fecha especificada
+		if [[ ! "$fecha_hasta" =~ ^[0-9]{8}$ ]]; then
+			echo "Error: La fecha debe tener formato YYYYMMDD (ejemplo: 20260210)"
+			return 1
+		fi
 
-    # Determinar directorio de destino
-    if [ -z "$destino" ]; then
-        # Buscar en la configuración del perfil
-        local perfil_file="${directorio__ficheros}${perfil}"
-        if [ -f "$perfil_file" ]; then
-            # Leer CS_DIR del perfil
-            destino=$(grep "^CS_DIR=" "$perfil_file" | cut -d'"' -f2 | cut -d"'" -f2)
-        fi
-    fi
+		echo "Recuperando estado hasta: $fecha_hasta"
+		tipo_recuperacion="completo (hasta $fecha_hasta)"
+		echo
 
-    if [ -z "$destino" ]; then
-        destino="$PWD"
-        echo "No se especificó directorio de destino, usando: $destino"
-    else
-        echo "Restaurando en: $destino"
-    fi
+		# Encontrar mensual base (el más reciente anterior a la fecha)
+		local mensual_base=""
+		local fecha_hasta_ts
+		fecha_hasta_ts=$(date -d "$fecha_hasta 23:59:59" +%s 2>/dev/null)
 
-    # Crear directorio destino si no existe
-    if [ ! -d "$destino" ]; then
-        echo "Creando directorio destino: $destino"
-        mkdir -p "$destino" || {
-            echo "Error: No se pudo crear el directorio destino"
-            return 1
-        }
-    fi
+		for backup in "${sorted_mensuales[@]}"; do
+			local fecha_backup
+			fecha_backup=$(stat -c %Y "$backup" 2>/dev/null)
+			if [ -n "$fecha_backup" ] && [ -n "$fecha_hasta_ts" ]; then
+				if [ "$fecha_backup" -le "$fecha_hasta_ts" ]; then
+					mensual_base="$backup"
+				fi
+			fi
+		done
 
-    # Confirmar recuperación
-    echo
-    echo "==============================================="
-    echo "Estás a punto de recuperar:"
-    echo "  Tipo: Backup $tipo_backup"
-    echo "  Origen: $(basename "$backup_a_recuperar")"
-    echo "  Destino: $destino"
-    echo "==============================================="
-    read -rp "¿Continuar con la recuperación? (s/n): " confirmar
+		if [ -z "$mensual_base" ]; then
+			echo "Error: No se encontró un backup mensual base anterior a $fecha_hasta"
+			return 1
+		fi
 
-    if [ "$confirmar" != "s" ] && [ "$confirmar" != "S" ]; then
-        echo "Recuperación cancelada"
-        return 0
-    fi
+		backups_a_recuperar+=("$mensual_base")
 
-    # Realizar recuperación
-    echo
-    echo "Extrayendo backup..."
-    if tar -xjpf "$backup_a_recuperar" -C "$destino"; then
-        echo
-        echo "✓ Recuperación completada exitosamente"
-        echo "Archivos restaurados en: $destino"
-        magLogger "Backup $tipo_backup recuperado exitosamente [${perfil}] en [${destino}]"
-        return 0
-    else
-        echo
-        echo "✗ Error durante la recuperación"
-        magLogger error "Error al recuperar backup $tipo_backup [${perfil}]"
-        return 1
-    fi
+		# Encontrar incrementales entre mensual y fecha límite
+		local fecha_mensual_ts
+		fecha_mensual_ts=$(stat -c %Y "$mensual_base" 2>/dev/null)
+
+		local -a incs_a_recuperar
+		for backup in "${sorted_incrementales[@]}"; do
+			local fecha_backup
+			fecha_backup=$(stat -c %Y "$backup" 2>/dev/null)
+			if [ -n "$fecha_backup" ] && [ -n "$fecha_mensual_ts" ] && [ -n "$fecha_hasta_ts" ]; then
+				if [ "$fecha_backup" -gt "$fecha_mensual_ts" ] && [ "$fecha_backup" -le "$fecha_hasta_ts" ]; then
+					incs_a_recuperar+=("$backup")
+				fi
+			fi
+		done
+
+		# Añadir incrementales
+		for inc in "${incs_a_recuperar[@]}"; do
+			backups_a_recuperar+=("$inc")
+		done
+
+	else
+		# No se especificó fecha - usar mensual más reciente + todos los incrementales posteriores
+		echo "No se especificó fecha. Recuperando estado más reciente..."
+		tipo_recuperacion="completo (estado más reciente)"
+		echo
+
+		if [ ${#sorted_mensuales[@]} -eq 0 ]; then
+			echo "Error: No hay backups mensuales disponibles"
+			return 1
+		fi
+
+		# Mensual más reciente
+		local mensual_reciente="${sorted_mensuales[-1]}"
+		backups_a_recuperar+=("$mensual_reciente")
+
+		# Todos los incrementales posteriores al mensual
+		local fecha_mensual_ts
+		fecha_mensual_ts=$(stat -c %Y "$mensual_reciente" 2>/dev/null)
+
+		if [ -n "$fecha_mensual_ts" ]; then
+			for backup in "${sorted_incrementales[@]}"; do
+				local fecha_backup
+				fecha_backup=$(stat -c %Y "$backup" 2>/dev/null)
+				if [ -n "$fecha_backup" ] && [ "$fecha_backup" -gt "$fecha_mensual_ts" ]; then
+					backups_a_recuperar+=("$backup")
+				fi
+			done
+		fi
+	fi
+
+	# Mostrar lista de backups a recuperar
+	echo "Backups seleccionados para recuperación:"
+	echo "----------------------------------------"
+	local count=1
+	for backup in "${backups_a_recuperar[@]}"; do
+		if [ $count -eq 1 ]; then
+			echo "  [$count] $(basename "$backup") (MENSUAL BASE)"
+		else
+			echo "  [$count] $(basename "$backup") (incremental)"
+		fi
+		count=$((count+1))
+	done
+	echo
+
+	# Verificar integridad
+	echo "Verificando integridad de los backups..."
+	echo "-----------------------------------------"
+	local todos_ok=true
+	for backup in "${backups_a_recuperar[@]}"; do
+		local checksum_file="${backup}.sha256"
+		if [ -f "$checksum_file" ]; then
+			if ! verificar_backup "$backup" >/dev/null 2>&1; then
+				echo "  ✗ $(basename "$backup") - CORRUPTO"
+				todos_ok=false
+			else
+				echo "  ✓ $(basename "$backup") - OK"
+			fi
+		else
+			echo "  ⚠ $(basename "$backup") - Sin checksum"
+		fi
+	done
+	echo
+
+	if [ "$todos_ok" = false ]; then
+		echo "Error: Algunos backups están corruptos. No se puede recuperar."
+		return 1
+	fi
+
+	# Determinar directorio de destino (por defecto: carpeta actual)
+	if [ -z "$destino" ]; then
+		destino="$PWD"
+		echo "Restaurando en carpeta actual: $destino"
+	else
+		echo "Restaurando en: $destino"
+	fi
+
+	# Crear directorio destino si no existe
+	if [ ! -d "$destino" ]; then
+		echo "Creando directorio destino: $destino"
+		mkdir -p "$destino" || {
+			echo "Error: No se pudo crear el directorio destino"
+			return 1
+		}
+	fi
+
+	# Confirmar recuperación
+	echo
+	echo "==============================================="
+	echo "Estás a punto de recuperar:"
+	echo "  Tipo: $tipo_recuperacion"
+	echo "  Total de backups: ${#backups_a_recuperar[@]}"
+	echo "  Destino: $destino"
+	echo "==============================================="
+	read -rp "¿Continuar con la recuperación? (s/n): " confirmar
+
+	if [ "$confirmar" != "s" ] && [ "$confirmar" != "S" ]; then
+		echo "Recuperación cancelada"
+		return 0
+	fi
+
+	# Realizar recuperación aplicando backups en orden
+	echo
+	echo "Iniciando recuperación..."
+	echo
+
+	local exito=true
+	local count=0
+	for backup in "${backups_a_recuperar[@]}"; do
+		count=$((count + 1))
+		echo "[$count/${#backups_a_recuperar[@]}] Extrayendo $(basename "$backup")..."
+
+		if tar -xjpf "$backup" -C "$destino"; then
+			echo "    ✓ Extraído correctamente"
+		else
+			echo "    ✗ Error al extraer"
+			exito=false
+			break
+		fi
+	done
+
+	echo
+	if [ "$exito" = true ]; then
+		echo "✓ Recuperación completada exitosamente"
+		echo "Archivos restaurados en: $destino"
+		magLogger "Backup recuperado exitosamente [${perfil}] - ${tipo_recuperacion} - en [${destino}]"
+		return 0
+	else
+		echo "✗ Error durante la recuperación"
+		echo "Se extrajeron $count de ${#backups_a_recuperar[@]} backups"
+		magLogger error "Error al recuperar backup [${perfil}] - ${tipo_recuperacion}"
+		return 1
+	fi
 }
 
 ## @function magbackup_listar_perfiles
