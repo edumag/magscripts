@@ -1,36 +1,81 @@
 #!/bin/bash
 
-## magBackup facilita la creación de copias de seguridad automáticas para tus archivos, bases de datos MySQL y PostgreSQL, tanto locales como en contenedores Docker o Dokku. Organiza las copias en archivos mensuales completos y diarios incrementales para optimizar el espacio y la recuperación.
+## magBackup - Sistema de copias de seguridad automáticas con backups incrementales
 ##
-## Posibles orígenes: Carpetas de ficheros, mysql, mysql en dokku, postgres en docker, postgres en dokku.
+## Facilita la creación de copias de seguridad automáticas para archivos, bases de datos
+## MySQL y PostgreSQL, tanto locales como en contenedores Docker o Dokku.
 ##
-## Con los ficheros creamos una copia por mes y a partir de esta vamos creando
-## archivos por cada día de la semana con los cambios desde la copia original.
+## SISTEMA DE BACKUPS:
+## - Copias MENSUALES completas: Una copia completa por mes (nombre-mes.tar.bz2)
+## - Copias DIARIAS incrementales: Solo cambios desde la última mensual (nombre-YYYYMMDD_HHMMSS.tar.bz2)
+## - Snapshots de tar: Archivos de metadatos para seguimiento de cambios (.snapshots/)
+## - Verificación SHA256: Checksums para validar integridad (.sha256)
 ##
-## - Ficheros y carpetas
+## RETENCIÓN INTELIGENTE (configurable):
+## - Diarias: 7 copias (por defecto)
+## - Semanales: 4 copias (por defecto)
+## - Mensuales: 12 copias (por defecto)
 ##
-## A partir de la carpeta de configuración creamos la carpeta ficheros con los
-## diferentes perfiles. Ejemplo:
+## USO:
+##   magBackup [opciones]
 ##
-## Fichero: ~/.config/magscripts/magBackup/ficheros/perfil
-## Contenido:
-## CS_DIR="$HOME"
-## CS_COPIAR="Scripts .bashrc"
+## OPCIONES:
+##   -h, --help              Muestra esta ayuda
+##   --config, -c            Configurar directorio de backups y retención
+##   --listar, -l            Listar todos los perfiles y sus backups
+##   --recuperar, -r         Recuperar un backup existente
+##                           Uso: --recuperar <perfil> [fecha] [destino]
+##                           Ejemplos:
+##                             --recuperar documentos
+##                             --recuperar documentos 20260210
+##                             --recuperar documentos 20260210 /tmp/destino
+##   --dependencias, -d      Comprobar dependencias instaladas
 ##
-## CS_DIR: Nos indica la carpeta donde situarnos
-## CS_COPIAR: Las subcarpetas o archivos que deseamos copiar
+## CONFIGURACIÓN DE PERFILES:
 ##
-## - Postgres en dokku
+## 1. Archivos y carpetas (~/.config/magscripts/magBackup/ficheros/nombre_perfil):
+##    CS_DIR="$HOME"
+##    CS_COPIAR="Scripts .bashrc Documents"
 ##
-## Fichero: ~/.config/magscripts/magBackup/dokku_postgres/gestion_db
-## Contenido:
-## DOKKU_APP=gestion
+## 2. MySQL local (~/.config/magscripts/magBackup/mysql/nombre_bd):
+##    USUARIO="root"
+##    PASS="contraseña"
+##    BASES_DATOS="basedato1 basedato2"
 ##
-## - Mysql en dokku
+## 3. PostgreSQL en Docker (~/.config/magscripts/magBackup/docker_postgres/nombre):
+##    DOCKER_IMAGE="postgres_container"
+##    DOCKER_USER="postgres"
+##    DOCKER_PASSWORD="contraseña"
+##    DOCKER_DATABASE="mi_db"
 ##
-## Fichero: ~/.config/magscripts/magBackup/dokku_mysql/lesolivex
-## Contenido:
-## DOKKU_APP=lesolivex-db
+## 4. PostgreSQL en Dokku (~/.config/magscripts/magBackup/dokku_postgres/nombre):
+##    DOKKU_APP="nombre_app"
+##
+## 5. MySQL en Dokku (~/.config/magscripts/magBackup/dokku_mysql/nombre):
+##    DOKKU_APP="nombre_app"
+##
+## EJEMPLOS DE USO:
+##
+##   # Crear todos los backups configurados
+##   magBackup
+##
+##   # Ver perfiles y backups disponibles
+##   magBackup --listar
+##
+##   # Recuperar el último backup mensual de 'documentos'
+##   magBackup --recuperar documentos
+##
+##   # Recuperar el incremental del 10 de febrero de 2026
+##   magBackup --recuperar documentos 20260210
+##
+##   # Recuperar en un directorio específico
+##   magBackup --recuperar documentos 20260210 /tmp/recuperado
+##
+## CONFIGURACIÓN AVANZADA (variables en ~/.config/magscripts/magBackup/config):
+##   magBackup_dir="$HOME/backup/"      # Directorio de destino
+##   RETENTION_DAILY=7                   # Copias diarias a mantener
+##   RETENTION_WEEKLY=4                  # Copias semanales a mantener
+##   RETENTION_MONTHLY=12                # Copias mensuales a mantener
 
 ## @var magBackup_dir
 ## Directorio donde guardar las copias realizadas
@@ -104,7 +149,7 @@ for file in "$directorio__ficheros"* ; do
     NOMBRE="$(basename "$file")"
     NOMBRE_MES="${NOMBRE}-$(hostname)-${MES}.tar.bz2"
     FECHA_COMPLETA=$(date +%Y%m%d_%H%M%S)
-    NOMBRE_SNAPSHOT="${NOMBRE}-${FECHA_COMPLETA}.tar.bz2"
+    NOMBRE_SNAPSHOT="${NOMBRE}-$(hostname)-${FECHA_COMPLETA}.tar.bz2"
     SNAPSHOT_FILE="${DIR_SNAPSHOTS}/${NOMBRE}.snapshot"
 
     echo
@@ -548,13 +593,19 @@ function magbackup_recuperar_backup() {
         tipo_backup="incremental"
 
         # Buscar backup incremental con esa fecha (puede haber varios con diferente hora, tomamos el primero)
+        # Primero intentar con patrón nuevo (con hostname)
         local backup_incremental
         backup_incremental=$(ls -1t "${magBackup_dir}${perfil}-${hostname_suffix}"-${fecha_incremental}_*.tar.bz2 2>/dev/null | head -1)
+
+        # Si no se encuentra, intentar con patrón antiguo (sin hostname)
+        if [ -z "$backup_incremental" ]; then
+            backup_incremental=$(ls -1t "${magBackup_dir}${perfil}"-${fecha_incremental}_*.tar.bz2 2>/dev/null | head -1)
+        fi
 
         if [ -z "$backup_incremental" ]; then
             echo "Error: No se encontró ningún backup incremental para el perfil '$perfil' en la fecha $fecha_incremental"
             echo "Backups incrementales disponibles:"
-            ls -1 "${magBackup_dir}${perfil}-${hostname_suffix}"-[0-9]*_*.tar.bz2 2>/dev/null | while read -r f; do
+            ls -1 "${magBackup_dir}${perfil}-${hostname_suffix}"-[0-9]*_*.tar.bz2 "${magBackup_dir}${perfil}"-[0-9]*_*.tar.bz2 2>/dev/null | while read -r f; do
                 echo "  $(basename "$f")"
             done || echo "  (ninguno)"
             return 1
@@ -670,26 +721,72 @@ function magbackup_listar_perfiles() {
         # Mostrar copias mensuales
         echo "Copias mensuales completas:"
         local found_monthly=false
+        local -a mensuales
         for backup in "${magBackup_dir}${nombre}-${hostname_suffix}"-*.tar.bz2; do
             [ -e "$backup" ] || continue
             if [[ "$(basename "$backup")" =~ -[A-Za-z]+\.tar\.bz2$ ]]; then
                 found_monthly=true
+                mensuales+=("$backup")
+            fi
+        done
+
+        # Ordenar por fecha (más recientes primero) y mostrar
+        if [ "$found_monthly" = true ]; then
+            IFS=$'\n' sorted_mensuales=($(printf '%s\n' "${mensuales[@]}" | sort -r))
+            unset IFS
+
+            for backup in "${sorted_mensuales[@]}"; do
                 local size
                 size=$(du -h "$backup" 2>/dev/null | cut -f1)
                 local fecha
                 fecha=$(stat -c %y "$backup" 2>/dev/null | cut -d' ' -f1)
                 echo "  $(basename "$backup") - $size - $fecha"
-            fi
-        done
-        [ "$found_monthly" = false ] && echo "  (ninguna)"
+            done
+        else
+            echo "  (ninguna)"
+        fi
 
         # Mostrar copias incrementales
         echo "Copias incrementales:"
         local found_incremental=false
-        for backup in "${magBackup_dir}${nombre}-${hostname_suffix}"-*.tar.bz2; do
+        # Usar un array para poder ordenar por fecha
+        local -a incrementales
+
+        # Buscar incrementales con patrón nuevo (con hostname)
+        for backup in "${magBackup_dir}${nombre}-${hostname_suffix}"-[0-9]*_*.tar.bz2; do
             [ -e "$backup" ] || continue
-            if [[ "$(basename "$backup")" =~ \.[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
+            if [[ "$(basename "$backup")" =~ -[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
                 found_incremental=true
+                incrementales+=("$backup")
+            fi
+        done
+
+        # Buscar incrementales con patrón antiguo (sin hostname) para compatibilidad
+        for backup in "${magBackup_dir}${nombre}"-[0-9]*_*.tar.bz2; do
+            [ -e "$backup" ] || continue
+            # Evitar duplicados si ya lo encontramos arriba
+            local basename_backup
+            basename_backup=$(basename "$backup")
+            local ya_encontrado=false
+            for existing in "${incrementales[@]}"; do
+                if [ "$(basename "$existing")" = "$basename_backup" ]; then
+                    ya_encontrado=true
+                    break
+                fi
+            done
+            if [ "$ya_encontrado" = false ] && [[ "$basename_backup" =~ ^${nombre}-[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
+                found_incremental=true
+                incrementales+=("$backup")
+            fi
+        done
+
+        # Ordenar por fecha (más recientes primero) y mostrar
+        if [ "$found_incremental" = true ]; then
+            # Ordenar los incrementales por fecha (más recientes primero)
+            IFS=$'\n' sorted_incrementales=($(printf '%s\n' "${incrementales[@]}" | sort -r))
+            unset IFS
+
+            for backup in "${sorted_incrementales[@]}"; do
                 local size
                 size=$(du -h "$backup" 2>/dev/null | cut -f1)
                 local fecha_hora
@@ -697,9 +794,10 @@ function magbackup_listar_perfiles() {
                 local fecha_formateada
                 fecha_formateada=$(echo "$fecha_hora" | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)_\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1-\2-\3 \4:\5:\6/')
                 echo "  $(basename "$backup") - $size - $fecha_formateada"
-            fi
-        done
-        [ "$found_incremental" = false ] && echo "  (ninguna)"
+            done
+        else
+            echo "  (ninguna)"
+        fi
         echo
     done
 }
