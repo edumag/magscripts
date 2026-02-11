@@ -166,7 +166,8 @@ for file in "$directorio__ficheros"* ; do
     NOMBRE_MES="${NOMBRE}-$(hostname)-${MES}.tar.bz2"
     FECHA_COMPLETA=$(date +%Y%m%d_%H%M%S)
     NOMBRE_SNAPSHOT="${NOMBRE}-$(hostname)-${FECHA_COMPLETA}.tar.bz2"
-    SNAPSHOT_FILE="${DIR_SNAPSHOTS}/${NOMBRE}.snapshot"
+    # Cada mensual tiene su propio snapshot para los incrementales de ese mes
+    SNAPSHOT_FILE="${DIR_SNAPSHOTS}/${NOMBRE}-$(hostname)-${MES}.snapshot"
 
     echo
     echo "$NOMBRE"
