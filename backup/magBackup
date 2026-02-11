@@ -36,7 +36,7 @@
 ## Directorio donde guardar las copias realizadas
 magBackup_dir="$HOME/backup/"
 
-help() { doxygen2help "$0" ; }
+help() { $(dirname "$BASH_SOURCE")/../lib/doxygen2help "$0" ; }
 
 # variables internas
 
@@ -49,11 +49,29 @@ directorio__docker_postgres="$DIR_CONFIG_MAGBACKUP/docker_postgres/"  ##< Ficher
 directorio__dokku_postgres="$DIR_CONFIG_MAGBACKUP/dokku_postgres/"  ##< Fichero configuración
 directorio__dokku_mysql="$DIR_CONFIG_MAGBACKUP/dokku_mysql/"  ##< Fichero configuración
 
-MES=`date +%B`
-DIA=`date +%A`
-DATE=`date +%Y-%m-%d`
+# Configuración de retención de backups
+## @var RETENTION_DAILY
+## Número de copias diarias a mantener (default: 7)
+RETENTION_DAILY=7
 
-source `dirname "$BASH_SOURCE"`/../lib/configuracion
+## @var RETENTION_WEEKLY
+## Número de copias semanales a mantener (default: 4)
+RETENTION_WEEKLY=4
+
+## @var RETENTION_MONTHLY
+## Número de copias mensuales a mantener (default: 12)
+RETENTION_MONTHLY=12
+
+## @var DIR_SNAPSHOTS
+## Directorio para almacenar los archivos de snapshot de tar
+## Se guardan en el directorio de backups para mantenerlos junto a las copias
+DIR_SNAPSHOTS="${magBackup_dir}.snapshots/"
+
+MES=$(date +%B)
+DIA=$(date +%A)
+DATE=$(date +%Y-%m-%d)
+
+source "$(dirname "$BASH_SOURCE")/../lib/configuracion"
 
 ## Recoger configuración de magBackup
 [[ -e $fichero_configuracion_magbackup ]] && source "$fichero_configuracion_magbackup"
@@ -72,34 +90,38 @@ echo --------
 echo Ficheros
 echo --------
 
+# Crear directorio de snapshots si no existe
+if [ ! -d "$DIR_SNAPSHOTS" ]; then
+    mkdir -p "$DIR_SNAPSHOTS"
+fi
+
 for file in "$directorio__ficheros"* ; do
 
   [[ ${file:0-1} == '*' ]] && break
 
-    # CMD='nice -10 sudo tar -Pcjpf '
-    CMD='nice -10 tar -Pcjpf '
-
     source "$file"
 
-    NOMBRE="$(basename $file)"
-    NOMBRE_MES="${NOMBRE}-`hostname`-${MES}.tar.bz2"
-    NOMBRE_DIA="${NOMBRE}-`hostname`-${DIA}.tar.bz2"
+    NOMBRE="$(basename "$file")"
+    NOMBRE_MES="${NOMBRE}-$(hostname)-${MES}.tar.bz2"
+    FECHA_COMPLETA=$(date +%Y%m%d_%H%M%S)
+    NOMBRE_SNAPSHOT="${NOMBRE}-${FECHA_COMPLETA}.tar.bz2"
+    SNAPSHOT_FILE="${DIR_SNAPSHOTS}/${NOMBRE}.snapshot"
 
     echo
-    echo $NOMBRE
-    echo $NOMBRE | sed 's/./-/g'
+    echo "$NOMBRE"
+    printf '%s\n' "$NOMBRE" | sed 's/./-/g'
     echo
-    echo Inicio:  $CS_DIR
-    echo Mensual: $NOMBRE_MES
-    echo Diario:  $NOMBRE_DIA
+    echo "Inicio:  $CS_DIR"
+    echo "Mensual: $NOMBRE_MES"
+    echo "Snapshot: $NOMBRE_SNAPSHOT"
     echo
 
-    cd $CS_DIR
+    cd "$CS_DIR" || exit
 
-    if [ ! -d $DIR ] ; then echo Directorio de inicio $CS_DIR no existe! ; exit 1 ; fi
+    if [ ! -d "$CS_DIR" ] ; then echo "Directorio de inicio $CS_DIR no existe!" ; exit 1 ; fi
 
     for origenes in $CS_COPIAR ; do
-      if [ -e $origenes ] ; then
+      if [ -e "$origenes" ] ; then
         echo -e "$origenes OK"
       else
         errores="$errores $origenes"
@@ -111,57 +133,83 @@ for file in "$directorio__ficheros"* ; do
       echo
       echo Hay ubicaciones por copiar que no existen
       echo
-      echo $errores | tr ' ' "\n"
+      echo "$errores" | tr ' ' "\n"
       exit 1
     fi
 
-    # Si encontramos la copia del mes actual realizada
-    # hacemos una copia solo de los ficheros que se han
-    # modificado desde entonces
+    # Determinar si es copia mensual completa o diaria incremental
+    ANYO_ACTUAL=$(date +%Y)
+    ES_MES_NUEVO=false
 
-    ANYO_ACTUAL=`date +%Y`
-
-    if [ -e "${magBackup_dir}$NOMBRE_MES" ] && [ "$ANYO_ACTUAL" = "`date +%Y -r "${magBackup_dir}$NOMBRE_MES"`" ]; then
-
-       # generamos copia diaria incremental
-       DESTINO="${magBackup_dir}$NOMBRE_DIA"
-       FECHA_INCREMENTAL="`date \"+%Y-%m-%d %H:%M\" -r "${magBackup_dir}$NOMBRE_MES"`"
-       CMD="$CMD $DESTINO --newer-mtime \"$FECHA_INCREMENTAL\" $CS_COPIAR"
-
-       echo
-       echo Realizamos copia incremental: $DESTINO
-       echo
-       echo Fecha ultima copia completa $FECHA_INCREMENTAL
-
-     else
-
-       # Generamos copia mensual
-       DESTINO="${magBackup_dir}$NOMBRE_MES"
-       CMD="$CMD $DESTINO $CS_COPIAR"
-
-       echo
-       echo Realizamos copia mensual: $DESTINO
-       echo
-
+    if [ -e "${magBackup_dir}$NOMBRE_MES" ]; then
+        ANYO_COPIA=$(date +%Y -r "${magBackup_dir}$NOMBRE_MES")
+        if [ "$ANYO_ACTUAL" != "$ANYO_COPIA" ]; then
+            ES_MES_NUEVO=true
+        fi
+    else
+        ES_MES_NUEVO=true
     fi
 
-    # Hacer la copia sobre directorio temporal y solo
-    # en caso de éxito pasarla al directorio final.
+    # Directorio temporal para copia atómica
+    DIR_TEMP=$(mktemp -d)
+    TEMP_DESTINO="${DIR_TEMP}/backup.tar.bz2"
+
+    if [ "$ES_MES_NUEVO" = true ]; then
+        # Generamos copia mensual completa
+        DESTINO="${magBackup_dir}$NOMBRE_MES"
+        CMD="nice -10 tar -Pcjpf '$TEMP_DESTINO' --listed-incremental='$SNAPSHOT_FILE' $CS_COPIAR"
+
+        echo
+        echo "Realizamos copia mensual completa: $NOMBRE_MES"
+        echo "Snapshot: $SNAPSHOT_FILE"
+        echo
+    else
+        # Generamos copia diaria incremental
+        DESTINO="${magBackup_dir}$NOMBRE_SNAPSHOT"
+        CMD="nice -10 tar -Pcjpf '$TEMP_DESTINO' --listed-incremental='$SNAPSHOT_FILE' $CS_COPIAR"
+
+        echo
+        echo "Realizamos copia diaria incremental: $NOMBRE_SNAPSHOT"
+        echo "Snapshot: $SNAPSHOT_FILE"
+        echo
+    fi
 
     echo
-    echo Comando: $CMD
+    echo "Comando: $CMD"
     echo
     eval "$CMD"
+    RESULTADO=$?
 
-    if [ $? = 0 ] ; then
-      echo Copia generada correctamente
-      magLogger "Copia generada correctamente [${DESTINO}]"
+    if [ $RESULTADO = 0 ] ; then
+        # Mover la copia del directorio temporal al destino final
+        if mv "$TEMP_DESTINO" "$DESTINO"; then
+            # Generar checksum
+            CHECKSUM_FILE="${DESTINO}.sha256"
+            sha256sum "$DESTINO" > "$CHECKSUM_FILE"
+            echo "Checksum generado: $CHECKSUM_FILE"
+
+            echo "Copia generada correctamente"
+            magLogger "Copia generada correctamente [${DESTINO}]"
+
+            # Aplicar rotación inteligente
+            rotacion_backup "$NOMBRE"
+        else
+            echo "Error al mover copia al destino final"
+            magLogger error "Error al mover copia al destino final [${DESTINO}]"
+            rm -f "$TEMP_DESTINO"
+            rmdir "$DIR_TEMP"
+            exit 1
+        fi
     else
-      echo Error al generar copia
-      magLogger error "Error al generar copia [${DESTINO}]"
-      exit 1
+        echo "Error al generar copia"
+        magLogger error "Error al generar copia [${DESTINO}]"
+        rm -f "$TEMP_DESTINO"
+        rmdir "$DIR_TEMP"
+        exit 1
     fi
 
+    # Limpiar directorio temporal
+    rmdir "$DIR_TEMP"
 
   done
 
@@ -174,25 +222,23 @@ function magbackup_crear_copia_mysql_perfil() {
     [[ ${file:0-1} == '*' ]] && break
 
     echo
-    echo -----
-    echo Mysql
-    echo -----
+    echo "-----"
+    echo "Mysql"
+    echo "-----"
     echo
 
     source "$file"
 
     for BD in $BASES_DATOS ; do
-      cmd="nice -10 mysqldump -u$USUARIO -p$PASS $BD | nice -10 bzip2 --best -c > ${magBackup_dir}mysql-${BD}-`hostname`-${DIA}.dump.bz2"
+      cmd="nice -10 mysqldump -u$USUARIO -p$PASS $BD | nice -10 bzip2 --best -c > ${magBackup_dir}mysql-${BD}-$(hostname)-${DIA}.dump.bz2"
       echo
-      echo Comando: $cmd
-      eval "$cmd"
-
-      if [ $? = 0 ] ; then
-        echo Copia generada correctamente
-        magLogger "Copia mysql generada correctamente [${DB}]"
+      echo "Comando: $cmd"
+      if eval "$cmd"; then
+        echo "Copia generada correctamente"
+        magLogger "Copia mysql generada correctamente [${BD}]"
       else
-        echo Error al generar copia
-        magLogger error "Error al generar copia de mysql [${DB}]"
+        echo "Error al generar copia"
+        magLogger error "Error al generar copia de mysql [${BD}]"
         exit 1
         fi
       done
@@ -208,24 +254,23 @@ function magbackup_crear_copia_mysql_perfil() {
       [[ ${file:0-1} == '*' ]] && break
 
       echo
-      echo ---------------
-      echo Docker Postgres
-      echo ---------------
+      echo "---------------"
+      echo "Docker Postgres"
+      echo "---------------"
       echo
 
       source "$file"
 
       for BD in $BASES_DATOS ; do
-        cmd="nice -10 docker exec -i -e PGPASSWORD=${DOCKER_PASSWORD} ${DOCKER_IMAGE} /usr/bin/pg_dump -U ${DOCKER_USER} ${DOCKER_DATABASE} > ${magBackup_dir}docker_postgres-${DOCKER_DATABASE}-`hostname`-${DIA}.dump"
+        cmd="nice -10 docker exec -i -e PGPASSWORD=${DOCKER_PASSWORD} ${DOCKER_IMAGE} /usr/bin/pg_dump -U ${DOCKER_USER} ${DOCKER_DATABASE} > ${magBackup_dir}docker_postgres-${DOCKER_DATABASE}-$(hostname)-${DIA}.dump"
         echo
-        echo Comando: $cmd
-        eval "$cmd"
-        if [ $? = 0 ] ; then
-          echo Copia generada correctamente
-          magLogger "Copia mysql generada correctamente [${DB}]"
+        echo "Comando: $cmd"
+        if eval "$cmd"; then
+          echo "Copia generada correctamente"
+          magLogger "Copia postgres docker generada correctamente [${DOCKER_DATABASE}]"
         else
-          echo Error al generar copia
-          magLogger error "Error al generar copia de mysql [${DB}]"
+          echo "Error al generar copia"
+          magLogger error "Error al generar copia de postgres docker [${DOCKER_DATABASE}]"
           exit 1
         fi
       done
@@ -241,14 +286,14 @@ function magbackup_crear_copia_mysql_perfil() {
       [[ ${file:0-1} == '*' ]] && break
 
       echo
-      echo --------------
-      echo Dokku Postgres
-      echo --------------
+      echo "--------------"
+      echo "Dokku Postgres"
+      echo "--------------"
       echo
       echo "$file"
 
       source "$file"
-      DESTINO="${magBackup_dir}dokku_postgres-${DOKKU_APP}-`hostname`-${DATE}.sql"
+      DESTINO="${magBackup_dir}dokku_postgres-${DOKKU_APP}-$(hostname)-${DATE}.sql"
 
       # cmd="nice -10 dokku postgres:export $DOKKU_APP > $DESTINO"
       # Dokku postgres solo hace la exportación de la base de datos con el mismo nombre que la app.
@@ -262,22 +307,18 @@ function magbackup_crear_copia_mysql_perfil() {
       fi
       cmd="nice -10 docker exec -t $TAG pg_dumpall -c -U postgres > $DESTINO"
       echo
-      echo Comando: $cmd
-      eval "$cmd"
-      if [ $? = 0 ] ; then
-        bzip2 -f "$DESTINO"
-        if [ $? = 0 ] ; then
-          echo Copia generada correctamente
+      echo "Comando: $cmd"
+      if eval "$cmd"; then
+        if bzip2 -f "$DESTINO"; then
+          echo "Copia generada correctamente"
           magLogger "Copia postgres en dokku generada correctamente [${DOKKU_APP}]"
         else
-          echo Error al comprimir copia.
+          echo "Error al comprimir copia."
           magLogger error "Error al comprimir copia postgres en dokku [${DOKKU_APP}]"
           exit 1
         fi
-        echo Copia generada correctamente
-        magLogger "Copia postgres en dokku generada correctamente [${DOKKU_APP}]"
       else
-        echo Error al generar copia
+        echo "Error al generar copia"
         magLogger error "Error al generar copia postgres en dokku [${DOKKU_APP}]"
         exit 1
     fi
@@ -293,31 +334,29 @@ function magbackup_crear_copia_dokku_mysql_perfil() {
     [[ ${file:0-1} == '*' ]] && break
 
     echo
-    echo -----------
-    echo Dokku MySQl
-    echo -----------
+    echo "-----------"
+    echo "Dokku MySQL"
+    echo "-----------"
     echo
     echo "$file"
 
     source "$file"
 
-    DESTINO="${magBackup_dir}dokku_mysql-${DOKKU_APP}-`hostname`-${DATE}.sql"
+    DESTINO="${magBackup_dir}dokku_mysql-${DOKKU_APP}-$(hostname)-${DATE}.sql"
     cmd="nice -10 dokku mysql:export $DOKKU_APP > $DESTINO"
     echo
-    echo Comando: $cmd
-    eval "$cmd"
-    if [ $? = 0 ] ; then
-      bzip2 -f "$DESTINO"
-      if [ $? = 0 ] ; then
-        echo Copia generada correctamente
+    echo "Comando: $cmd"
+    if eval "$cmd"; then
+      if bzip2 -f "$DESTINO"; then
+        echo "Copia generada correctamente"
         magLogger "Copia mysql en dokku generada correctamente [${DOKKU_APP}]"
       else
-        echo Error al comprimir copia.
+        echo "Error al comprimir copia."
         magLogger error "Error al comprimir copia mysql en dokku [${DOKKU_APP}]"
         exit 1
       fi
     else
-      echo Error al generar copia
+      echo "Error al generar copia"
       magLogger error "Error al generar copia mysql en dokku [${DOKKU_APP}]"
       exit 1
     fi
@@ -326,19 +365,343 @@ function magbackup_crear_copia_dokku_mysql_perfil() {
 
 }
 
+## @function verificar_backup
+## @brief Verifica la integridad de un backup usando su checksum SHA256
+## @param $1 Ruta al archivo de backup
+## @return 0 si es válido, 1 si es inválido
+function verificar_backup() {
+    local backup_file="$1"
+    local checksum_file="${backup_file}.sha256"
+
+    if [ ! -f "$backup_file" ]; then
+        echo "Error: No se encuentra el archivo de backup $backup_file"
+        return 1
+    fi
+
+    if [ ! -f "$checksum_file" ]; then
+        echo "Advertencia: No se encuentra el archivo de checksum $checksum_file"
+        return 1
+    fi
+
+    echo "Verificando integridad de $backup_file..."
+    if sha256sum -c "$checksum_file" > /dev/null 2>&1; then
+        echo "✓ Verificación exitosa: $backup_file"
+        return 0
+    else
+        echo "✗ ERROR: Verificación fallida para $backup_file"
+        magLogger error "Verificación de integridad fallida para $backup_file"
+        return 1
+    fi
+}
+
+## @function rotacion_backup
+## @brief Aplica rotación inteligente de backups manteniendo N diarias, M semanales y P mensuales
+## @param $1 Prefijo del nombre del backup (perfil)
+function rotacion_backup() {
+    local prefix="$1"
+    local hostname_suffix
+    hostname_suffix=$(hostname)
+
+    echo "Aplicando rotación inteligente para $prefix..."
+
+    # Obtener lista de backups ordenados por fecha (más recientes primero)
+    local -a all_backups
+    mapfile -t all_backups < <(ls -1t "${magBackup_dir}${prefix}-${hostname_suffix}"-*.tar.bz2 2>/dev/null | grep -E '\.[0-9]{8}_[0-9]{6}\.tar\.bz2$' || true)
+
+    if [ ${#all_backups[@]} -eq 0 ]; then
+        echo "No se encontraron backups diarios para rotar"
+        return 0
+    fi
+
+    # Clasificar backups
+    declare -a daily_backups
+    declare -a weekly_backups
+    declare -a monthly_backups
+    declare -A seen_weeks
+    declare -A seen_months
+
+    for backup in "${all_backups[@]}"; do
+        # Extraer fecha del nombre del archivo (formato: YYYYMMDD_HHMMSS)
+        local date_str
+        date_str=$(echo "$backup" | grep -oE '[0-9]{8}_[0-9]{6}')
+        local year=${date_str:0:4}
+        local month=${date_str:4:2}
+        local day=${date_str:6:2}
+        local week
+        week=$(date -d "${year}-${month}-${day}" +%V 2>/dev/null || echo "00")
+
+        local month_key="${year}-${month}"
+        local week_key="${year}-${week}"
+
+        # Primero intentar clasificar como mensual
+        if [ -z "${seen_months[$month_key]}" ]; then
+            monthly_backups+=("$backup")
+            seen_months[$month_key]=1
+        # Luego como semanal
+        elif [ -z "${seen_weeks[$week_key]}" ]; then
+            weekly_backups+=("$backup")
+            seen_weeks[$week_key]=1
+        # Resto como diario
+        else
+            daily_backups+=("$backup")
+        fi
+    done
+
+    # Eliminar excedentes de diarias
+    if [ ${#daily_backups[@]} -gt $RETENTION_DAILY ]; then
+        echo "Eliminando ${#daily_backups[@]} copias diarias antiguas (manteniendo $RETENTION_DAILY)..."
+        local i
+        for ((i=RETENTION_DAILY; i<${#daily_backups[@]}; i++)); do
+            local old_backup="${daily_backups[$i]}"
+            echo "  Eliminando: $(basename "$old_backup")"
+            rm -f "$old_backup" "${old_backup}.sha256"
+        done
+    fi
+
+    # Eliminar excedentes de semanales
+    if [ ${#weekly_backups[@]} -gt $RETENTION_WEEKLY ]; then
+        echo "Eliminando ${#weekly_backups[@]} copias semanales antiguas (manteniendo $RETENTION_WEEKLY)..."
+        local i
+        for ((i=RETENTION_WEEKLY; i<${#weekly_backups[@]}; i++)); do
+            local old_backup="${weekly_backups[$i]}"
+            echo "  Eliminando: $(basename "$old_backup")"
+            rm -f "$old_backup" "${old_backup}.sha256"
+        done
+    fi
+
+    # Eliminar excedentes de mensuales
+    if [ ${#monthly_backups[@]} -gt $RETENTION_MONTHLY ]; then
+        echo "Eliminando ${#monthly_backups[@]} copias mensuales antiguas (manteniendo $RETENTION_MONTHLY)..."
+        local i
+        for ((i=RETENTION_MONTHLY; i<${#monthly_backups[@]}; i++)); do
+            local old_backup="${monthly_backups[$i]}"
+            echo "  Eliminando: $(basename "$old_backup")"
+            rm -f "$old_backup" "${old_backup}.sha256"
+        done
+    fi
+
+    echo "Rotación completada. Mantenidas: ${#daily_backups[@]} diarias, ${#weekly_backups[@]} semanales, ${#monthly_backups[@]} mensuales"
+}
+
+## @function rotacion_todos_backups
+## @brief Aplica rotación a todos los perfiles de backup configurados
+function rotacion_todos_backups() {
+    echo "Aplicando rotación inteligente a todos los perfiles..."
+
+    for file in "$directorio__ficheros"* ; do
+        [[ ${file:0-1} == '*' ]] && break
+        local nombre
+        nombre="$(basename "$file")"
+        rotacion_backup "$nombre"
+    done
+}
+
 function config() {
-  configuracion_editar magBackup_ $BASH_SOURCE
+  configuracion_editar magBackup_ "$BASH_SOURCE"
   configuracion_guardar "magBackup_" "$fichero_configuracion_magbackup"
 
 }
 
 function delete_old_files() {
+  echo "Eliminando copias antiguas (método legacy)..."
+  find "$magBackup_dir" -mtime +$DAYS_TO_DELETE -type f \( -name '*tar*' -o -name '*dump' \) -delete 2>/dev/null
+  find "$magBackup_dir" -mtime +$DAYS_TO_DELETE -type f -name '*.sha256' -delete 2>/dev/null
 
-  cd "$magBackup_dir"
-  echo "Eliminando copias antiguas..."
-  find . -mtime +$DAYS_TO_DELETE -type f \( -name '*tar*' -o -name '*dump' \)
-  find . -mtime +$DAYS_TO_DELETE -type f \( -name '*tar*' -o -name '*dump' \) -exec rm -f {} \;
-  cd -
+  # Aplicar también la nueva rotación inteligente
+  rotacion_todos_backups
+}
+
+## @function magbackup_recuperar_backup
+## @brief Recupera un backup (mensual completo o incremental) de un perfil
+## @param $1 Nombre del perfil a recuperar
+## @param $2 Fecha del backup incremental en formato YYYYMMDD (opcional, si no se especifica recupera el mensual)
+## @param $3 Directorio destino donde restaurar (opcional, por defecto directorio original)
+function magbackup_recuperar_backup() {
+    local perfil="$1"
+    local fecha_incremental="${2:-}"
+    local destino="${3:-}"
+    local hostname_suffix
+    hostname_suffix=$(hostname)
+
+    if [ -z "$perfil" ]; then
+        echo "Error: Debes especificar el nombre del perfil a recuperar"
+        echo "Uso: magBackup --recuperar <perfil> [fecha] [directorio_destino]"
+        echo ""
+        echo "Ejemplos:"
+        echo "  magBackup --recuperar documentos                  # Recupera el backup mensual más reciente"
+        echo "  magBackup --recuperar documentos 20260210         # Recupera el incremental del 10/02/2026"
+        echo "  magBackup --recuperar documentos 20260210 /tmp    # Recupera en /tmp"
+        return 1
+    fi
+
+    local backup_a_recuperar=""
+    local tipo_backup=""
+
+    if [ -n "$fecha_incremental" ]; then
+        # Validar formato de fecha (YYYYMMDD)
+        if [[ ! "$fecha_incremental" =~ ^[0-9]{8}$ ]]; then
+            echo "Error: La fecha debe tener formato YYYYMMDD (ejemplo: 20260210)"
+            return 1
+        fi
+
+        echo "Buscando backup incremental del $fecha_incremental para el perfil: $perfil"
+        tipo_backup="incremental"
+
+        # Buscar backup incremental con esa fecha (puede haber varios con diferente hora, tomamos el primero)
+        local backup_incremental
+        backup_incremental=$(ls -1t "${magBackup_dir}${perfil}-${hostname_suffix}"-${fecha_incremental}_*.tar.bz2 2>/dev/null | head -1)
+
+        if [ -z "$backup_incremental" ]; then
+            echo "Error: No se encontró ningún backup incremental para el perfil '$perfil' en la fecha $fecha_incremental"
+            echo "Backups incrementales disponibles:"
+            ls -1 "${magBackup_dir}${perfil}-${hostname_suffix}"-[0-9]*_*.tar.bz2 2>/dev/null | while read -r f; do
+                echo "  $(basename "$f")"
+            done || echo "  (ninguno)"
+            return 1
+        fi
+
+        backup_a_recuperar="$backup_incremental"
+    else
+        echo "Buscando último backup mensual completo para el perfil: $perfil"
+        tipo_backup="mensual"
+
+        # Buscar la copia mensual más reciente
+        backup_a_recuperar=$(ls -1t "${magBackup_dir}${perfil}-${hostname_suffix}"-*.tar.bz2 2>/dev/null | grep -E '\-[A-Za-z]+\.tar\.bz2$' | head -1)
+
+        if [ -z "$backup_a_recuperar" ]; then
+            echo "Error: No se encontró ningún backup mensual para el perfil '$perfil'"
+            echo "Backups disponibles:"
+            ls -1 "${magBackup_dir}${perfil}"* 2>/dev/null || echo "  (ninguno)"
+            return 1
+        fi
+    fi
+
+    echo "Backup encontrado: $(basename "$backup_a_recuperar")"
+
+    # Verificar integridad si existe checksum
+    local checksum_file="${backup_a_recuperar}.sha256"
+    if [ -f "$checksum_file" ]; then
+        echo "Verificando integridad del backup..."
+        if ! verificar_backup "$backup_a_recuperar"; then
+            echo "Error: El backup está corrupto. No se puede recuperar."
+            return 1
+        fi
+    else
+        echo "Advertencia: No se encontró archivo de checksum para verificación"
+    fi
+
+    # Determinar directorio de destino
+    if [ -z "$destino" ]; then
+        # Buscar en la configuración del perfil
+        local perfil_file="${directorio__ficheros}${perfil}"
+        if [ -f "$perfil_file" ]; then
+            # Leer CS_DIR del perfil
+            destino=$(grep "^CS_DIR=" "$perfil_file" | cut -d'"' -f2 | cut -d"'" -f2)
+        fi
+    fi
+
+    if [ -z "$destino" ]; then
+        destino="$PWD"
+        echo "No se especificó directorio de destino, usando: $destino"
+    else
+        echo "Restaurando en: $destino"
+    fi
+
+    # Crear directorio destino si no existe
+    if [ ! -d "$destino" ]; then
+        echo "Creando directorio destino: $destino"
+        mkdir -p "$destino" || {
+            echo "Error: No se pudo crear el directorio destino"
+            return 1
+        }
+    fi
+
+    # Confirmar recuperación
+    echo
+    echo "==============================================="
+    echo "Estás a punto de recuperar:"
+    echo "  Tipo: Backup $tipo_backup"
+    echo "  Origen: $(basename "$backup_a_recuperar")"
+    echo "  Destino: $destino"
+    echo "==============================================="
+    read -rp "¿Continuar con la recuperación? (s/n): " confirmar
+
+    if [ "$confirmar" != "s" ] && [ "$confirmar" != "S" ]; then
+        echo "Recuperación cancelada"
+        return 0
+    fi
+
+    # Realizar recuperación
+    echo
+    echo "Extrayendo backup..."
+    if tar -xjpf "$backup_a_recuperar" -C "$destino"; then
+        echo
+        echo "✓ Recuperación completada exitosamente"
+        echo "Archivos restaurados en: $destino"
+        magLogger "Backup $tipo_backup recuperado exitosamente [${perfil}] en [${destino}]"
+        return 0
+    else
+        echo
+        echo "✗ Error durante la recuperación"
+        magLogger error "Error al recuperar backup $tipo_backup [${perfil}]"
+        return 1
+    fi
+}
+
+## @function magbackup_listar_perfiles
+## @brief Muestra la lista de perfiles disponibles y sus backups
+function magbackup_listar_perfiles() {
+    echo "=========================================="
+    echo "Perfiles de backup configurados"
+    echo "=========================================="
+    echo
+
+    local hostname_suffix
+    hostname_suffix=$(hostname)
+
+    for file in "$directorio__ficheros"* ; do
+        [[ ${file:0-1} == '*' ]] && break
+        local nombre
+        nombre="$(basename "$file")"
+
+        echo "Perfil: $nombre"
+        echo "----------------------------------------"
+
+        # Mostrar copias mensuales
+        echo "Copias mensuales completas:"
+        local found_monthly=false
+        for backup in "${magBackup_dir}${nombre}-${hostname_suffix}"-*.tar.bz2; do
+            [ -e "$backup" ] || continue
+            if [[ "$(basename "$backup")" =~ -[A-Za-z]+\.tar\.bz2$ ]]; then
+                found_monthly=true
+                local size
+                size=$(du -h "$backup" 2>/dev/null | cut -f1)
+                local fecha
+                fecha=$(stat -c %y "$backup" 2>/dev/null | cut -d' ' -f1)
+                echo "  $(basename "$backup") - $size - $fecha"
+            fi
+        done
+        [ "$found_monthly" = false ] && echo "  (ninguna)"
+
+        # Mostrar copias incrementales
+        echo "Copias incrementales:"
+        local found_incremental=false
+        for backup in "${magBackup_dir}${nombre}-${hostname_suffix}"-*.tar.bz2; do
+            [ -e "$backup" ] || continue
+            if [[ "$(basename "$backup")" =~ \.[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
+                found_incremental=true
+                local size
+                size=$(du -h "$backup" 2>/dev/null | cut -f1)
+                local fecha_hora
+                fecha_hora=$(basename "$backup" | grep -oE '[0-9]{8}_[0-9]{6}')
+                local fecha_formateada
+                fecha_formateada=$(echo "$fecha_hora" | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)_\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1-\2-\3 \4:\5:\6/')
+                echo "  $(basename "$backup") - $size - $fecha_formateada"
+            fi
+        done
+        [ "$found_incremental" = false ] && echo "  (ninguna)"
+        echo
+    done
 }
 
 while [ -n "$1" ] ; do
@@ -349,6 +712,41 @@ while [ -n "$1" ] ; do
     -info) info ; help ; exit ;;
     --dependencias|-d) comprobar_dependencias ; exit ;;
     --config|-c) config ; exit ;;
+    --recuperar|-r)
+        shift
+        if [ -z "$1" ]; then
+            echo "Error: Debes especificar el perfil a recuperar"
+            echo "Uso: magBackup --recuperar <perfil> [fecha] [directorio_destino]"
+            echo ""
+            echo "Ejemplos:"
+            echo "  magBackup --recuperar documentos                  # Recupera el mensual más reciente"
+            echo "  magBackup --recuperar documentos 20260210         # Recupera el incremental del 10/02/2026"
+            echo "  magBackup --recuperar documentos "" /tmp          # Recupera el mensual en /tmp"
+            exit 1
+        fi
+        PERFIL_RECUPERAR="$1"
+        shift
+
+        # Detectar si el siguiente argumento es una fecha (YYYYMMDD) o directorio
+        FECHA_RECOVER=""
+        DIRECTORIO_DESTINO=""
+
+        if [ -n "$1" ]; then
+            if [[ "$1" =~ ^[0-9]{8}$ ]]; then
+                # Es una fecha
+                FECHA_RECOVER="$1"
+                shift
+                DIRECTORIO_DESTINO="${1:-}"
+            else
+                # Es un directorio (o algo que no es fecha)
+                DIRECTORIO_DESTINO="$1"
+            fi
+        fi
+
+        magbackup_recuperar_backup "$PERFIL_RECUPERAR" "$FECHA_RECOVER" "$DIRECTORIO_DESTINO"
+        exit $?
+        ;;
+    --listar|-l) magbackup_listar_perfiles ; exit ;;
 
   esac
 
@@ -359,7 +757,7 @@ if [ ! -e "$fichero_configuracion_magbackup" ] ; then
   echo
   echo "No se encontró fichero de configuración"
   echo
-  read -p "Configurar ahora (s/n): " OPCION
+  read -rp "Configurar ahora (s/n): " OPCION
   if [ "$OPCION" = "s" ] ; then
     configuracion_menu magBackup_ "$fichero_configuracion_magbackup"
   else
@@ -369,15 +767,15 @@ fi
 
 # Recogemos archivo de configuración
 # @todo Crear carpetas si no las hay.
-DIR_CONFIG=`dirname $fichero_configuracion_magbackup`
+DIR_CONFIG=$(dirname "$fichero_configuracion_magbackup")
 
 if [[ ! -d "$DIR_CONFIG" ]] ; then
   mkdir -p "$DIR_CONFIG"
-  mkdir $directorio__ficheros
-  mkdir $directorio__mysql
-  mkdir $directorio__docker_postgres
-  mkdir $directorio__dokku_postgres
-  mkdir $directorio__dokku_mysql
+  mkdir -p "$directorio__ficheros"
+  mkdir -p "$directorio__mysql"
+  mkdir -p "$directorio__docker_postgres"
+  mkdir -p "$directorio__dokku_postgres"
+  mkdir -p "$directorio__dokku_mysql"
 
   configuracion_guardar "magBackup_" "$fichero_configuracion_magbackup"
 fi
