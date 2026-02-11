@@ -23,8 +23,10 @@
 ##   -h, --help              Muestra esta ayuda
 ##   --config, -c            Configurar directorio de backups y retención
 ##   --listar, -l            Listar todos los perfiles y sus backups
+##   --backup-dir, -b        Especificar directorio de backups (útil sin configuración)
 ##   --recuperar, -r         Recuperar un backup completo
-##                           Uso: --recuperar <perfil> [fecha] [destino]
+##                           Uso: --recuperar <perfil|nombre> [fecha] [destino]
+##                           Funciona con perfiles configurados o backups sueltos
 ##                           Sin fecha: recupera mensual + todos los incrementales
 ##                           Con fecha: recupera mensual + incrementales hasta esa fecha
 ##                           Ejemplos:
@@ -73,6 +75,16 @@
 ##
 ##   # Recuperar en un directorio específico
 ##   magBackup --recuperar documentos 20260212 /tmp/recuperado
+##
+## RECUPERACIÓN SIN PERFIL:
+##   También puedes recuperar backups que existen en cualquier directorio, incluso
+##   sin tener perfil configurado ni archivo de configuración.
+##
+##   # Especificar directorio de backups y recuperar
+##   magBackup --backup-dir /mnt/backups/antiguos --recuperar config
+##
+##   # O con fecha específica
+##   magBackup --backup-dir /mnt/backups --recuperar documentos 20260212
 ##
 ## CONFIGURACIÓN AVANZADA (variables en ~/.config/magscripts/magBackup/config):
 ##   magBackup_dir="$HOME/backup/"      # Directorio de destino
@@ -585,8 +597,20 @@ function magbackup_recuperar_backup() {
 		return 1
 	fi
 
+	# Verificar si existe el perfil configurado
+	local perfil_file="${directorio__ficheros}${perfil}"
+	local perfil_existe=false
+	if [ -f "$perfil_file" ]; then
+		perfil_existe=true
+	fi
+
 	echo "=========================================="
-	echo "Recuperando backup del perfil: $perfil"
+	if [ "$perfil_existe" = true ]; then
+		echo "Recuperando backup del perfil: $perfil"
+	else
+		echo "Recuperando backup (sin perfil): $perfil"
+		echo "Nota: No se encontró configuración del perfil, se usarán solo los archivos de backup"
+	fi
 	echo "=========================================="
 	echo
 
@@ -869,6 +893,53 @@ function magbackup_recuperar_backup() {
 	fi
 }
 
+## @function magbackup_descubrir_backups
+## @brief Descubre backups en el directorio de backups sin necesidad de perfiles configurados
+## @return Lista de nombres de perfiles encontrados en los archivos de backup
+function magbackup_descubrir_backups() {
+    local hostname_suffix
+    hostname_suffix=$(hostname)
+    local -a perfiles_encontrados
+
+    # Buscar todos los archivos .tar.bz2 en el directorio de backups
+    for backup in "${magBackup_dir}"*.tar.bz2; do
+        [ -e "$backup" ] || continue
+        local basename_backup
+        basename_backup=$(basename "$backup")
+
+        # Extraer el nombre del perfil del archivo
+        local perfil=""
+
+        # Patrón: perfil-host-mes.tar.bz2 (mensual con hostname)
+        if [[ "$basename_backup" =~ ^(.+)-${hostname_suffix}-[A-Za-z]+\.tar\.bz2$ ]]; then
+            perfil="${BASH_REMATCH[1]}"
+        # Patrón: perfil-host-YYYYMMDD_HHMMSS.tar.bz2 (incremental con hostname)
+        elif [[ "$basename_backup" =~ ^(.+)-${hostname_suffix}-[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
+            perfil="${BASH_REMATCH[1]}"
+        # Patrón: perfil-YYYYMMDD_HHMMSS.tar.bz2 (incremental antiguo sin hostname)
+        elif [[ "$basename_backup" =~ ^(.+)-[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
+            perfil="${BASH_REMATCH[1]}"
+        fi
+
+        # Añadir a la lista si no está duplicado
+        if [ -n "$perfil" ]; then
+            local duplicado=false
+            for existing in "${perfiles_encontrados[@]}"; do
+                if [ "$existing" = "$perfil" ]; then
+                    duplicado=true
+                    break
+                fi
+            done
+            if [ "$duplicado" = false ]; then
+                perfiles_encontrados+=("$perfil")
+            fi
+        fi
+    done
+
+    # Retornar la lista
+    printf '%s\n' "${perfiles_encontrados[@]}"
+}
+
 ## @function magbackup_listar_perfiles
 ## @brief Muestra la lista de perfiles disponibles y sus backups
 function magbackup_listar_perfiles() {
@@ -970,6 +1041,53 @@ function magbackup_listar_perfiles() {
         fi
         echo
     done
+
+    # Mostrar backups descubiertos (sin perfil configurado)
+    local -a perfiles_descubiertos
+    while IFS= read -r perfil; do
+        [ -n "$perfil" ] && perfiles_descubiertos+=("$perfil")
+    done < <(magbackup_descubrir_backups)
+
+    if [ ${#perfiles_descubiertos[@]} -gt 0 ]; then
+        echo "=========================================="
+        echo "Backups sin perfil configurado"
+        echo "=========================================="
+        echo "(Se pueden recuperar con: magBackup --recuperar <nombre>)"
+        echo
+
+        for nombre in "${perfiles_descubiertos[@]}"; do
+            # Verificar si ya se mostró como perfil configurado
+            local ya_mostrado=false
+            for file in "$directorio__ficheros"* ; do
+                [[ ${file:0-1} == '*' ]] && break
+                if [ "$(basename "$file")" = "$nombre" ]; then
+                    ya_mostrado=true
+                    break
+                fi
+            done
+
+            if [ "$ya_mostrado" = false ]; then
+                echo "Backup: $nombre"
+                echo "----------------------------------------"
+
+                # Contar mensuales e incrementales
+                local count_mensual=0
+                local count_inc=0
+                for backup in "${magBackup_dir}${nombre}"*.tar.bz2; do
+                    [ -e "$backup" ] || continue
+                    if [[ "$(basename "$backup")" =~ -[A-Za-z]+\.tar\.bz2$ ]]; then
+                        count_mensual=$((count_mensual + 1))
+                    elif [[ "$(basename "$backup")" =~ -[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
+                        count_inc=$((count_inc + 1))
+                    fi
+                done
+
+                echo "  Copias mensuales: $count_mensual"
+                echo "  Copias incrementales: $count_inc"
+                echo
+            fi
+        done
+    fi
 }
 
 while [ -n "$1" ] ; do
@@ -980,16 +1098,33 @@ while [ -n "$1" ] ; do
     -info) info ; help ; exit ;;
     --dependencias|-d) comprobar_dependencias ; exit ;;
     --config|-c) config ; exit ;;
+    --backup-dir|-b)
+        shift
+        if [ -z "$1" ]; then
+            echo "Error: Debes especificar el directorio de backups"
+            echo "Uso: magBackup --backup-dir <directorio> --recuperar <perfil>"
+            echo ""
+            echo "Ejemplo:"
+            echo "  magBackup --backup-dir /mnt/backups --recuperar documentos"
+            exit 1
+        fi
+        magBackup_dir="$1"
+        # Asegurar que termine con /
+        [[ "$magBackup_dir" != */ ]] && magBackup_dir="${magBackup_dir}/"
+        DIR_SNAPSHOTS="${magBackup_dir}.snapshots/"
+        shift
+        ;;
     --recuperar|-r)
         shift
         if [ -z "$1" ]; then
             echo "Error: Debes especificar el perfil a recuperar"
             echo "Uso: magBackup --recuperar <perfil> [fecha] [directorio_destino]"
+            echo "       magBackup --backup-dir <dir> --recuperar <perfil>"
             echo ""
             echo "Ejemplos:"
             echo "  magBackup --recuperar documentos                  # Recupera el mensual más reciente"
-            echo "  magBackup --recuperar documentos 20260210         # Recupera el incremental del 10/02/2026"
-            echo "  magBackup --recuperar documentos "" /tmp          # Recupera el mensual en /tmp"
+            echo "  magBackup --recuperar documentos 20260210         # Recupera hasta el 10/02/2026"
+            echo "  magBackup --backup-dir /mnt/backups --recuperar documentos"
             exit 1
         fi
         PERFIL_RECUPERAR="$1"
