@@ -323,16 +323,41 @@ function magbackup_crear_copia_mysql_perfil() {
 
       source "$file"
 
-      for BD in $BASES_DATOS ; do
-        cmd="nice -10 docker exec -i -e PGPASSWORD=${DOCKER_PASSWORD} ${DOCKER_IMAGE} /usr/bin/pg_dump -U ${DOCKER_USER} ${DOCKER_DATABASE} > ${magBackup_dir}docker_postgres-${DOCKER_DATABASE}-$(hostname)-${DIA}.dump"
+      # Obtener todas las bases de datos excluyendo las del sistema
+      echo "Obteniendo lista de bases de datos..."
+      DBS=$(docker exec -i -e PGPASSWORD=${DOCKER_PASSWORD} ${DOCKER_IMAGE} psql -U ${DOCKER_USER} -lqt 2>/dev/null | cut -d \| -f 1 | awk 'NF {gsub(/^[ \t]+|[ \t]+$/, ""); if($0 !~ /^(postgres|template0|template1)$/) print}')
+
+      if [ -z "$DBS" ]; then
+        echo "Error: No se pudieron obtener las bases de datos o no hay bases de datos de usuario"
+        magLogger error "No se pudieron obtener las bases de datos de PostgreSQL Docker [${DOCKER_IMAGE}]"
+        exit 1
+      fi
+
+      echo "Bases de datos encontradas:"
+      echo "$DBS" | while read -r db; do
+        echo "  - $db"
+      done
+      echo
+
+      for BD in $DBS ; do
+        DESTINO="${magBackup_dir}docker_postgres-${BD}-$(hostname)-${DATE}.sql"
+        cmd="nice -10 docker exec -i -e PGPASSWORD=${DOCKER_PASSWORD} ${DOCKER_IMAGE} pg_dump -U ${DOCKER_USER} ${BD} > ${DESTINO}"
         echo
-        echo "Comando: $cmd"
+        echo "Backup de base de datos: $BD"
+        echo "Comando: docker exec -i ${DOCKER_IMAGE} pg_dump -U ${DOCKER_USER} ${BD} > ${DESTINO}"
         if eval "$cmd"; then
-          echo "Copia generada correctamente"
-          magLogger "Copia postgres docker generada correctamente [${DOCKER_DATABASE}]"
+          # Comprimir el dump
+          if bzip2 -f "$DESTINO"; then
+            echo "Copia generada correctamente: ${DESTINO}.bz2"
+            magLogger "Copia postgres docker generada correctamente [${BD}]"
+          else
+            echo "Error al comprimir copia"
+            magLogger error "Error al comprimir copia postgres docker [${BD}]"
+            exit 1
+          fi
         else
           echo "Error al generar copia"
-          magLogger error "Error al generar copia de postgres docker [${DOCKER_DATABASE}]"
+          magLogger error "Error al generar copia de postgres docker [${BD}]"
           exit 1
         fi
       done
