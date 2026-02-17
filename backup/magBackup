@@ -87,14 +87,14 @@
 ##   magBackup --backup-dir /mnt/backups --recuperar documentos 20260212
 ##
 ## CONFIGURACIÓN AVANZADA (variables en ~/.config/magscripts/magBackup/config):
-##   magBackup_dir="$HOME/backup/"      # Directorio de destino
+##   magBackup_dir="$HOME/backups/"      # Directorio de destino
 ##   RETENTION_DAILY=7                   # Copias diarias a mantener
 ##   RETENTION_WEEKLY=4                  # Copias semanales a mantener
 ##   RETENTION_MONTHLY=12                # Copias mensuales a mantener
 
 ## @var magBackup_dir
 ## Directorio donde guardar las copias realizadas
-magBackup_dir="$HOME/backup/"
+magBackup_dir="$HOME/backups/"
 
 help() { $(dirname "$BASH_SOURCE")/../lib/doxygen2help "$0" ; }
 
@@ -341,10 +341,10 @@ function magbackup_crear_copia_mysql_perfil() {
 
       for BD in $DBS ; do
         DESTINO="${magBackup_dir}docker_postgres-${BD}-$(hostname)-${DATE}.sql"
-        cmd="nice -10 docker exec -i -e PGPASSWORD=${DOCKER_PASSWORD} ${DOCKER_IMAGE} pg_dump -U ${DOCKER_USER} ${BD} > ${DESTINO}"
+        cmd="nice -10 docker exec -i -e PGPASSWORD=${DOCKER_PASSWORD} ${DOCKER_IMAGE} pg_dump -U ${DOCKER_USER} --no-owner --no-privileges ${BD} > ${DESTINO}"
         echo
         echo "Backup de base de datos: $BD"
-        echo "Comando: docker exec -i ${DOCKER_IMAGE} pg_dump -U ${DOCKER_USER} ${BD} > ${DESTINO}"
+        echo "Comando: $cmd"
         if eval "$cmd"; then
           # Comprimir el dump
           if bzip2 -f "$DESTINO"; then
@@ -406,10 +406,10 @@ function magbackup_crear_copia_mysql_perfil() {
 
       for BD in $DBS ; do
         DESTINO="${magBackup_dir}dokku_postgres-${DOKKU_APP}-${BD}-$(hostname)-${DATE}.sql"
-        cmd="nice -10 docker exec -i $TAG pg_dump -U postgres ${BD} > $DESTINO"
+        cmd="nice -10 docker exec -i $TAG pg_dump -U postgres --no-owner --no-privileges ${BD} > $DESTINO"
         echo
         echo "Backup de base de datos: $BD"
-        echo "Comando: docker exec -i $TAG pg_dump -U postgres ${BD} > ${DESTINO}"
+        echo "Comando: $cmd"
         if eval "$cmd"; then
           if bzip2 -f "$DESTINO"; then
             echo "Copia generada correctamente: ${DESTINO}.bz2"
