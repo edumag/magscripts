@@ -390,7 +390,7 @@ function magbackup_crear_copia_mysql_perfil() {
 
       # Obtener todas las bases de datos excluyendo las del sistema
       echo "Obteniendo lista de bases de datos..."
-      DBS=$(docker exec -t $TAG psql -U postgres -lqt 2>/dev/null | cut -d \| -f 1 | awk 'NF {gsub(/^[ \t]+|[ \t]+$/, ""); if($0 !~ /^(postgres|template0|template1)$/) print}')
+      DBS=$(docker exec -i $TAG psql -U postgres -lqt 2>/dev/null | cut -d \| -f 1 | awk 'NF {gsub(/^[ \t]+|[ \t]+$/, ""); if($0 !~ /^(postgres|template0|template1)$/) print}')
 
       if [ -z "$DBS" ]; then
         echo "Error: No se pudieron obtener las bases de datos o no hay bases de datos de usuario"
@@ -406,10 +406,10 @@ function magbackup_crear_copia_mysql_perfil() {
 
       for BD in $DBS ; do
         DESTINO="${magBackup_dir}dokku_postgres-${DOKKU_APP}-${BD}-$(hostname)-${DATE}.sql"
-        cmd="nice -10 docker exec -t $TAG pg_dump -U postgres ${BD} > $DESTINO"
+        cmd="nice -10 docker exec -i $TAG pg_dump -U postgres ${BD} > $DESTINO"
         echo
         echo "Backup de base de datos: $BD"
-        echo "Comando: docker exec -t $TAG pg_dump -U postgres ${BD} > ${DESTINO}"
+        echo "Comando: docker exec -i $TAG pg_dump -U postgres ${BD} > ${DESTINO}"
         if eval "$cmd"; then
           if bzip2 -f "$DESTINO"; then
             echo "Copia generada correctamente: ${DESTINO}.bz2"
