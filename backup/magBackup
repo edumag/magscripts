@@ -217,6 +217,10 @@ for file in "$directorio__ficheros"* ; do
     TEMP_DESTINO="${DIR_TEMP}/backup.tar.bz2"
 
     if [ "$ES_MES_NUEVO" = true ]; then
+        # Si existe un snapshot para el mes actual, lo borramos
+        if [ -e "$SNAPSHOT_FILE" ]; then
+            rm -f "$SNAPSHOT_FILE"
+        fi
         # Generamos copia mensual completa
         DESTINO="${magBackup_dir}$NOMBRE_MES"
         CMD="nice -10 tar -Pcjpf '$TEMP_DESTINO' --listed-incremental='$SNAPSHOT_FILE' $CS_COPIAR"
