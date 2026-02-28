@@ -6,12 +6,12 @@
 help() { doxygen2help "$0"; }
 [[ "$1" == "-h" || "$1" == "--help" ]] && { help ; exit ; }
 
-echo
-echo "pacman"
-echo "------"
-echo
 which pacman > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
+    echo
+    echo "pacman"
+    echo "------"
+    echo
     echo "Sincronizando repositorios"
     echo pacman -Sy
     sudo pacman -Sy #Sincroniza repositorios.
@@ -34,16 +34,17 @@ else
     echo "Nada que hacer"
 fi
 
-echo
-echo "npm"
-echo "---"
-echo
-which npm -g outdated > /dev/null 2>&1
+which npm > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
     echo -e "\nnpm\n---"
     echo -e "npm -g outdated"
-    echo "npm -g update"
-    npm -g update
+    npm -g outdated
+    if [[ -z $SALIDA ]] ; then
+      echo "Nada que hacer"
+    else
+      echo "npm -g update"
+      npm -g update
+    fi
 else
     echo "Nada que hacer"
 fi
@@ -54,6 +55,10 @@ echo "-------"
 echo
 which flatpak > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
+    echo
+    echo "flatpak"
+    echo "-------"
+    echo
     echo "flatpak list"
     sudo flatpak list
     echo
@@ -63,12 +68,12 @@ else
     echo "Nada que hacer"
 fi
 
-echo
-echo "snap"
-echo "----"
-echo
 which snap > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
+    echo
+    echo "snap"
+    echo "----"
+    echo
     echo "snap list"
     sudo snap list
     echo
@@ -78,12 +83,12 @@ else
     echo "Nada que hacer"
 fi
 
-echo
-echo "apt-get"
-echo "-------"
-echo
 which apt-get > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
+    echo
+    echo "apt-get"
+    echo "-------"
+    echo
     echo 'apt-get update && apt-get upgrade && apt-get dist-upgrade && apt-get autoremove && apt-get autoclean'
     sudo apt-get update
     sudo apt-get upgrade -y
@@ -91,6 +96,25 @@ if [[ $? -eq 0 ]] ; then
     sudo apt-get autoremove -y
     sudo apt-get autoclean -y
     echo
+else
+    echo "Nada que hacer"
+fi
+
+which fwupd > /dev/null 2>&1
+if [[ $? -eq 0 ]] ; then
+    echo
+    echo "fwupd"
+    echo "-------"
+    echo
+    echo "fwupdmgr refresh"
+    fwupd refresh
+    echo "fwupdmgr get-updates"
+    fwupdmgr get-updates
+    if [[ $? -eq 0 ]] ; then
+      fwupdmgr update
+    else
+      echo "Nada que hacer"
+    fi
 else
     echo "Nada que hacer"
 fi
