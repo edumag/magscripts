@@ -21,6 +21,10 @@
 \usepackage{titlesec}
 \usepackage {soul}          % For underline text
 \usepackage{xcolor}
+\usepackage{longtable}      % For pandoc tables
+\usepackage{booktabs}       % For pandoc table rules (\toprule, etc.)
+\usepackage{array}         % For pandoc table column alignment
+\usepackage{amssymb}       % For \square and other math symbols
 
 \definecolor{colorGreen}{HTML}{395d41}
 
