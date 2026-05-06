@@ -665,43 +665,23 @@ function magbackup_recuperar_backup() {
 	local -a incrementales
 	local -a todos_backups
 
-	# Mensuales (patrón: perfil-*-mes.tar.bz2 donde mes es un nombre de mes en letras)
+	# Buscar TODOS los backups del perfil (patrón general)
 	# No asumimos hostname porque el backup pudo crearse en otra máquina
-	for backup in "${magBackup_dir}${perfil}"-*.tar.bz2; do
+	# Usamos el mismo patrón que magbackup_listar_perfiles para backups sin perfil
+	for backup in "${magBackup_dir}${perfil}-"*.tar.bz2; do
 		[ -e "$backup" ] || continue
-		if [[ "$(basename "$backup")" =~ -[A-Za-z]+\.tar\.bz2$ ]]; then
-			# Evitar duplicados
-			duplicado=false
-			for existing in "${mensuales[@]}"; do
-				if [ "$(basename "$existing")" = "$(basename "$backup")" ]; then
-					duplicado=true
-					break
-				fi
-			done
-			if [ "$duplicado" = false ]; then
-				mensuales+=("$backup")
-				todos_backups+=("$backup")
-			fi
-		fi
-	done
 
-	# Incrementales (patrón: perfil-*-YYYYMMDD_HHMMSS.tar.bz2)
-	# No asumimos hostname porque el backup pudo crearse en otra máquina
-	for backup in "${magBackup_dir}${perfil}"-*.tar.bz2; do
-		[ -e "$backup" ] || continue
-		if [[ "$(basename "$backup")" =~ -[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
-			# Evitar duplicados
-			duplicado=false
-			for existing in "${incrementales[@]}"; do
-				if [ "$(basename "$existing")" = "$(basename "$backup")" ]; then
-					duplicado=true
-					break
-				fi
-			done
-			if [ "$duplicado" = false ]; then
-				incrementales+=("$backup")
-				todos_backups+=("$backup")
-			fi
+		basename_backup=$(basename "$backup")
+
+		# Clasificar: mensual (termina en -Mes.tar.bz2) o incremental (termina en -YYYYMMDD_HHMMSS.tar.bz2)
+		if [[ "$basename_backup" =~ -[A-Za-z]+\.tar\.bz2$ ]]; then
+			# Es mensual
+			mensuales+=("$backup")
+			todos_backups+=("$backup")
+		elif [[ "$basename_backup" =~ -[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
+			# Es incremental
+			incrementales+=("$backup")
+			todos_backups+=("$backup")
 		fi
 	done
 
