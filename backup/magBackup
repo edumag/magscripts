@@ -665,39 +665,43 @@ function magbackup_recuperar_backup() {
 	local -a incrementales
 	local -a todos_backups
 
-	# Mensuales (patrón: perfil-host-mes.tar.bz2)
-	for backup in "${magBackup_dir}${perfil}-${hostname_suffix}"-*.tar.bz2; do
+	# Mensuales (patrón: perfil-*-mes.tar.bz2 donde mes es un nombre de mes en letras)
+	# No asumimos hostname porque el backup pudo crearse en otra máquina
+	for backup in "${magBackup_dir}${perfil}"-*.tar.bz2; do
 		[ -e "$backup" ] || continue
 		if [[ "$(basename "$backup")" =~ -[A-Za-z]+\.tar\.bz2$ ]]; then
-			mensuales+=("$backup")
-			todos_backups+=("$backup")
+			# Evitar duplicados
+			duplicado=false
+			for existing in "${mensuales[@]}"; do
+				if [ "$(basename "$existing")" = "$(basename "$backup")" ]; then
+					duplicado=true
+					break
+				fi
+			done
+			if [ "$duplicado" = false ]; then
+				mensuales+=("$backup")
+				todos_backups+=("$backup")
+			fi
 		fi
 	done
 
-	# Incrementales con hostname (patrón: perfil-host-YYYYMMDD_HHMMSS.tar.bz2)
-	for backup in "${magBackup_dir}${perfil}-${hostname_suffix}"-[0-9]*_*.tar.bz2; do
+	# Incrementales (patrón: perfil-*-YYYYMMDD_HHMMSS.tar.bz2)
+	# No asumimos hostname porque el backup pudo crearse en otra máquina
+	for backup in "${magBackup_dir}${perfil}"-*.tar.bz2; do
 		[ -e "$backup" ] || continue
 		if [[ "$(basename "$backup")" =~ -[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
-			incrementales+=("$backup")
-			todos_backups+=("$backup")
-		fi
-	done
-
-	# Incrementales antiguos sin hostname (patrón: perfil-YYYYMMDD_HHMMSS.tar.bz2)
-	for backup in "${magBackup_dir}${perfil}"-[0-9]*_*.tar.bz2; do
-		[ -e "$backup" ] || continue
-		local basename_backup
-		basename_backup=$(basename "$backup")
-		local duplicado=false
-		for existing in "${todos_backups[@]}"; do
-			if [ "$(basename "$existing")" = "$basename_backup" ]; then
-				duplicado=true
-				break
+			# Evitar duplicados
+			duplicado=false
+			for existing in "${incrementales[@]}"; do
+				if [ "$(basename "$existing")" = "$(basename "$backup")" ]; then
+					duplicado=true
+					break
+				fi
+			done
+			if [ "$duplicado" = false ]; then
+				incrementales+=("$backup")
+				todos_backups+=("$backup")
 			fi
-		done
-		if [ "$duplicado" = false ] && [[ "$basename_backup" =~ ^${perfil}-[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
-			incrementales+=("$backup")
-			todos_backups+=("$backup")
 		fi
 	done
 
@@ -1009,7 +1013,8 @@ function magbackup_listar_perfiles() {
         echo "Copias mensuales completas:"
         local found_monthly=false
         local -a mensuales
-        for backup in "${magBackup_dir}${nombre}-${hostname_suffix}"-*.tar.bz2; do
+        # No asumimos hostname porque el backup pudo crearse en otra máquina
+        for backup in "${magBackup_dir}${nombre}"-*.tar.bz2; do
             [ -e "$backup" ] || continue
             if [[ "$(basename "$backup")" =~ -[A-Za-z]+\.tar\.bz2$ ]]; then
                 found_monthly=true
@@ -1039,31 +1044,25 @@ function magbackup_listar_perfiles() {
         # Usar un array para poder ordenar por fecha
         local -a incrementales
 
-        # Buscar incrementales con patrón nuevo (con hostname)
-        for backup in "${magBackup_dir}${nombre}-${hostname_suffix}"-[0-9]*_*.tar.bz2; do
+        # Buscar incrementales (patrón: nombre-*-YYYYMMDD_HHMMSS.tar.bz2)
+        # No asumimos hostname porque el backup pudo crearse en otra máquina
+        for backup in "${magBackup_dir}${nombre}"-*.tar.bz2; do
             [ -e "$backup" ] || continue
             if [[ "$(basename "$backup")" =~ -[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
-                found_incremental=true
-                incrementales+=("$backup")
-            fi
-        done
-
-        # Buscar incrementales con patrón antiguo (sin hostname) para compatibilidad
-        for backup in "${magBackup_dir}${nombre}"-[0-9]*_*.tar.bz2; do
-            [ -e "$backup" ] || continue
-            # Evitar duplicados si ya lo encontramos arriba
-            local basename_backup
-            basename_backup=$(basename "$backup")
-            local ya_encontrado=false
-            for existing in "${incrementales[@]}"; do
-                if [ "$(basename "$existing")" = "$basename_backup" ]; then
-                    ya_encontrado=true
-                    break
+                # Evitar duplicados
+                local basename_backup
+                basename_backup=$(basename "$backup")
+                local ya_encontrado=false
+                for existing in "${incrementales[@]}"; do
+                    if [ "$(basename "$existing")" = "$basename_backup" ]; then
+                        ya_encontrado=true
+                        break
+                    fi
+                done
+                if [ "$ya_encontrado" = false ]; then
+                    found_incremental=true
+                    incrementales+=("$backup")
                 fi
-            done
-            if [ "$ya_encontrado" = false ] && [[ "$basename_backup" =~ ^${nombre}-[0-9]{8}_[0-9]{6}\.tar\.bz2$ ]]; then
-                found_incremental=true
-                incrementales+=("$backup")
             fi
         done
 
