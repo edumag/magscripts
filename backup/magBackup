@@ -669,11 +669,9 @@ function magbackup_recuperar_backup() {
 	# No asumimos hostname porque el backup pudo crearse en otra máquina
 	# Usamos el mismo patrón que magbackup_listar_perfiles para backups sin perfil
 	for backup in "${magBackup_dir}${perfil}-"*.tar.bz2; do
-    echo "backup: $backup"
 		[ -e "$backup" ] || continue
 
 		basename_backup=$(basename "$backup")
-    echo "basename_backup: $basename_backup"
 
 		# Clasificar: mensual (termina en -Mes.tar.bz2) o incremental (termina en -YYYYMMDD_HHMMSS.tar.bz2)
 		if [[ "$basename_backup" =~ -[A-Za-z]+\.tar\.bz2$ ]]; then
@@ -686,9 +684,6 @@ function magbackup_recuperar_backup() {
 			todos_backups+=("$backup")
 		fi
 	done
-
-  echo "mensuales: ${mensuales[@]}"
-  echo "incrementales: ${incrementales[@]}"
 
 	# Mostrar lista de backups disponibles
 	echo "Backups disponibles:"
@@ -845,7 +840,8 @@ function magbackup_recuperar_backup() {
 	for backup in "${backups_a_recuperar[@]}"; do
 		local checksum_file="${backup}.sha256"
 		if [ -f "$checksum_file" ]; then
-			if ! verificar_backup "$backup" >/dev/null 2>&1; then
+			# if ! verificar_backup "$backup" >/dev/null 2>&1; then
+			if ! verificar_backup "$backup" ; then
 				echo "  ✗ $(basename "$backup") - CORRUPTO"
 				todos_ok=false
 			else
