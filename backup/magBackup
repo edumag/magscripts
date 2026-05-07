@@ -492,11 +492,15 @@ function verificar_backup() {
 
     echo "Verificando integridad de $backup_file..."
     # if sha256sum -c "$checksum_file" > /dev/null 2>&1; then
-    if sha256sum -c "$checksum_file"; then
+    hash_file=$(sha256sum "$backup_file" | cut -d ' ' -f1)
+    hash_check=$(cat "$checksum_file" | cut -d ' ' -f1)
+    if [ "$hash_file" == "$hash_check" ]; then
         echo "✓ Verificación exitosa: $backup_file"
         return 0
     else
         echo "✗ ERROR: Verificación fallida para $backup_file"
+        echo "hash_file: $hash_file"
+        echo "hash_check: $hash_check"
         magLogger error "Verificación de integridad fallida para $backup_file"
         return 1
     fi
