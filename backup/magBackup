@@ -491,7 +491,8 @@ function verificar_backup() {
     fi
 
     echo "Verificando integridad de $backup_file..."
-    if sha256sum -c "$checksum_file" > /dev/null 2>&1; then
+    # if sha256sum -c "$checksum_file" > /dev/null 2>&1; then
+    if sha256sum -c "$checksum_file"; then
         echo "✓ Verificación exitosa: $backup_file"
         return 0
     else
