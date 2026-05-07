@@ -19,7 +19,9 @@ help() { doxygen2help "$0" ; }
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
 
-$ORIGEN="$1"
-$DESTINO="$2"
+ORIGEN="$1"
+DESTINO="$2"
+
+echo rsync -aPz --exclude=node_modules --exclude=dist --exclude=vendor --exclude=env "$ORIGEN" "$DESTINO"
 
 rsync -aPz --exclude=node_modules --exclude=dist --exclude=vendor --exclude=env "$ORIGEN" "$DESTINO"
