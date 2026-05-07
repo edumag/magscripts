@@ -652,9 +652,9 @@ function magbackup_recuperar_backup() {
 
 	echo "=========================================="
 	if [ "$perfil_existe" = true ]; then
-		echo "Recuperando backup del perfil: $perfil"
+		echo "Recuperando backup del perfil: $perfil_file"
 	else
-		echo "Recuperando backup (sin perfil): $perfil"
+		echo "Recuperando backup (sin perfil): $perfil_file"
 		echo "Nota: No se encontró configuración del perfil, se usarán solo los archivos de backup"
 	fi
 	echo "=========================================="
