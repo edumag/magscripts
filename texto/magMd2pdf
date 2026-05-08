@@ -3,53 +3,81 @@
 ## magMd2pdf transforma documentos Markdown en PDFs de alta calidad, perfectos
 ## para compartir o imprimir documentación técnica.
 
-if [[ "$1" == "--raw" ]]; then
-    RAW=1
-    shift 1
-else
-    RAW=0
-fi
+RAW=0
+OUTPUT_FILE=""
 
-CURRENT_DIR=`pwd`
-SCRIPT_DIR=$( dirname -- "${BASH_SOURCE[0]}")
-MARKDOWN_DIR=$( dirname -- "$1")
-MARKDOWN_NAME=$( basename -- "$1")
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --raw)
+            RAW=1
+            shift
+            ;;
+        -o|--output)
+            if [[ -z "$2" ]]; then
+                echo "Error: --output requiere un argumento (ruta del PDF de salida)"
+                exit 1
+            fi
+            OUTPUT_FILE="$2"
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+CURRENT_DIR=$(pwd)
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+MARKDOWN_DIR=$(dirname -- "$1")
+MARKDOWN_NAME=$(basename -- "$1")
 
 function md2pdf() {
-
     [[ -d ~/tmp ]] || mkdir -p ~/tmp
-    o=~/tmp/`basename "$1" '.md'`.pdf
-    # pandoc -s "$1" -o "$o"
-    cd $MARKDOWN_DIR
-    pandoc -s "$MARKDOWN_NAME" -o "$o" --template=$SCRIPT_DIR/templates/edumag/edumag.latex --pdf-engine=xelatex -V "mainfont:DejaVu Sans" -V "monofont:DejaVu Sans Mono"
+    o=~/tmp/$(basename "$1" '.md').pdf
+    cd "$MARKDOWN_DIR" || exit 1
+    pandoc -s "$MARKDOWN_NAME" -o "$o" --template="$SCRIPT_DIR/templates/edumag/edumag.latex" --pdf-engine=xelatex --lua-filter="$SCRIPT_DIR/templates/edumag/emoji-filter.lua" -V "mainfont:DejaVu Sans" -V "monofont:DejaVu Sans Mono"
     SALIDA=$?
-    cd $CURRENT_DIR
+    cd "$CURRENT_DIR" || exit 1
     [[ $SALIDA -eq 0 ]] || exit 1
-    xdg-open "$o" &
 
+    if [[ -n "$OUTPUT_FILE" ]]; then
+        mv "$o" "$OUTPUT_FILE"
+        echo "PDF generado en: $OUTPUT_FILE"
+    else
+        xdg-open "$o" &
+    fi
 }
 
 help() {
-
-    echo "Usage with custom template: `basename $0` <markdown_file>"}
-    echo "Usage without custom template: `basename $0` --raw <markdown_file>"}
+    echo "Usage: $(basename "$0") [--raw] [-o|--output <pdf_file>] <markdown_file>"
+    echo ""
+    echo "Opciones:"
+    echo "  --raw                      Usar pandoc sin plantilla personalizada"
+    echo "  -o, --output <fichero>     Ruta del PDF de salida (por defecto: ~/tmp/<nombre>.pdf)"
+    echo "  -h, --help                 Mostrar esta ayuda"
 }
 
-if [[ -z "$1" ]] || [[ "$1" == "-h" ]]; then
+if [[ -z "$1" ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
     help
     exit 1
 fi
 
 if [[ "$RAW" == "1" ]]; then
     [[ -d ~/tmp ]] || mkdir -p ~/tmp
-    o=~/tmp/`basename "$1" '.md'`.pdf
-    # pandoc -s "$1" -o "$o"
-    cd $MARKDOWN_DIR
-    pandoc -s "$MARKDOWN_NAME" -o "$o"
+    o=~/tmp/$(basename "$1" '.md').pdf
+    cd "$MARKDOWN_DIR" || exit 1
+    pandoc -s "$MARKDOWN_NAME" -o "$o" --pdf-engine=xelatex -H "$SCRIPT_DIR/templates/edumag/emoji-header.tex" --lua-filter="$SCRIPT_DIR/templates/edumag/emoji-filter.lua"
     SALIDA=$?
-    cd $CURRENT_DIR
+    cd "$CURRENT_DIR" || exit 1
     [[ $SALIDA -eq 0 ]] || exit 1
-    xdg-open "$o" &
+
+    if [[ -n "$OUTPUT_FILE" ]]; then
+        mv "$o" "$OUTPUT_FILE"
+        echo "PDF generado en: $OUTPUT_FILE"
+    else
+        xdg-open "$o" &
+    fi
     exit 0
 fi
 

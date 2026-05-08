@@ -73,6 +73,10 @@
 \newfontfamily{\cvheadingfont}{Roboto}
 \setmainfont{Roboto Light}
 
+% Emoji support via Symbola (outline font, compatible with XeTeX)
+\newfontfamily{\emojifont}{Symbola}
+\newcommand{\emoji}[1]{{\emojifont #1}}
+
 % colours
 \definecolor{cvnamecolor}{HTML}{000000}
 \definecolor{cvsectioncolor}{HTML}{000000}
