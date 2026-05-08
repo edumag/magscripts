@@ -72,6 +72,7 @@
 \newfontfamily{\cvdurationfont}{Roboto Light Italic}
 \newfontfamily{\cvheadingfont}{Roboto}
 \setmainfont{Roboto Light}
+\setmonofont{DejaVu Sans Mono}
 
 % Emoji support via Symbola (outline font, compatible with XeTeX)
 \newfontfamily{\emojifont}{Symbola}

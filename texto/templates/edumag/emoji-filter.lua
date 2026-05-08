@@ -3,8 +3,8 @@
 -- Uso: pandoc ... --lua-filter=emoji-filter.lua
 
 local function is_emoji_char(cp)
-  -- Rangos Unicode principales de emoji
-  return cp >= 0x2600 and cp <= 0x27BF      -- Misc. Symbols, Dingbats
+  -- Rangos Unicode de símbolos y emoji no cubiertos por fuentes tipicas
+  return cp >= 0x2500 and cp <= 0x27BF      -- Box Drawing, Block Elements, Geometric Shapes, Misc. Symbols, Dingbats
       or cp >= 0x1F300 and cp <= 0x1FFFD    -- Pictographs, Emoticons, Transport, etc.
       or cp == 0x200D                        -- Zero-Width Joiner
       or cp == 0xFE0F                        -- Variation Selector-16

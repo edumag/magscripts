@@ -67,7 +67,7 @@ if [[ "$RAW" == "1" ]]; then
     [[ -d ~/tmp ]] || mkdir -p ~/tmp
     o=~/tmp/$(basename "$1" '.md').pdf
     cd "$MARKDOWN_DIR" || exit 1
-    pandoc -s "$MARKDOWN_NAME" -o "$o" --pdf-engine=xelatex -H "$SCRIPT_DIR/templates/edumag/emoji-header.tex" --lua-filter="$SCRIPT_DIR/templates/edumag/emoji-filter.lua"
+    pandoc -s "$MARKDOWN_NAME" -o "$o" --pdf-engine=xelatex -V "monofont:DejaVu Sans Mono" -H "$SCRIPT_DIR/templates/edumag/emoji-header.tex" --lua-filter="$SCRIPT_DIR/templates/edumag/emoji-filter.lua"
     SALIDA=$?
     cd "$CURRENT_DIR" || exit 1
     [[ $SALIDA -eq 0 ]] || exit 1
