@@ -1,0 +1,45 @@
+#!/bin/bash
+## @file magCompress
+## @brief Comprime o descomprime carpetas en formato tar.bz2
+##
+## @param directorio Carpeta a comprimir (o archivo a descomprimir)
+## @param -d | --decompress Descomprimir en lugar de comprimir
+##
+## Uso: magCompress [-d] <directorio>
+##
+## Ejemplos:
+##   magCompress midirectorio        -> Crea midirectorio.tar.bz2
+##   magCompress -d midirectorio.tar.bz2  -> Extrae midirectorio/
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
+decompress=false
+target=""
+
+if [ "$1" == "-d" ] || [ "$1" == "--decompress" ] ; then
+    decompress=true
+    shift
+fi
+
+target="$1"
+
+if [ -z "$target" ] ; then
+    echo "Error: Debes especificar un directorio o archivo."
+    exit 1
+fi
+
+if $decompress ; then
+    if [ ! -f "$target" ] ; then
+        echo "Error: El archivo '$target' no existe."
+        exit 1
+    fi
+    tar -xvjf "$target"
+else
+    if [ ! -d "$target" ] ; then
+        echo "Error: El directorio '$target' no existe."
+        exit 1
+    fi
+    tar -cvjf "${target%/}.tar.bz2" "$target"
+fi
