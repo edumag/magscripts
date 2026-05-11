@@ -35,11 +35,13 @@ if $decompress ; then
         echo "Error: El archivo '$target' no existe."
         exit 1
     fi
-    tar -xvjf "$target"
+    tar -xvjf "$target" -C .
 else
     if [ ! -d "$target" ] ; then
         echo "Error: El directorio '$target' no existe."
         exit 1
     fi
-    tar -cvjf "${target%/}.tar.bz2" "$target"
+    dir="$(dirname "$target")"
+    base="$(basename "$target")"
+    tar -cvjf "${base%/}.tar.bz2" -C "$dir" "$base"
 fi
