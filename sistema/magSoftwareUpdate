@@ -63,7 +63,7 @@ if [[ $? -eq 0 ]] ; then
     sudo flatpak list
     echo
     echo "flatpak update -y"
-    sudo flatpak update -y
+    flatpak update -y
 else
     echo "Nada que hacer"
 fi
