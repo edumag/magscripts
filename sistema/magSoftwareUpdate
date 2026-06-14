@@ -37,8 +37,7 @@ fi
 which npm > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
     echo -e "\nnpm\n---"
-    echo -e "npm -g outdated"
-    npm -g outdated
+    SALIDA=$(npm -g outdated)
     if [[ -z $SALIDA ]] ; then
       echo "Nada que hacer"
     else
@@ -55,12 +54,8 @@ echo "-------"
 echo
 which flatpak > /dev/null 2>&1
 if [[ $? -eq 0 ]] ; then
-    echo
-    echo "flatpak"
-    echo "-------"
-    echo
     echo "flatpak list"
-    sudo flatpak list
+    flatpak list
     echo
     echo "flatpak update -y"
     flatpak update -y
