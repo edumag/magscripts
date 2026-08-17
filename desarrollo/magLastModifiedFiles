@@ -50,7 +50,8 @@ case "$time" in
    *) help ; exit ;;
 esac
 
-comando_ultimos_modificados="find '$dir' -type f $find_time | grep -v '.swp' | grep -v 'log/' | grep -v '.git' | sed 's/\.\///' | sed 's/^\.//'"
+# comando_ultimos_modificados="find '$dir' -type f $find_time | grep -v '.swp' | grep -v 'log/' | grep -v '.git' | sed 's/\.\///' | sed 's/^\.//'"
+comando_ultimos_modificados="find '$dir' -type f $find_time | grep -v '.swp' | grep -v 'log/' | grep -v '.git'"
 
 echo Buscar en $dir con $time - $find_time
 echo $comando_ultimos_modificados
