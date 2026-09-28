@@ -13,8 +13,15 @@ function show_error_dialog {
 }
 
 # Tomar una captura de pantalla de una porción seleccionada de la pantalla y guardarla como un archivo de imagen
-# gnome-screenshot -a -f ~/tmp/screenshot.png || show_error_dialog "Error: no se pudo tomar la captura de pantalla."
-ksnip -r --saveto $HOME/tmp/screenshot.png || show_error_dialog "Error: no se pudo tomar la captura de pantalla."
+gnome-screenshot -a -f ~/tmp/screenshot.png || show_error_dialog "Error: no se pudo tomar la captura de pantalla."
+# ksnip -r --saveto $HOME/tmp/screenshot.png || show_error_dialog "Error: no se pudo tomar la captura de pantalla."
+# Wayland
+# if command -v flameshot &> /dev/null; then
+#     flameshot gui -c -p "$HOME/tmp/screenshot.png" 2>/dev/null
+#     if [ -f "$HOME/tmp/screenshot.png" ]; then
+#         return 0
+#     fi
+# fi
 
 # Extraer texto de la imagen utilizando Tesseract
 tesseract $HOME/tmp/screenshot.png $HOME/tmp/extracted_text || show_error_dialog "Error: no se pudo extraer texto de la imagen."
