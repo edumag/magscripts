@@ -286,7 +286,7 @@ magSoftwareSearch busca software disponible en múltiples gestores de paquetes (
 
 ### magSoftwareUpdate
 
-magSoftwareUpdate actualiza todos los paquetes del sistema a través de diferentes gestores, manteniendo tu Linux al día con las últimas versiones.
+magSoftwareUpdate actualiza todos los paquetes del sistema a través de diferentes gestores y limpia las cachés y runtimes sin usar, manteniendo tu Linux al día y libre de basura acumulada.
 
 *Dependencias*: pacman, npm, flatpak, snap, apt-get
 
