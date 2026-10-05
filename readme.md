@@ -1,5 +1,7 @@
 # magscripts
 
+version: 1.0.0
+
 Colección de scripts de Bash para automatizar diversas tareas en sistemas Linux y ayudarnos en tareas de desarrollo de software.
 
 ## backup
