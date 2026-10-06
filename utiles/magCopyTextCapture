@@ -13,7 +13,10 @@ function show_error_dialog {
 }
 
 # Tomar una captura de pantalla de una porción seleccionada de la pantalla y guardarla como un archivo de imagen
-gnome-screenshot -a -f ~/tmp/screenshot.png || show_error_dialog "Error: no se pudo tomar la captura de pantalla."
+# gnome-screenshot -a -f ~/tmp/screenshot.png || show_error_dialog "Error: no se pudo tomar la captura de pantalla."
+#
+QT_QPA_PLATFORM=wayland flameshot gui -r > ~/tmp/screenshot.png
+#
 # ksnip -r --saveto $HOME/tmp/screenshot.png || show_error_dialog "Error: no se pudo tomar la captura de pantalla."
 # Wayland
 # if command -v flameshot &> /dev/null; then
