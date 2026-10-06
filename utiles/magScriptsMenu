@@ -1,0 +1,351 @@
+#!/bin/bash
+
+## magScriptsMenu presenta un menú con todos los scripts del proyecto magscripts
+## y lanza el que selecciones.
+##
+## El menú se adapta al sitio desde donde lo lancemos:
+##
+## - Dentro de una terminal: lista filtrable con fzf.
+## - Fuera de una terminal (por ejemplo desde un atajo de teclado): ventana zenity,
+##   y si zenity no está instalado o falla, ventana rofi.
+##
+## Cuando el menú no corre en una terminal, el script elegido se abre en una
+## ventana de terminal nueva (MAGSCRIPTS_TERMINAL de ~/.config/magscripts/config,
+## terminator por defecto).
+##
+## Uso: magScriptsMenu [--fzf|--zenity|--rofi|--listar]
+##
+## - --fzf     Fuerza el menú de fzf.
+## - --zenity  Fuerza la ventana de zenity.
+## - --rofi    Fuerza la ventana de rofi.
+## - --listar  Solo lista los scripts que forman parte del menú.
+##
+## @file magScriptsMenu
+## @brief Menú lanzador de todos los scripts del proyecto magscripts
+
+## Directorio raíz del proyecto magscripts, resuelto desde la propia ubicación
+## del script para funcionar también lanzado por un atajo de teclado.
+
+MAGSCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+## Insertamos en PATH todos los subdirectorios de scripts, igual que en
+## .bashrc_edumag, para que el menú y los scripts que lancemos encuentren
+## sus comandos hermanos y doxygen2help.
+
+for x in "$MAGSCRIPTS_DIR"/*/ ; do
+   [ -d "$x" ] && PATH="$PATH:${x%/}"
+done
+
+help() { doxygen2help "$0" ; }
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ] ; then help ; exit ; fi
+
+## Terminal que abriremos para el script elegido cuando el menú no corre
+## en una terminal.
+
+if [ -e "$HOME/.config/magscripts/config" ] ; then
+   source "$HOME/.config/magscripts/config"
+fi
+MAGSCRIPTS_TERMINAL="${MAGSCRIPTS_TERMINAL:-terminator}"
+
+## Arrays con los scripts del menú:
+##    mag_ruta   ruta completa del script
+##    mag_menu   identificador mostrado, categoria/nombre
+##    mag_desc   descripción del script
+
+mag_ruta=()
+mag_menu=()
+mag_desc=()
+
+## Cargamos los scripts ejecutables del proyecto, dejando fuera librerías,
+## tests y plantillas que no se pueden lanzar.
+
+function cargar_scripts() {
+
+   local dir fichero nombre descripcion
+
+   mag_ruta=()
+   mag_menu=()
+   mag_desc=()
+
+   for dir in "$MAGSCRIPTS_DIR"/*/ ; do
+
+      case "$(basename "$dir")" in
+         lib|tests|openspec) continue ;;
+      esac
+
+      for fichero in "$dir"* ; do
+
+         [ -f "$fichero" ] && [ -x "$fichero" ] || continue
+
+         nombre="$(basename "$fichero")"
+         case "$nombre" in
+            mag*) ;;
+            *) continue ;;
+         esac
+
+         descripcion="$(grep -m1 "^## $nombre " "$fichero" 2>/dev/null | sed "s|^## $nombre *||; s/^- *//")"
+         [ -z "$descripcion" ] && descripcion="$(grep -m1 '^## @brief ' "$fichero" 2>/dev/null | sed 's/^## @brief *//')"
+         [ -z "$descripcion" ] && descripcion="$(grep -m1 '^## [^@]' "$fichero" 2>/dev/null | sed 's/^## *//; s/^- *//')"
+
+         mag_ruta[${#mag_ruta[*]}]="$fichero"
+         mag_menu[${#mag_menu[*]}]="$(basename "$dir")/$nombre"
+         mag_desc[${#mag_desc[*]}]="$descripcion"
+
+      done
+   done
+
+   }
+
+## Filas para fzf: ruta, identificador y descripción separados por tabulador
+
+function filas_fzf() {
+
+   local i
+   for i in "${!mag_ruta[@]}" ; do
+      printf '%s\t%s\t%s\n' "${mag_ruta[$i]}" "${mag_menu[$i]}" "${mag_desc[$i]}"
+   done
+
+   }
+
+## Filas para rofi: identificador y descripción separados por "|"
+
+function filas_ventana() {
+
+   local i
+   for i in "${!mag_menu[@]}" ; do
+      printf '%s|%s\n' "${mag_menu[$i]}" "${mag_desc[$i]}"
+   done
+
+   }
+
+## Filas para zenity: un valor por línea, sin separadores. zenity 4 rellena
+## las columnas de izquierda a derecha y salta de fila al completarlas, así
+## que cada script ocupa dos líneas seguidas (identificador y descripción).
+## Con "identificador|descripción" en una sola línea lo mostraba todo en la
+## primera columna.
+
+function filas_zenity() {
+
+   local i
+   for i in "${!mag_menu[@]}" ; do
+      printf '%s\n%s\n' "${mag_menu[$i]}" "${mag_desc[$i]}"
+   done
+
+   }
+
+## Devolvemos la ruta del script a partir de su identificador
+
+function ruta_de() {
+
+   local busco="$1" i
+   for i in "${!mag_menu[@]}" ; do
+      if [ "${mag_menu[$i]}" == "$busco" ] ; then
+         echo "${mag_ruta[$i]}"
+         return 0
+      fi
+   done
+   return 1
+
+   }
+
+## Menú con fzf, para usar dentro de una terminal. Limpiamos FZF_DEFAULT_OPTS
+## porque tu configuración global añade un --preview 'magFzfPreview {}' que
+## recibe la fila entera (ruta, identificador y descripción) y bat se queja de
+## que no es una ruta de archivo válida.
+
+function menu_fzf() {
+
+   local fila
+   fila="$(filas_fzf | FZF_DEFAULT_OPTS='' fzf --delimiter=$'\t' --with-nth=2,3 \
+           --prompt='magScripts> ' --header='ENTER lanza el script, ESC cancela')"
+   [ -z "$fila" ] && return 1
+   ejecutar_script "${fila%%$'\t'*}"
+
+   }
+
+## Ventana rofi, para usar fuera de una terminal. En sesiones Wayland sin
+## layer-shell (GNOME) rofi aborta, así que lo lanzamos en backend X11; si
+## igual falla devolvemos su código de error para probar con zenity.
+
+function menu_rofi() {
+
+   local eleccion codigo
+   eleccion="$(filas_ventana | env -u WAYLAND_DISPLAY rofi -sep '|' -dmenu -i -p 'MagScripts' \
+               -mesg 'Selecciona un script para lanzar')"
+   codigo=$?
+   [ -z "$eleccion" ] && return $codigo
+   ejecutar_script "$(ruta_de "${eleccion%%|*}")"
+
+   }
+
+## Ventana zenity, como alternativa a rofi
+
+function menu_zenity() {
+
+   local eleccion codigo
+   eleccion="$(filas_zenity | zenity --list --title='MagScripts' \
+               --text='Selecciona un script para lanzar' \
+               --column='Script' --column='Descripción' \
+               --width=720 --height=520 --print-column=1 )"
+   codigo=$?
+   ## 1 = cancelado; devolvemos el código real para que el enrutador pueda
+   ## probar con rofi si zenity ha fallado de verdad
+   [ -z "$eleccion" ] && return $codigo
+   ejecutar_script "$(ruta_de "$eleccion")"
+
+   }
+
+## Menú numerado, por si no tenemos fzf, rofi ni zenity
+
+function menu_numerado() {
+
+   local i eleccion
+
+   echo
+   echo "Scripts de magscripts"
+   echo "---------------------"
+   for i in "${!mag_menu[@]}" ; do
+      printf '%3s) %-34s %s\n' "$((i+1))" "${mag_menu[$i]}" "${mag_desc[$i]}"
+   done
+   echo
+   while true ; do
+      read -r -p 'Número (ENTER cancela): ' eleccion
+      [ -z "$eleccion" ] && return 1
+      case "$eleccion" in
+         *[!0-9]*) echo "Opción no válida: $eleccion" ; continue ;;
+      esac
+      [ "$eleccion" -ge 1 ] && [ "$eleccion" -le "${#mag_menu[@]}" ] && break
+      echo "Opción no válida: $eleccion"
+   done
+
+   ejecutar_script "${mag_ruta[$((eleccion-1))]}"
+
+   }
+
+## Listado de los scripts que forman parte del menú
+
+function listar_scripts() {
+
+   local i
+   for i in "${!mag_menu[@]}" ; do
+      printf '%-34s %s\n' "${mag_menu[$i]}" "${mag_desc[$i]}"
+   done
+
+   }
+
+## Lanzamos el script elegido: en una terminal lo ejecutamos aquí mismo y
+## fuera de una terminal abrimos una ventana de terminal nueva.
+
+function ejecutar_script() {
+
+   local ruta="$1" directorio
+
+   [ -z "$ruta" ] && return 1
+   directorio="$(dirname "$ruta")"
+
+   if [ -t 0 ] ; then
+      echo
+      echo "-> ${directorio#"$MAGSCRIPTS_DIR"/}/$(basename "$ruta")"
+      echo
+      ( cd "$directorio" && "$ruta" )
+      if [ $? != 0 ] ; then
+         echo
+         echo "Error al lanzar $(basename "$ruta")"
+         read -r -n 1 -s -p '[Presione una tecla para continuar]'
+      fi
+      return
+   fi
+
+   abrir_en_terminal "$ruta" "$directorio"
+
+   }
+
+function abrir_en_terminal() {
+
+   local ruta="$1" directorio="$2"
+
+   if ! command -v "$MAGSCRIPTS_TERMINAL" >/dev/null 2>&1 ; then
+      MAGSCRIPTS_TERMINAL=xterm
+   fi
+   if ! command -v "$MAGSCRIPTS_TERMINAL" >/dev/null 2>&1 ; then
+      echo "No encuentro $MAGSCRIPTS_TERMINAL para abrir $(basename "$ruta")"
+      echo "Define MAGSCRIPTS_TERMINAL en ~/.config/magscripts/config"
+      return 1
+   fi
+
+   "$MAGSCRIPTS_TERMINAL" -e "cd '$directorio' && '$ruta' ; echo ; read -r -p '[ENTER para cerrar] '" &
+
+   }
+
+## Selección del menú a presentar
+
+if [ "$1" == "--fzf" ] ; then
+   modo=fzf
+elif [ "$1" == "--rofi" ] ; then
+   modo=rofi
+elif [ "$1" == "--zenity" ] ; then
+   modo=zenity
+elif [ "$1" == "--listar" ] ; then
+   modo=listar
+elif [ -z "$1" ] ; then
+   if [ -t 0 ] ; then modo=fzf ; else modo=zenity ; fi
+else
+   echo "Opción no válida: $1"
+   echo
+   help
+   exit 1
+fi
+
+## Si la herramienta del menú no está instalada caemos a la siguiente:
+## fuera de terminal preferimos zenity y, si no está, rofi.
+
+case "$modo" in
+   fzf)    command -v fzf    >/dev/null 2>&1 || modo=menu ;;
+   zenity) command -v zenity >/dev/null 2>&1 || modo=rofi ;;
+   rofi)   command -v rofi   >/dev/null 2>&1 || modo=zenity ;;
+esac
+
+## Segunda pasada: si la herramienta en la que hemos caído tampoco está,
+## usamos el menú numerado (evita el bucle zenity <-> rofi)
+
+case "$modo" in
+   fzf|zenity|rofi) command -v "$modo" >/dev/null 2>&1 || modo=menu ;;
+esac
+
+## fzf necesita una terminal real para dibujar su lista
+
+[ "$modo" == "fzf" ] && [ ! -t 0 ] && modo=menu
+
+cargar_scripts
+
+if [ ${#mag_ruta[*]} == 0 ] ; then
+   echo "No he encontrado scripts en $MAGSCRIPTS_DIR"
+   exit 1
+fi
+
+case "$modo" in
+   listar) listar_scripts ;;
+   fzf)    menu_fzf ;;
+   zenity)
+      ## 1 = cancelado, mayor que 1 = zenity ha fallado y probamos rofi
+      menu_zenity
+      codigo=$?
+      if [ "$codigo" -gt 1 ] && command -v rofi >/dev/null 2>&1 ; then
+         menu_rofi
+      else
+         exit $codigo
+      fi
+      ;;
+   rofi)
+      ## 1 = cancelado, mayor que 1 = rofi ha fallado y probamos zenity
+      menu_rofi
+      codigo=$?
+      if [ "$codigo" -gt 1 ] && command -v zenity >/dev/null 2>&1 ; then
+         menu_zenity
+      else
+         exit $codigo
+      fi
+      ;;
+   menu)    menu_numerado ;;
+esac

@@ -382,6 +382,14 @@ magPass imprime contraseñas de comandos de manera segura, gestionando credencia
 
 -----
 
+### magScriptsMenu
+
+magScriptsMenu presenta un menú con todos los scripts del proyecto y lanza el que selecciones. En una terminal usa fzf; fuera de ella (por ejemplo desde un atajo de teclado) abre una ventana zenity, y si zenity no está instalado o falla, rofi. El script elegido se abre en una ventana de terminal nueva.
+
+*Dependencias*: fzf, rofi, zenity, terminator
+
+-----
+
 ### magText2Filename
 
 magText2Filename convierte frases en nombres de archivos válidos, transliterando caracteres especiales a ASCII.
