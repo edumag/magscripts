@@ -1,0 +1,11 @@
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="brand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#395d41"/>
+      <stop offset="100%" stop-color="#2a4530"/>
+    </linearGradient>
+  </defs>
+  <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle"
+        font-family="Roboto, Inter, system-ui, sans-serif"
+        font-weight="700" font-size="72" fill="url(#brand)">EM</text>
+</svg>

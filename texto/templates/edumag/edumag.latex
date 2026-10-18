@@ -325,7 +325,9 @@ $endif$
     % date of birth
     % Born 17 june 1993
 }{
-    \hfill\includegraphics[height=20mm]{/home/edumag/desarrollo/magscripts/texto/templates/edumag/logo.png}
+    \hfill
+    \rotatebox{90}{\texttt{linkedin}}\hspace{2mm}
+    \includegraphics[height=30mm]{/home/edumag/desarrollo/magscripts/texto/templates/edumag/qr-linkedin.pdf}
 }
 
 $body$
