@@ -3,39 +3,81 @@
 ## magMd2html convierte archivos Markdown a HTML usando plantillas
 ## personalizadas, generando páginas web atractivas desde texto plano.
 
-OUTPUT="`dirname $1`/`basename $1 '.md'`.html"
+RAW=0
+OUTPUT_FILE=""
+TEMPLATE="edumag"
 
-if [[ "$1" == "--raw" ]]; then
-    RAW=1
-    shift 1
-else
-    RAW=0
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --raw)
+            RAW=1
+            shift
+            ;;
+        -o|--output)
+            if [[ -z "$2" ]]; then
+                echo "Error: --output requiere un argumento (ruta del HTML de salida)"
+                exit 1
+            fi
+            OUTPUT_FILE="$2"
+            shift 2
+            ;;
+        -t|--template)
+            if [[ -z "$2" ]]; then
+                echo "Error: --template requiere un argumento (edumag|lesolivex)"
+                exit 1
+            fi
+            case "$2" in
+                edumag|lesolivex)
+                    TEMPLATE="$2"
+                    ;;
+                *)
+                    echo "Error: plantilla desconocida '$2'. Usa: edumag|lesolivex"
+                    exit 1
+                    ;;
+            esac
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+# Set default output file if not provided
+if [[ -z "$OUTPUT_FILE" ]]; then
+    OUTPUT_FILE="$(dirname "$1")/$(basename "$1" '.md').html"
 fi
 
-function md2html() {
+CURRENT_DIR=$(pwd)
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
+function md2html() {
     [[ -d ~/tmp ]] || mkdir -p ~/tmp
-    o="${OUTPUT}"
+    o="${OUTPUT_FILE}"
     echo "- $1 -> $o"
-    pandoc -s "$1" -o "${o}" --template=$( dirname -- "${BASH_SOURCE[0]}" )/templates/edumag/edumag.html5
+    pandoc -s "$1" -o "${o}" --template="$SCRIPT_DIR/templates/$TEMPLATE/$TEMPLATE.html5"
     xdg-open "${o}" &
 }
 
 function md2htmlRaw() {
-
-    o="${OUTPUT}"
+    o="${OUTPUT_FILE}"
     echo "- $1 -> $o"
     pandoc -s "$1" -o "${o}"
     xdg-open "${o}" &
 }
 
 help() {
-
-    echo "Usage with custom template: `basename $0` <markdown_file>"}
-    echo "Usage without custom template: `basename $0` --raw <markdown_file>"}
+    echo "Usage: $(basename "$0") [--raw] [-o|--output <html_file>] [-t|--template <template>] <markdown_file>"
+    echo ""
+    echo "Opciones:"
+    echo "  --raw                      Usar pandoc sin plantilla personalizada"
+    echo "  -o, --output <fichero>     Ruta del HTML de salida (por defecto: mismo dir/<nombre>.html)"
+    echo "  -t, --template <plantilla> Plantilla a usar: edumag|lesolivex (por defecto: edumag)"
+    echo "  -h, --help                 Mostrar esta ayuda"
 }
 
-if [[ -z "$1" ]] || [[ "$1" == "-h" ]]; then
+if [[ -z "$1" ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
     help
     exit 1
 fi
@@ -46,9 +88,10 @@ else
     md2html "$1"
 fi
 
-if [ -f "$OUTPUT" ]; then
-  read -p "Delete $OUTPUT? [y/N] " -n 1 -r
+if [[ -f "$OUTPUT_FILE" ]]; then
+  read -p "Delete $OUTPUT_FILE? [y/N] " -n 1 -r
+  echo
   if [[ $REPLY =~ ^[Yy]$ ]]; then
-    rm "$OUTPUT"
+    rm "$OUTPUT_FILE"
   fi
 fi

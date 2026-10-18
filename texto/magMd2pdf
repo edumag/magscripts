@@ -5,6 +5,7 @@
 
 RAW=0
 OUTPUT_FILE=""
+TEMPLATE="edumag"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -19,6 +20,22 @@ while [[ $# -gt 0 ]]; do
                 exit 1
             fi
             OUTPUT_FILE="$2"
+            shift 2
+            ;;
+        -t|--template)
+            if [[ -z "$2" ]]; then
+                echo "Error: --template requiere un argumento (edumag|lesolivex)"
+                exit 1
+            fi
+            case "$2" in
+                edumag|lesolivex)
+                    TEMPLATE="$2"
+                    ;;
+                *)
+                    echo "Error: plantilla desconocida '$2'. Usa: edumag|lesolivex"
+                    exit 1
+                    ;;
+            esac
             shift 2
             ;;
         *)
@@ -36,7 +53,7 @@ function md2pdf() {
     [[ -d ~/tmp ]] || mkdir -p ~/tmp
     o=~/tmp/$(basename "$1" '.md').pdf
     cd "$MARKDOWN_DIR" || exit 1
-    pandoc -s "$MARKDOWN_NAME" -o "$o" --template="$SCRIPT_DIR/templates/edumag/edumag.latex" --pdf-engine=xelatex --lua-filter="$SCRIPT_DIR/templates/edumag/emoji-filter.lua" -V "mainfont:DejaVu Sans" -V "monofont:DejaVu Sans Mono"
+    pandoc -s "$MARKDOWN_NAME" -o "$o" --template="$SCRIPT_DIR/templates/$TEMPLATE/$TEMPLATE.latex" --pdf-engine=xelatex --lua-filter="$SCRIPT_DIR/templates/$TEMPLATE/emoji-filter.lua" -V "mainfont:DejaVu Sans" -V "monofont:DejaVu Sans Mono"
     SALIDA=$?
     cd "$CURRENT_DIR" || exit 1
     [[ $SALIDA -eq 0 ]] || exit 1
@@ -50,11 +67,12 @@ function md2pdf() {
 }
 
 help() {
-    echo "Usage: $(basename "$0") [--raw] [-o|--output <pdf_file>] <markdown_file>"
+    echo "Usage: $(basename "$0") [--raw] [-o|--output <pdf_file>] [-t|--template <template>] <markdown_file>"
     echo ""
     echo "Opciones:"
     echo "  --raw                      Usar pandoc sin plantilla personalizada"
     echo "  -o, --output <fichero>     Ruta del PDF de salida (por defecto: ~/tmp/<nombre>.pdf)"
+    echo "  -t, --template <plantilla> Plantilla a usar: edumag|lesolivex (por defecto: edumag)"
     echo "  -h, --help                 Mostrar esta ayuda"
 }
 
@@ -67,7 +85,7 @@ if [[ "$RAW" == "1" ]]; then
     [[ -d ~/tmp ]] || mkdir -p ~/tmp
     o=~/tmp/$(basename "$1" '.md').pdf
     cd "$MARKDOWN_DIR" || exit 1
-    pandoc -s "$MARKDOWN_NAME" -o "$o" --pdf-engine=xelatex -V "monofont:DejaVu Sans Mono" -H "$SCRIPT_DIR/templates/edumag/emoji-header.tex" --lua-filter="$SCRIPT_DIR/templates/edumag/emoji-filter.lua"
+    pandoc -s "$MARKDOWN_NAME" -o "$o" --pdf-engine=xelatex -V "monofont:DejaVu Sans Mono" -H "$SCRIPT_DIR/templates/$TEMPLATE/emoji-header.tex" --lua-filter="$SCRIPT_DIR/templates/$TEMPLATE/emoji-filter.lua"
     SALIDA=$?
     cd "$CURRENT_DIR" || exit 1
     [[ $SALIDA -eq 0 ]] || exit 1
